@@ -59,8 +59,8 @@ int nrm_init(struct nrm_context *ctxt, const char *uuid)
     else {
         /* see strtoul(3) for details. */
         errno = 0;
-	nrm_ratelimit_threshold = strtoull(rate, NULL, 10);
-	assert(errno == 0);
+        nrm_ratelimit_threshold = strtoull(rate, NULL, 10);
+        assert(errno == 0);
     }
     assert(nrm_ratelimit_threshold > 0);
     ctxt->container_uuid = getenv("ARGO_CONTAINER_UUID");
@@ -91,8 +91,8 @@ int nrm_fini(struct nrm_context *ctxt)
     assert(ctxt != NULL);
     char buf[512];
     if (ctxt->acc != 0) {
-      snprintf(buf, 512, NRM_PROGRESS_FORMAT, ctxt->acc, ctxt->app_uuid);
-      int err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);
+        snprintf(buf, 512, NRM_PROGRESS_FORMAT, ctxt->acc, ctxt->app_uuid);
+        int err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);
     }
     snprintf(buf, 512, NRM_EXIT_FORMAT, ctxt->app_uuid);
     int err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);
@@ -130,7 +130,7 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
 }
 
 int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
-    unsigned long long int computeTime)
+                           unsigned long long int computeTime)
 {
     char buf[512];
     struct timespec now;
@@ -140,20 +140,20 @@ int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
     if(timediff > nrm_ratelimit_threshold)
     {
         snprintf(buf, 512, NRM_PHASECONTEXT_FORMAT, cpu, (unsigned int)(ctxt->acc),
-            computeTime, timediff, ctxt->app_uuid);
-	// should we use ZMQDONTWAIT in next command?
-        int err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);  
-	if(err == -1)
-	{
-	    assert(errno == EAGAIN);
-	    /* send would block, so act like a ratelimit */
-	}
+                 computeTime, timediff, ctxt->app_uuid);
+        // should we use ZMQDONTWAIT in next command?
+        int err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);
+        if(err == -1)
+        {
+            assert(errno == EAGAIN);
+            /* send would block, so act like a ratelimit */
+        }
         else
-	{
-	    assert(err > 0);
-	    ctxt->acc = 0;
-	    ctxt->time = now;
-	}
+        {
+            assert(err > 0);
+            ctxt->acc = 0;
+            ctxt->time = now;
+        }
     }
     return 0;
 }

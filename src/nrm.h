@@ -10,7 +10,7 @@
 
 /* Filename: downstream_api.h
  *
- * Includes required headers, functions and parameters used by NRM downstream 
+ * Includes required headers, functions and parameters used by NRM downstream
  * interface
  *
  */
@@ -53,15 +53,15 @@ int nrm_fini(struct nrm_context *);
 
 int nrm_send_progress(struct nrm_context *, unsigned long progress);
 int nrm_send_phase_context(struct nrm_context *ctxt,
-			   unsigned int cpu,
-			   unsigned long long int computeTime);
+                           unsigned int cpu,
+                           unsigned long long int computeTime);
 
 /* Utility function*/
 inline long long int nrm_timediff(struct nrm_context *ctxt, struct timespec
-		end_time)
+                                  end_time)
 {
     long long int timediff = (end_time.tv_nsec - ctxt->time.tv_nsec) +
-                  1e9* (end_time.tv_sec - ctxt->time.tv_sec);
+                             1e9* (end_time.tv_sec - ctxt->time.tv_sec);
     return timediff;
 }
 

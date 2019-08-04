@@ -29,12 +29,12 @@ int f_nrm_init_(uintptr_t *ctxt, char* uuid_in, int* size)
     int i, err;
     for (i = 0; i < *size; i++)
     {
-      uuid[i] = uuid_in[i];
-      if (uuid_in[i] == ' ')
-      {
-        uuid[i] = 0;
-        i = *size;
-      }
+        uuid[i] = uuid_in[i];
+        if (uuid_in[i] == ' ')
+        {
+            uuid[i] = 0;
+            i = *size;
+        }
     }
     uuid[*size] = 0;
     err = nrm_init(*((struct nrm_context **)ctxt), uuid);
@@ -52,9 +52,9 @@ int f_nrm_send_progress_(uintptr_t *ctxt, unsigned long *progress)
     return nrm_send_progress(*((struct nrm_context **)ctxt), *progress);
 }
 
-int f_nrm_send_phase_context_(uintptr_t *ctxt, unsigned int *cpu, 
-		unsigned long long int *computeTime)
+int f_nrm_send_phase_context_(uintptr_t *ctxt, unsigned int *cpu,
+                              unsigned long long int *computeTime)
 {
-    return nrm_send_phase_context(*((struct nrm_context **)ctxt), *cpu, 
-		    *computeTime);
+    return nrm_send_phase_context(*((struct nrm_context **)ctxt), *cpu,
+                                  *computeTime);
 }
