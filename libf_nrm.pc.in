@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=@prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libf_nrm
+Description: Argo Node Resource Manager Client API Fortran wrappers
+Version: 0.0.1
+Requires: libzmq libnrm
+Libs: -L${libdir} -lnrm -lf_nrm
+Cflags: -I${includedir}
