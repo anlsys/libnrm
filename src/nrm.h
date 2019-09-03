@@ -32,8 +32,10 @@ extern "C" {
 struct nrm_context {
     void *context;
     void *socket;
-    char *container_uuid;
-    char *app_uuid;
+    char *cmdID;
+    char *processID;
+    char *taskID;
+    char *threadID;
     struct timespec time;
     unsigned long acc;
 };
