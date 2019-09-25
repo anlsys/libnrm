@@ -6,7 +6,7 @@
  * For more info, see https://xgitlab.cels.anl.gov/argo/libnrm
  *
  * SPDX-License-Identifier: BSD-3-Clause
-*******************************************************************************/
+ *******************************************************************************/
 
 /* Filename: downstream_api.h
  *
@@ -18,9 +18,10 @@
 #ifndef NRM_H
 #define NRM_H 1
 
+#include "nrm_messaging.h"
 #include <inttypes.h>
 #include <time.h>
-#include "nrm_messaging.h"
+#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -30,14 +31,15 @@ extern "C" {
  * report. For now, 10ms is the threashold. */
 
 struct nrm_context {
-    void *context;
-    void *socket;
-    char *cmdID;
-    char *processID;
-    char *taskID;
-    char *threadID;
-    struct timespec time;
-    unsigned long acc;
+  void *context;
+  void *socket;
+  char *cmd_id;
+  char *task_id;
+  int rank_id;
+  int thread_id;
+  pid_t process_id;
+  struct timespec time;
+  unsigned long acc;
 };
 
 #define NRM_DEFAULT_URI "ipc:///tmp/nrm-downstream-event"
@@ -46,25 +48,22 @@ struct nrm_context {
 
 #define NRM_DEFAULT_RATELIMIT_THRESHOLD (10000000LL)
 
-
-struct nrm_context* nrm_ctxt_create(void);
+struct nrm_context *nrm_ctxt_create(void);
 int nrm_ctxt_delete(struct nrm_context *);
 
 int nrm_init(struct nrm_context *, const char *);
 int nrm_fini(struct nrm_context *);
 
 int nrm_send_progress(struct nrm_context *, unsigned long progress);
-int nrm_send_phase_context(struct nrm_context *ctxt,
-                           unsigned int cpu,
+int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
                            unsigned long long int computeTime);
 
 /* Utility function*/
-inline long long int nrm_timediff(struct nrm_context *ctxt, struct timespec
-                                  end_time)
-{
-    long long int timediff = (end_time.tv_nsec - ctxt->time.tv_nsec) +
-                             1e9* (end_time.tv_sec - ctxt->time.tv_sec);
-    return timediff;
+inline long long int nrm_timediff(struct nrm_context *ctxt,
+                                  struct timespec end_time) {
+  long long int timediff = (end_time.tv_nsec - ctxt->time.tv_nsec) +
+                           1e9 * (end_time.tv_sec - ctxt->time.tv_sec);
+  return timediff;
 }
 
 #ifdef __cplusplus

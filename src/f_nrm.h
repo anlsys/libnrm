@@ -5,8 +5,7 @@
 ! * This file is part of the libnrm project.
 ! * For more info, see https://xgitlab.cels.anl.gov/argo/libnrm
 ! *
-! * SPDX-License-Identifier:
-BSD-3-Clause
+! * SPDX-License-Identifier: BSD-3-Clause
 !*******************************************************************************
 
 integer                   NRM_PTR

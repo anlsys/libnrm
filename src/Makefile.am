@@ -1,4 +1,5 @@
-AM_CPPFLAGS = @LIBZMQ_CFLAGS@
+AM_CPPFLAGS = @LIBZMQ_CFLAGS@ $(OPENMP_CFLAGS)
+AM_LDFLAGS = $(OPENMP_CFLAGS)
 
 lib_LTLIBRARIES = libnrm.la
 
@@ -9,7 +10,8 @@ lib_LTLIBRARIES += libnrm-pmpi.la
 endif
 
 libnrm_la_SOURCES = downstream_api.c nrm.h nrm_messaging.h
-libnrm_la_LIBADD = @LIBZMQ_LIBS@
+libnrm_la_LIBADD = @LIBZMQ_LIBS@ 
+
 
 libf_nrm_la_SOURCES = downstream_api.c f_downstream_api.c nrm.h nrm_messaging.h
 libf_nrm_la_LIBADD = @LIBZMQ_LIBS@

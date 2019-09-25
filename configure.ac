@@ -40,5 +40,8 @@ AC_CONFIG_HEADERS([src/config.h])
 
 CFLAGS="$CFLAGS -Werror"
 
+# OpenMP
+AC_OPENMP
+
 AC_CONFIG_FILES([Makefile src/Makefile libnrm.pc libf_nrm.pc])
 AC_OUTPUT
