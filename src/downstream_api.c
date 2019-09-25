@@ -63,8 +63,8 @@ int nrm_init(struct nrm_context *ctxt, const char *uuid)
         assert(errno == 0);
     }
     assert(nrm_ratelimit_threshold > 0);
-    ctxt->container_uuid = getenv("ARGO_CONTAINER_UUID");
-    assert(ctxt->container_uuid != NULL);
+    ctxt -> cmdID = getenv("NRM_CmdID");
+    assert(ctxt ->cmdID!= NULL);
     buff_size = strnlen(uuid, 255) + 1;
     buff_size += 16;
     ctxt->app_uuid = malloc(buff_size*sizeof(char));
@@ -77,7 +77,7 @@ int nrm_init(struct nrm_context *ctxt, const char *uuid)
     int err = zmq_connect(ctxt->socket, uri);
     assert(err == 0);
     char buf[512];
-    snprintf(buf, 512, NRM_START_FORMAT, ctxt->container_uuid, ctxt->app_uuid);
+    snprintf(buf, 512, NRM_THREADSTART_FORMAT, ctxt->container_uuid, ctxt->app_uuid);
     sleep(1);
     err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);
     assert(err > 0);
@@ -91,10 +91,10 @@ int nrm_fini(struct nrm_context *ctxt)
     assert(ctxt != NULL);
     char buf[512];
     if (ctxt->acc != 0) {
-        snprintf(buf, 512, NRM_PROGRESS_FORMAT, ctxt->acc, ctxt->app_uuid);
+        snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, ctxt->acc, ctxt->app_uuid);
         int err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);
     }
-    snprintf(buf, 512, NRM_EXIT_FORMAT, ctxt->app_uuid);
+    snprintf(buf, 512, NRM_THREADEXIT_FORMAT, ctxt->app_uuid);
     int err = zmq_send(ctxt->socket, buf, strnlen(buf, 512), 0);
     assert(err > 0);
     free(ctxt->app_uuid);
