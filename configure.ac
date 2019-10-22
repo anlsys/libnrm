@@ -13,8 +13,11 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.12])
 AM_PROG_AR
 
-# check for libtool
-LT_INIT
+# PMPI lib
+AC_ARG_ENABLE(pmpi,
+	      [AS_HELP_STRING([--enable-pmpi],[Build PMPI library.])],
+	      [pmpi=true],[pmpi=false])
+AM_CONDITIONAL([PMPI_API],[test "x$pmpi" = xtrue])
 
 # check for programs
 AC_LANG([C])
@@ -23,25 +26,24 @@ AC_PROG_CC_STDC
 AC_PROG_CPP
 AC_TYPE_SIZE_T
 AC_TYPE_INTPTR_T
+AC_PROG_FC
+AC_FC_WRAPPERS
 
 # dependencies
 PKG_CHECK_MODULES([LIBZMQ],[libzmq])
 
-# PMPI lib
-AC_ARG_ENABLE(pmpi,
-	      [AS_HELP_STRING([--enable-pmpi],[Build PMPI library.])],
-	      [pmpi=true],[pmpi=false])
-if [[ "x$pmpi" = xtrue ]]; then
-	AX_MPI([],[AC_MSG_ERROR(could not find mpi library for --enable-pmpi)])
-fi
-AM_CONDITIONAL([PMPI_API],[test "x$pmpi" = xtrue])
+# check for libtool
+LT_INIT
+AC_SEARCH_LIBS([dlsym], [dl dld], [], [
+  AC_MSG_ERROR([unable to find the dlsym() function])
+])
 
 AC_CONFIG_HEADERS([src/config.h])
 
-CFLAGS="$CFLAGS -Werror"
-
-# OpenMP
-AC_OPENMP
-
-AC_CONFIG_FILES([Makefile src/Makefile libnrm.pc libf_nrm.pc])
+AC_CONFIG_FILES([Makefile
+		 src/Makefile
+		 ctests/Makefile
+		 ftests/Makefile
+		 libnrm.pc
+		 libf_nrm.pc])
 AC_OUTPUT

@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
-SUBDIRS = src
+SUBDIRS = src ctests ftests
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libnrm.pc

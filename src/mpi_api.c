@@ -20,61 +20,74 @@
  * efficiency of the node.
  */
 
+#define _GNU_SOURCE
+#include <assert.h>
 #include <ctype.h>
+#include <dlfcn.h>
 #include <mpi.h>
 #include <sched.h>  // sched_getcpu
 #include <stdio.h>  // printf
 #include <stdlib.h> // exit, atoi
 
 #include "nrm.h"
+#include "nrm_mpi.h"
 
-static unsigned int _transmit = 0;
 static unsigned int cpu;
 static int rank;
 static uint64_t computeTime;
 static struct nrm_context ctxt;
 struct timespec now;
 
-int MPI_Allreduce(const void *sendbuf, void *recvbuf, int count,
-                  MPI_Datatype datatype, MPI_Op op, MPI_Comm comm) {
-  clock_gettime(CLOCK_MONOTONIC, &now);
-  computeTime = nrm_gettime(&ctxt, now) int ret_value =
-      PMPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
-
-  if (_transmit)
-    nrm_send_phase_context(&ctxt, cpu, computeTime);
-  return ret_value;
-}
-
-int MPI_Barrier(MPI_Comm comm) {
+NRM_MPI_DECL(MPI_Allreduce, int, const void *sendbuf, void *recvbuf, int count,
+             MPI_Datatype datatype, MPI_Op op, MPI_Comm comm) {
+  NRM_MPI_RESOLVE(MPI_Allreduce);
   clock_gettime(CLOCK_MONOTONIC, &now);
   computeTime = nrm_timediff(&ctxt, now);
-  int ret_value = PMPI_Barrier(comm);
+  int ret = NRM_MPI_REALNAME(MPI_Allreduce, sendbuf, recvbuf, count, datatype,
+                             op, comm);
 
-  if (_transmit)
-    nrm_send_phase_context(&ctxt, cpu, computeTime);
-  return ret_value;
+  nrm_send_phase_context(&ctxt, cpu, computeTime);
+  return ret;
 }
 
-int MPI_Finalize(void) {
-  // Cleanup NRM context
+NRM_MPI_DECL(MPI_Barrier, int, MPI_Comm comm) {
+  NRM_MPI_RESOLVE(MPI_Barrier);
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  computeTime = nrm_timediff(&ctxt, now);
+  int ret = NRM_MPI_REALNAME(MPI_Barrier, comm);
+
+  nrm_send_phase_context(&ctxt, cpu, computeTime);
+  return ret;
+}
+
+NRM_MPI_DECL(MPI_Comm_size, int, MPI_Comm comm, int *size) {
+  NRM_MPI_RESOLVE(MPI_Comm_size);
+  return NRM_MPI_REALNAME(MPI_Comm_size, comm, size);
+}
+
+NRM_MPI_DECL(MPI_Comm_rank, int, MPI_Comm comm, int *rank) {
+  NRM_MPI_RESOLVE(MPI_Comm_rank);
+  return NRM_MPI_REALNAME(MPI_Comm_rank, comm, rank);
+}
+
+NRM_MPI_DECL(MPI_Finalize, int, void) {
+  NRM_MPI_RESOLVE(MPI_Finalize);
   nrm_fini(&ctxt);
-  return PMPI_Finalize();
+  return NRM_MPI_REALNAME(MPI_Finalize);
 }
 
-int MPI_Init(int *argc, char ***argv) {
-  int ret_value = PMPI_Init(argc, argv);
+NRM_MPI_DECL(MPI_Init, int, int *argc, char ***argv) {
+
+  NRM_MPI_RESOLVE(MPI_Init);
+  int ret = NRM_MPI_REALNAME(MPI_Init, argc, argv);
 
   cpu = sched_getcpu();
-  MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-
-  if (getenv("NRM_TRANSMIT"))
-    _transmit = atoi(getenv("NRM_TRANSMIT"));
+  NRM_MPI_INNER_NAME(MPI_Comm_rank, MPI_COMM_WORLD, &rank);
 
   // Initialize context to communicate with Argo Node Resource Manager(NRM)
-  nrm_init(&ctxt, (*argv)[0]);
+  nrm_init(&ctxt, "nrm-pmpi");
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
-  &ctxt->time = now;
-  return ret_value;
+  ctxt.time = now;
+  return ret;
 }

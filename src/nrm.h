@@ -21,7 +21,6 @@
 #include "nrm_messaging.h"
 #include <inttypes.h>
 #include <time.h>
-#include <sys/types.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +44,7 @@ struct nrm_context {
 #define NRM_DEFAULT_URI "ipc:///tmp/nrm-downstream-event"
 #define NRM_ENV_URI "ARGO_NRM_DOWNSTREAM_EVENT_URI"
 #define NRM_ENV_RATELIMIT "ARGO_NRM_RATELIMIT"
-
+#define NRM_ENV_TRANSMIT "ARGO_NRM_TRANSMIT"
 #define NRM_DEFAULT_RATELIMIT_THRESHOLD (10000000LL)
 
 struct nrm_context *nrm_ctxt_create(void);
@@ -59,12 +58,7 @@ int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
                            unsigned long long int computeTime);
 
 /* Utility function*/
-inline long long int nrm_timediff(struct nrm_context *ctxt,
-                                  struct timespec end_time) {
-  long long int timediff = (end_time.tv_nsec - ctxt->time.tv_nsec) +
-                           1e9 * (end_time.tv_sec - ctxt->time.tv_sec);
-  return timediff;
-}
+long long int nrm_timediff(struct nrm_context *ctxt, struct timespec end_time);
 
 #ifdef __cplusplus
 }
