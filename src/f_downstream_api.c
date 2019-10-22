@@ -22,20 +22,9 @@ int FC_FUNC_(f_nrm_ctxt_delete, F_NRM_CTXT_DELETE)(uintptr_t *ctxt) {
   return nrm_ctxt_delete(*((struct nrm_context **)ctxt));
 }
 
-int FC_FUNC_(f_nrm_init, F_NRM_INIT)(uintptr_t *ctxt, char *uuid_in,
-                                     int *size) {
-  char *uuid = calloc(*size + 1, sizeof(char));
-  int i, err;
-  for (i = 0; i < *size; i++) {
-    uuid[i] = uuid_in[i];
-    if (uuid_in[i] == ' ') {
-      uuid[i] = 0;
-      i = *size;
-    }
-  }
-  uuid[*size] = 0;
+int FC_FUNC_(f_nrm_init, F_NRM_INIT)(uintptr_t *ctxt, int uuid, int *size) {
+  int err;
   err = nrm_init(*((struct nrm_context **)ctxt), uuid);
-  free(uuid);
   return err;
 }
 

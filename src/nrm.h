@@ -33,7 +33,7 @@ struct nrm_context {
   void *context;
   void *socket;
   char *cmd_id;
-  char *task_id;
+  int task_id;
   int rank_id;
   int thread_id;
   pid_t process_id;
@@ -50,7 +50,7 @@ struct nrm_context {
 struct nrm_context *nrm_ctxt_create(void);
 int nrm_ctxt_delete(struct nrm_context *);
 
-int nrm_init(struct nrm_context *, const char *);
+int nrm_init(struct nrm_context *, int );
 int nrm_fini(struct nrm_context *);
 
 int nrm_send_progress(struct nrm_context *, unsigned long progress);

@@ -1,5 +1,6 @@
 Makefile.in
 Makefile
+ctests/.deps
 *.o
 *.lo
 *.la

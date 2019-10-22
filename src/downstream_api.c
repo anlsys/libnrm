@@ -24,6 +24,8 @@
 #include <string.h>
 #include <unistd.h>
 #include <zmq.h>
+#include <mpi.h>
+#include <omp.h>
 
 #include "nrm.h"
 
@@ -49,8 +51,8 @@ static void nrm_net_init(struct nrm_context *ctxt, const char *uri) {
     return;
   ctxt->context = zmq_ctx_new();
   ctxt->socket = zmq_socket(ctxt->context, ZMQ_DEALER);
-  zmq_setsockopt(ctxt->socket, ZMQ_IDENTITY, ctxt->app_uuid,
-                 strnlen(ctxt->app_uuid, 272));
+  zmq_setsockopt(ctxt->socket, ZMQ_IDENTITY, ctxt->cmd_id,
+                 strnlen(ctxt->cmd_id, 272));
   zmq_setsockopt(ctxt->socket, ZMQ_IMMEDIATE, &immediate, sizeof(immediate));
   int err = zmq_connect(ctxt->socket, uri);
   assert(err == 0);
@@ -70,9 +72,8 @@ static int nrm_net_send(struct nrm_context *ctxt, char *buf, size_t bufsize,
   return zmq_send(ctxt->socket, buf, strnlen(buf, bufsize), flags);
 }
 
-int nrm_init(struct nrm_context *ctxt, const char *uuid) {
+int nrm_init(struct nrm_context *ctxt, int task_id) {
   assert(ctxt != NULL);
-  assert(uuid != NULL);
   size_t buff_size;
 
   /* env init */
@@ -100,7 +101,7 @@ int nrm_init(struct nrm_context *ctxt, const char *uuid) {
   // process_id: the PID.
   ctxt->process_id = getpid();
   // task_id: a static application-specified identifier.
-  ctxt->task_id = strdup(task_id);
+  ctxt->task_id = task_id;
   // rank_id: The MPI rank.
   MPI_Comm_rank(MPI_COMM_WORLD, &(ctxt->rank_id));
   // thread_id: The OpenMP thread number.
@@ -110,10 +111,6 @@ int nrm_init(struct nrm_context *ctxt, const char *uuid) {
   nrm_net_init(ctxt, uri);
   sleep(1);
 
-  /* app init */
-  char buf[512];
-  snprintf(buf, 512, NRM_THREADSTART_FORMAT,  ctxt->cmd_id);
-  assert(nrm_net_send(ctxt, buf, 512, 0) > 0);
   assert(!clock_gettime(CLOCK_MONOTONIC, &ctxt->time));
   ctxt->acc = 0;
   return 0;
@@ -127,7 +124,7 @@ int nrm_fini(struct nrm_context *ctxt) {
     snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, ctxt->cmd_id, ctxt->acc);
     err = nrm_net_send(ctxt, buf, 512, 0);
   }
-  snprintf(buf, 512, NRM_THREADEXIT_FORMAT, ctxt->cmd_id);
+  snprintf(buf, 512, NRM_THREADPAUSE_FORMAT, ctxt->cmd_id);
   err = nrm_net_send(ctxt, buf, 512, 0);
   assert(err > 0);
   free(ctxt->cmd_id);
@@ -142,7 +139,9 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress) {
   long long int timediff = nrm_timediff(ctxt, now);
   ctxt->acc += progress;
   if (timediff > nrm_ratelimit_threshold) {
-    snprintf(buf, 512, NRM_PROGRESS_FORMAT, ctxt->acc, ctxt->app_uuid);
+    snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, ctxt->cmd_id,
+             ctxt->process_id, ctxt->task_id, ctxt->thread_id,
+             (unsigned int)ctxt->acc);
     int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
     if (err == -1) {
       assert(errno == EAGAIN);
@@ -164,8 +163,9 @@ int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
   long long int timediff = nrm_timediff(ctxt, now);
   ctxt->acc++;
   if (timediff > nrm_ratelimit_threshold) {
-    snprintf(buf, 512, NRM_PHASECONTEXT_FORMAT, cpu, (unsigned int)(ctxt->acc),
-             computeTime, timediff, ctxt->app_uuid);
+    snprintf(buf, 512, NRM_THREADPHASECONTEXT_FORMAT, ctxt->cmd_id,
+             ctxt->process_id, ctxt->task_id, ctxt->thread_id, cpu,
+             (unsigned int)(ctxt->acc), computeTime, timediff);
     int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
     if (err == -1) {
       assert(errno == EAGAIN);
