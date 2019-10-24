@@ -105,7 +105,11 @@ int nrm_init(struct nrm_context *ctxt, const char *task_id) {
   ctxt->task_id = malloc(buff_size * sizeof(char));
   snprintf(ctxt->task_id, buff_size, "%s", task_id);
   // rank_id: The MPI rank.
-  MPI_Comm_rank(MPI_COMM_WORLD, &(ctxt->rank_id));
+  int flagInit;
+  MPI_Initialized(&flagInit);
+  if (flagInit) {
+    MPI_Comm_rank(MPI_COMM_WORLD, &(ctxt->rank_id));
+  }
   // thread_id: The OpenMP thread number.
   ctxt->thread_id = omp_get_thread_num();
 
