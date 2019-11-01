@@ -19,7 +19,6 @@
  */
 
 #include <assert.h>
-#include <czmq.h>
 #include <mpi.h>
 #include <omp.h>
 #include <stdio.h>
@@ -27,7 +26,6 @@
 #include <string.h>
 #include <unistd.h>
 #include <zmq.h>
-#include <zuuid.h>
 
 #include "nrm.h"
 
@@ -53,9 +51,6 @@ static void nrm_net_init(struct nrm_context *ctxt, const char *uri) {
     return;
   ctxt->context = zmq_ctx_new();
   ctxt->socket = zmq_socket(ctxt->context, ZMQ_DEALER);
-  zuuid_t *uuid = zuuid_new();
-  zmq_setsockopt(ctxt->socket, ZMQ_IDENTITY, zuuid_data(uuid),
-                 zuuid_size(uuid));
   zmq_setsockopt(ctxt->socket, ZMQ_IMMEDIATE, &immediate, sizeof(immediate));
   int err = zmq_connect(ctxt->socket, uri);
   assert(err == 0);
@@ -133,11 +128,12 @@ int nrm_fini(struct nrm_context *ctxt) {
   assert(ctxt != NULL);
   if (ctxt->acc != 0) {
     snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, ctxt->cmd_id,
-             ctxt->process_id, ctxt->task_id, ctxt->thread_id, (int)ctxt->acc);
+             ctxt->process_id, ctxt->task_id, ctxt->thread_id, ctxt->rank_id,
+             (int)ctxt->acc);
     err = nrm_net_send(ctxt, buf, 512, 0);
   }
   snprintf(buf, 512, NRM_THREADPAUSE_FORMAT, ctxt->cmd_id, ctxt->process_id,
-           ctxt->task_id, ctxt->thread_id);
+           ctxt->task_id, ctxt->thread_id, ctxt->rank_id);
   err = nrm_net_send(ctxt, buf, 512, 0);
   assert(err > 0);
   free(ctxt->task_id);
@@ -153,7 +149,8 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress) {
   ctxt->acc += progress;
   if (timediff > nrm_ratelimit_threshold) {
     snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, ctxt->cmd_id,
-             ctxt->process_id, ctxt->task_id, ctxt->thread_id, (int)ctxt->acc);
+             ctxt->process_id, ctxt->task_id, ctxt->thread_id, ctxt->rank_id,
+             (int)ctxt->acc);
     int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
     if (err == -1) {
       assert(errno == EAGAIN);
@@ -177,8 +174,8 @@ int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
   if (timediff > nrm_ratelimit_threshold) {
 
     snprintf(buf, 512, NRM_THREADPHASECONTEXT_FORMAT, ctxt->cmd_id,
-             ctxt->process_id, ctxt->task_id, ctxt->thread_id, (int)cpu,
-             (int)(ctxt->acc), (int)computeTime, (int)timediff);
+             ctxt->process_id, ctxt->task_id, ctxt->thread_id, ctxt->rank_id,
+             (int)cpu, (int)(ctxt->acc), (int)computeTime, (int)timediff);
     int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
     if (err == -1) {
       assert(errno == EAGAIN);
