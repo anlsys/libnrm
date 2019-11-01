@@ -19,6 +19,7 @@
  */
 
 #include <assert.h>
+#include <czmq.h>
 #include <mpi.h>
 #include <omp.h>
 #include <stdio.h>
@@ -26,6 +27,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <zmq.h>
+#include <zuuid.h>
 
 #include "nrm.h"
 
@@ -51,8 +53,9 @@ static void nrm_net_init(struct nrm_context *ctxt, const char *uri) {
     return;
   ctxt->context = zmq_ctx_new();
   ctxt->socket = zmq_socket(ctxt->context, ZMQ_DEALER);
-  zmq_setsockopt(ctxt->socket, ZMQ_IDENTITY, ctxt->task_id,
-                 strnlen(ctxt->task_id, 272));
+  zuuid_t *uuid = zuuid_new();
+  zmq_setsockopt(ctxt->socket, ZMQ_IDENTITY, zuuid_data(uuid),
+                 zuuid_size(uuid));
   zmq_setsockopt(ctxt->socket, ZMQ_IMMEDIATE, &immediate, sizeof(immediate));
   int err = zmq_connect(ctxt->socket, uri);
   assert(err == 0);

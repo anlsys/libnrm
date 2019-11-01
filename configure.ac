@@ -31,6 +31,10 @@ AC_FC_WRAPPERS
 
 # dependencies
 PKG_CHECK_MODULES([LIBZMQ],[libzmq])
+PKG_CHECK_MODULES([CZMQ], [libczmq])
+
+AC_HEADER_STDC
+AC_CHECK_HEADERS([czmq.h zmq.h])
 
 # check for libtool
 LT_INIT
