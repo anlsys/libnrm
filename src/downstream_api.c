@@ -94,7 +94,7 @@ int nrm_init(struct nrm_context *ctxt, const char *task_id) {
 
   /* context init */
   assert(nrm_ratelimit_threshold > 0);
-  ctxt->cmd_id = getenv("NRM_CMDID");
+  ctxt->cmd_id = getenv(NRM_ENV_CMDID);
   assert(ctxt->cmd_id != NULL);
   // process_id: the PID.
   ctxt->process_id = getpid();

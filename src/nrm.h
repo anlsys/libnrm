@@ -41,12 +41,6 @@ struct nrm_context {
   unsigned long acc;
 };
 
-#define NRM_DEFAULT_URI "ipc:///tmp/nrm-downstream-event"
-#define NRM_ENV_URI "ARGO_NRM_DOWNSTREAM_EVENT_URI"
-#define NRM_ENV_RATELIMIT "ARGO_NRM_RATELIMIT"
-#define NRM_ENV_TRANSMIT "ARGO_NRM_TRANSMIT"
-#define NRM_DEFAULT_RATELIMIT_THRESHOLD (10000000LL)
-
 struct nrm_context *nrm_ctxt_create(void);
 int nrm_ctxt_delete(struct nrm_context *);
 
