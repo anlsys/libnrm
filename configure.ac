@@ -13,12 +13,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.12])
 AM_PROG_AR
 
-# PMPI lib
-AC_ARG_ENABLE(pmpi,
-	      [AS_HELP_STRING([--enable-pmpi],[Build PMPI library.])],
-	      [pmpi=true],[pmpi=false])
-AM_CONDITIONAL([PMPI_API],[test "x$pmpi" = xtrue])
-
 # check for programs
 AC_LANG([C])
 AC_PROG_CC

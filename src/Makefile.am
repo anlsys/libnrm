@@ -4,9 +4,7 @@ lib_LTLIBRARIES = libnrm.la
 
 lib_LTLIBRARIES += libf-nrm.la
 
-if PMPI_API
 lib_LTLIBRARIES += libnrm-pmpi.la
-endif
 
 libnrm_la_SOURCES = downstream_api.c nrm.h nrm_messaging.h
 libnrm_la_LIBADD = @LIBZMQ_LIBS@
