@@ -1,0 +1,18 @@
+clang-format:
+  stage: source
+  tags:
+    - kvm
+    - nix
+  script:
+    - |
+      nix-shell --pure -p 'fd' 'clang-tools' --run bash <<< '
+        RETURN=0
+        for F in $(fd -E hsnrm/hbandit -E hsnrm/dhall-haskell -e c); do
+          clang-format < $F | cmp -s $F -
+          if [ $? -ne 0 ]; then
+            echo "[!] $F does not pass clang-format format check." >&2
+            RETURN=1
+          fi
+        done
+        if [ $RETURN -ne 0 ]; then exit 1; fi
+      '
