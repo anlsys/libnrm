@@ -1,2 +1,1 @@
-{ pkgs ? import (../.) { } }:
-pkgs
+{ pkgs ? import (../.) { } }: pkgs
