@@ -127,13 +127,12 @@ int nrm_fini(struct nrm_context *ctxt) {
   int err;
   assert(ctxt != NULL);
   if (ctxt->acc != 0) {
-    snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, ctxt->cmd_id,
-             ctxt->process_id, ctxt->task_id, ctxt->thread_id, ctxt->rank_id,
-             (int)ctxt->acc);
+    snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, (int)ctxt->acc, ctxt->cmd_id,
+             ctxt->task_id, ctxt->process_id, ctxt->rank_id, ctxt->thread_id);
     err = nrm_net_send(ctxt, buf, 512, 0);
   }
-  snprintf(buf, 512, NRM_THREADPAUSE_FORMAT, ctxt->cmd_id, ctxt->process_id,
-           ctxt->task_id, ctxt->thread_id, ctxt->rank_id);
+  snprintf(buf, 512, NRM_THREADPAUSE_FORMAT, ctxt->cmd_id, ctxt->task_id,
+           ctxt->process_id, ctxt->rank_id, ctxt->thread_id);
   err = nrm_net_send(ctxt, buf, 512, 0);
   assert(err > 0);
   free(ctxt->task_id);
@@ -148,9 +147,9 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress) {
   long long int timediff = nrm_timediff(ctxt, now);
   ctxt->acc += progress;
   if (timediff > nrm_ratelimit_threshold) {
-    snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, ctxt->cmd_id,
-             ctxt->process_id, ctxt->task_id, ctxt->thread_id, ctxt->rank_id,
-             (int)ctxt->acc);
+    snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, (int)ctxt->acc, ctxt->cmd_id,
+             ctxt->task_id, (int)ctxt->process_id, ctxt->rank_id,
+             ctxt->thread_id);
     int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
     if (err == -1) {
       assert(errno == EAGAIN);
@@ -174,7 +173,7 @@ int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
   if (timediff > nrm_ratelimit_threshold) {
 
     snprintf(buf, 512, NRM_THREADPHASECONTEXT_FORMAT, ctxt->cmd_id,
-             ctxt->process_id, ctxt->task_id, ctxt->thread_id, ctxt->rank_id,
+             ctxt->task_id, ctxt->process_id, ctxt->rank_id, ctxt->thread_id,
              (int)cpu, (int)(ctxt->acc), (int)computeTime, (int)timediff);
     int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
     if (err == -1) {
