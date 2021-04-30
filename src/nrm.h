@@ -26,13 +26,11 @@
  * @{
  **/
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 struct nrm_context;
-
 
 struct nrm_context *nrm_ctxt_create(void);
 
@@ -50,8 +48,7 @@ int nrm_ctxt_delete(struct nrm_context *);
  * @param ctxt: pointer to a nrm_context structure.
  *
  */
-int nrm_init(struct nrm_context *ctxt, const char *taskid, int rank_id,
-	     int thread_id);
+int nrm_init(struct nrm_context *ctxt, const char *name, int rank, int thread);
 
 /**
  * Ends libnrm's operation.
@@ -81,9 +78,9 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress);
  * @param computeTime: TODO
  *
  */
-int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
+int nrm_send_phase_context(struct nrm_context *ctxt,
+                           unsigned int cpu,
                            unsigned long long int computeTime);
-
 
 #ifdef __cplusplus
 }
