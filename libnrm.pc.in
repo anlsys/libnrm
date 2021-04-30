@@ -5,7 +5,7 @@ includedir=@includedir@
 
 Name: libnrm
 Description: Argo Node Resource Manager Client API
-Version: 0.0.1
+Version: @PACKAGE_VERSION@
 Requires: libzmq
 Libs: -L${libdir} -lnrm
 Cflags: -I${includedir}

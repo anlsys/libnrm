@@ -1,5 +1,5 @@
 # see semver.org for version info
-AC_INIT([libnrm],[0.0.1],[sriduttb@anl.gov])
+AC_INIT([libnrm],[0.1.0],[swann@anl.gov])
 
 
 # are we in the right source dir ?
@@ -10,18 +10,19 @@ AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_MACRO_DIR([m4])
 
 # automake should fail on any error
-AM_INIT_AUTOMAKE([-Wall -Werror foreign 1.12])
-AM_PROG_AR
+AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects 1.12])
 
 # check for programs
 AC_LANG([C])
+AC_USE_SYSTEM_EXTENSIONS
 AC_PROG_CC
-AC_PROG_CC_STDC
+AC_PROG_CC_C99
 AC_PROG_CPP
 AC_TYPE_SIZE_T
 AC_TYPE_INTPTR_T
 AC_PROG_FC
 AC_FC_WRAPPERS
+AM_PROG_AR
 
 # dependencies
 PKG_CHECK_MODULES([LIBZMQ],[libzmq])
@@ -35,9 +36,6 @@ AC_SEARCH_LIBS([dlsym], [dl dld], [], [
 AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile
-		 src/Makefile
-		 ctests/Makefile
-		 ftests/Makefile
 		 libnrm.pc
-		 libf_nrm.pc])
+		 libnrmf.pc])
 AC_OUTPUT

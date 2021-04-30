@@ -17,17 +17,16 @@
  * application progress and/or invoke power policies to improve energy
  * efficiency at the node level.
  */
+#include "config.h"
 
 #include <assert.h>
-#include <mpi.h>
-#include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <zmq.h>
 
 #include "nrm.h"
+#include "internal-downstream.h"
 
 static long long int nrm_ratelimit_threshold;
 static int nrm_transmit = 1;
@@ -70,7 +69,8 @@ static int nrm_net_send(struct nrm_context *ctxt, char *buf, size_t bufsize,
   return zmq_send(ctxt->socket, buf, strnlen(buf, bufsize), flags);
 }
 
-int nrm_init(struct nrm_context *ctxt, const char *task_id) {
+int nrm_init(struct nrm_context *ctxt, const char *task_id,
+	     int rank_id, int thread_id) {
   assert(ctxt != NULL);
   assert(task_id != NULL);
   size_t buff_size;
@@ -102,21 +102,15 @@ int nrm_init(struct nrm_context *ctxt, const char *task_id) {
   buff_size = strnlen(task_id, 255) + 1;
   ctxt->task_id = malloc(buff_size * sizeof(char));
   snprintf(ctxt->task_id, buff_size, "%s", task_id);
-  // rank_id: The MPI rank.
-  int flagInit;
-  MPI_Initialized(&flagInit);
-  if (flagInit) {
-    MPI_Comm_rank(MPI_COMM_WORLD, &(ctxt->rank_id));
-  }
-  // thread_id: The OpenMP thread number.
-  ctxt->thread_id = omp_get_thread_num();
+  
+  ctxt->rank_id = rank_id;
+  ctxt->thread_id = thread_id;
 
   /* net init */
   nrm_net_init(ctxt, uri);
   sleep(1);
 
   /* app init */
-  char buf[512];
   assert(!clock_gettime(CLOCK_MONOTONIC, &ctxt->time));
   ctxt->acc = 0;
   return 0;

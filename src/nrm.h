@@ -18,10 +18,6 @@
 #ifndef NRM_H
 #define NRM_H 1
 
-#include "nrm_messaging.h"
-#include <inttypes.h>
-#include <time.h>
-
 /**
  * @defgroup nrm "nrmMlib API"
  * @brief nrmlib C instrumentation API.
@@ -35,20 +31,8 @@
 extern "C" {
 #endif
 
-/* min time in nsec between messages: necessary for rate-limiting progress
- * report. For now, 10ms is the threashold. */
+struct nrm_context;
 
-struct nrm_context {
-  void *context;
-  void *socket;
-  char *task_id;
-  char *cmd_id;
-  int rank_id;
-  int thread_id;
-  pid_t process_id;
-  struct timespec time;
-  unsigned long acc;
-};
 
 struct nrm_context *nrm_ctxt_create(void);
 
@@ -65,9 +49,9 @@ int nrm_ctxt_delete(struct nrm_context *);
  *
  * @param ctxt: pointer to a nrm_context structure.
  *
- * @param uri: ZMQ uri used to communicate with NRM's downstream API.
  */
-int nrm_init(struct nrm_context *ctxt, const char *uri);
+int nrm_init(struct nrm_context *ctxt, const char *taskid, int rank_id,
+	     int thread_id);
 
 /**
  * Ends libnrm's operation.
@@ -100,7 +84,6 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress);
 int nrm_send_phase_context(struct nrm_context *ctxt, unsigned int cpu,
                            unsigned long long int computeTime);
 
-long long int nrm_timediff(struct nrm_context *ctxt, struct timespec end_time);
 
 #ifdef __cplusplus
 }
