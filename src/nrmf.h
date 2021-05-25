@@ -20,5 +20,3 @@
       external                  nrmf_fini
       integer                   nrmf_send_progress
       external                  nrmf_send_progress
-      integer                   nrmf_send_phase_context
-      external                  nrmf_send_phase_context

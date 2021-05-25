@@ -57,12 +57,3 @@ int FC_FUNC_(nrmf_send_progress, NRMF_SEND_PROGRESS)(uintptr_t *ctxt,
 {
 	return nrm_send_progress(*((struct nrm_context **)ctxt), *progress);
 }
-
-int FC_FUNC_(nrmf_send_phase_context,
-             NRMF_SEND_PHASE_CONTEXT)(uintptr_t *ctxt,
-                                      unsigned int *cpu,
-                                      unsigned long long int *computeTime)
-{
-	return nrm_send_phase_context(*((struct nrm_context **)ctxt), *cpu,
-	                              *computeTime);
-}

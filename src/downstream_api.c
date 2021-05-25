@@ -121,7 +121,7 @@ int nrm_init(struct nrm_context *ctxt,
 	sleep(1);
 
 	/* app init */
-	assert(!clock_gettime(CLOCK_MONOTONIC, &ctxt->time));
+	nrm_time_gettime(&ctxt->time);
 	ctxt->acc = 0;
 	return 0;
 }
@@ -149,9 +149,9 @@ int nrm_fini(struct nrm_context *ctxt)
 int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
 {
 	char buf[512];
-	struct timespec now;
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	long long int timediff = nrm_timediff(ctxt, now);
+	nrm_time_t now;
+	nrm_time_gettime(&now);
+	int64_t timediff = nrm_time_diff(&ctxt->time, &now);
 	ctxt->acc += progress;
 	if (timediff > nrm_ratelimit_threshold) {
 		snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, (int)ctxt->acc,
@@ -168,39 +168,4 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
 		}
 	}
 	return 0;
-}
-
-int nrm_send_phase_context(struct nrm_context *ctxt,
-                           unsigned int cpu,
-                           unsigned long long int computeTime)
-{
-	char buf[512];
-	struct timespec now;
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	long long int timediff = nrm_timediff(ctxt, now);
-	ctxt->acc++;
-	if (timediff > nrm_ratelimit_threshold) {
-
-		snprintf(buf, 512, NRM_THREADPHASECONTEXT_FORMAT, ctxt->cmd_id,
-		         ctxt->task_id, ctxt->process_id, ctxt->rank_id,
-		         ctxt->thread_id, (int)cpu, (int)(ctxt->acc),
-		         (int)computeTime, (int)timediff);
-		int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
-		if (err == -1) {
-			assert(errno == EAGAIN);
-			/* send would block, so act like a ratelimit */
-		} else {
-			assert(err > 0);
-			ctxt->acc = 0;
-			ctxt->time = now;
-		}
-	}
-	return 0;
-}
-
-long long int nrm_timediff(struct nrm_context *ctxt, struct timespec end_time)
-{
-	long long int timediff = (end_time.tv_nsec - ctxt->time.tv_nsec) +
-	                         1e9 * (end_time.tv_sec - ctxt->time.tv_sec);
-	return timediff;
 }

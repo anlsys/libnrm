@@ -45,11 +45,9 @@ struct nrm_context {
 	int rank_id;
 	int thread_id;
 	pid_t process_id;
-	struct timespec time;
+	nrm_time_t time;
 	unsigned long acc;
 };
-
-long long int nrm_timediff(struct nrm_context *ctxt, struct timespec end_time);
 
 #ifdef __cplusplus
 }

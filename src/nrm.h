@@ -33,6 +33,36 @@ extern "C" {
 #include <inttypes.h>
 #include <time.h>
 
+/*******************************************************************************
+ * High Resolution Timers
+ * type and functions to save a timestamp and compute a difference.
+ * Resolution should be in nanoseconds.
+ ******************************************************************************/
+
+/**
+ * Define type used to internally save timestamps (in nanoseconds since epoch)
+ **/
+typedef struct timespec nrm_time_t;
+
+/**
+ * Save timestamps into timer
+ **/
+void nrm_time_gettime(nrm_time_t *now);
+
+/**
+ * Compute the time difference between two timestamps, as nanoseconds.
+ **/
+int64_t nrm_time_diff(const nrm_time_t *start, const nrm_time_t *end);
+
+/**
+ * Convert timestamp into nanoseconds since epoch, as an int64_t value
+ **/
+int64_t nrm_time_tons(const nrm_time_t *time);
+
+/*******************************************************************************
+ * Downstream API
+ ******************************************************************************/
+
 struct nrm_context;
 
 struct nrm_context *nrm_ctxt_create(void);
@@ -70,46 +100,6 @@ int nrm_fini(struct nrm_context *ctxt);
  * since the last progress report.
  */
 int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress);
-
-/**
- * Sends MPI phase context information
- *
- * @param ctxt: pointer to the libnrm context.
- *
- * @param cpu: TODO
- *
- * @param computeTime: TODO
- *
- */
-int nrm_send_phase_context(struct nrm_context *ctxt,
-                           unsigned int cpu,
-                           unsigned long long int computeTime);
-
-/*******************************************************************************
- * High Resolution Timers
- * type and functions to save a timestamp and compute a difference.
- * Resolution should be in nanoseconds.
- ******************************************************************************/
-
-/**
- * Define type used to internally save timestamps (in nanoseconds since epoch)
- **/
-typedef struct timespec nrm_time_t;
-
-/**
- * Save timestamps into timer
- **/
-void nrm_time_gettime(nrm_time_t *now);
-
-/**
- * Compute the time difference between two timestamps, as nanoseconds.
- **/
-int64_t nrm_time_diff(const nrm_time_t *start, const nrm_time_t *end);
-
-/**
- * Convert timestamp into nanoseconds since epoch, as an int64_t value
- **/
-int64_t nrm_time_tons(const nrm_time_t *time);
 
 #ifdef __cplusplus
 }
