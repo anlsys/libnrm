@@ -10,10 +10,10 @@ include_HEADERS = src/nrm.h src/nrmf.h
 
 lib_LTLIBRARIES = libnrm.la libnrmf.la
 
-libnrm_la_SOURCES = src/downstream_api.c src/internal-downstream.h
+libnrm_la_SOURCES = src/downstream_api.c src/internal-downstream.h src/timers.c
 libnrm_la_LIBADD = @LIBZMQ_LIBS@
 
-libnrmf_la_SOURCES = src/downstream_api.c src/f_downstream_api.c  src/internal-downstream.h
+libnrmf_la_SOURCES = src/downstream_api.c src/f_downstream_api.c  src/internal-downstream.h src/timers.c
 libnrmf_la_LIBADD = @LIBZMQ_LIBS@
 
 
