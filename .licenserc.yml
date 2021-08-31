@@ -17,4 +17,5 @@ header:
     - '**/*.h.in'
   paths-ignore:
     - '**/*.f90'
+    - '**/nrmf.h'
   comment: never

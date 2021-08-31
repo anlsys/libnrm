@@ -44,6 +44,7 @@ jobs:
         run: |
           cd out
           make
+      - name: make install
         run: |
           cd out
           make install

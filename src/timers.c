@@ -3,7 +3,7 @@
  * (c.f. AUTHORS, LICENSE)
  *
  * This file is part of the libnrm project.
- * For more info, see https://xgitlab.cels.anl.gov/argo/libnrm
+ * For more info, see https://github.com/anlsys/libnrm
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
