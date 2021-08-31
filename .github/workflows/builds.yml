@@ -1,0 +1,82 @@
+name: builds
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  VERBOSE: 1
+jobs:
+  generic:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 gfortran
+      - uses: actions/checkout@v2
+      - name: configure
+        run: |
+          ./autogen.sh
+          mkdir build
+          ./configure --prefix=`pwd`/build
+      - run: make
+      - run: make install
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: generic
+          path: |
+            config.log
+  out-of-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 gfortran
+      - uses: actions/checkout@v2
+      - name: configure
+        run: |
+          ./autogen.sh
+          mkdir out
+          cd out
+          mkdir build
+          ../configure --prefix=`pwd`/build
+      - name: make
+        run: |
+          cd out
+          make
+        run: |
+          cd out
+          make install
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: out-of-tree
+          path: |
+            out/config.log
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cachix/install-nix-action@v13
+        with:
+          nix_path: nixpkgs=channel:nixos-20.09
+      - run: nix-build -A libnrm
+  distcheck:
+    runs-on: ubuntu-latest
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 gfortran
+      - uses: actions/checkout@v2
+      - name: configure
+        run: |
+          ./autogen.sh
+          mkdir build
+          ./configure --prefix=`pwd`/build
+      - run: make
+      - run: make distcheck
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: distcheck
+          path: |
+            config.log
