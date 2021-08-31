@@ -6,7 +6,7 @@ pkgconfig_DATA = libnrm.pc libnrmf.pc
 
 EXTRA_DIST = autogen.sh libnrm.pc libnrmf.pc README.md
 
-include_HEADERS = src/nrm.h src/nrmf.h
+include_HEADERS = src/nrm.h src/nrmf.fh
 
 lib_LTLIBRARIES = libnrm.la libnrmf.la
 

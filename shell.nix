@@ -9,6 +9,8 @@ mkShell {
     gdb
     # style checks
     clang-tools
+    python3
+    llvmPackages.clang-unwrapped.python
   ];
 
   CFLAGS =
