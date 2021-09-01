@@ -1,5 +1,5 @@
 # see semver.org for version info
-AC_INIT([libnrm],[0.1.0],[swann@anl.gov])
+AC_INIT([libnrm],[0.7.0],[swann@anl.gov])
 
 
 # are we in the right source dir ?
