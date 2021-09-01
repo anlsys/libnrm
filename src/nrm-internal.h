@@ -94,6 +94,19 @@ struct nrm_sensor_emitter_ctxt {
 	unsigned long acc;
 };
 
+/*******************************************************************************
+ * Packing API
+ ******************************************************************************/
+
+struct nrm_sensor_emitter_msg {
+
+	nrm_time_t timestamp;
+	nrm_scope_t scope;
+	unsigned long value;
+};
+
+char *nrm_pack_ssem_dumps(struct nrm_sensor_emitter_msg *msg);
+
 #define NRM_CMDPERFORMANCE_FORMAT \
 	"{\"timestamp\": %" PRId64 "," \
 	" \"info\":" \
