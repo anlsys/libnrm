@@ -101,12 +101,9 @@ int nrm_fini(struct nrm_context *ctxt);
  */
 int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress);
 
-void nrm_set(int array_size, char* config);
+void nrm_set(int array_size, int input_mode, int input_gpu_array[], int input_gpu_size);
 void nrm_topo(int iter);
-void nrm_openmp();
-void nrm_mpi();
-void nrm_hybrid();
-void nrm_gpu();
+void nrm_get_topo();
 
 #ifdef __cplusplus
 }

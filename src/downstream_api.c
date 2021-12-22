@@ -29,20 +29,22 @@
 
 #include "internal-downstream.h"
 
-#include <omp.h>
+#include <sched.h>
 #include "cvector.h"
 
-int* dummy_array = NULL;
-int dummy_size   = 0;
+int* node_dummy_array = NULL;
+int* core_dummy_array = NULL;
+int* gpu_dummy_array  = NULL;
+int node_dummy_size   = 0;
+int core_dummy_size   = 0;
+int gpu_dummy_size    = 0;
 
 cvector_vector_type(int) cores_vector = NULL;
+cvector_vector_type(int) gpus_vector  = NULL;
+cvector_vector_type(int) nodes_vector = NULL;
 
-int warmup  = 1;
-
-int openmp  = 0;
-int mpi     = 0;
-int hybrid  = 0;
-int gpu     = 0;
+int warmup   = 1;
+int mode = 0;
 
 static long long int nrm_ratelimit_threshold;
 static int nrm_transmit = 1;
@@ -83,8 +85,7 @@ static void nrm_net_fini(struct nrm_context *ctxt)
     zmq_ctx_destroy(ctxt->context);
 }
 
-    static int
-nrm_net_send(struct nrm_context *ctxt, char *buf, size_t bufsize, int flags)
+static int nrm_net_send(struct nrm_context *ctxt, char *buf, size_t bufsize, int flags)
 {
     if (!nrm_transmit)
         return 1;
@@ -162,6 +163,11 @@ int nrm_fini(struct nrm_context *ctxt)
     assert(err > 0);
     free(ctxt->task_id);
     nrm_net_fini(ctxt);
+    
+    cvector_free(cores_vector);
+    cvector_free(nodes_vector);
+    cvector_free(gpus_vector);
+    
     return 0;
 }
 
@@ -192,28 +198,26 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
     // Only one CPU is used anyway in the warmup step
     if (warmup == 1)
     {
-        //cvector_push_back(cores_vector, omp_get_thread_num());
-        cvector_push_back(cores_vector, sched_getcpu());
+        unsigned int cpu;
+        unsigned int node;
+        getcpu(&cpu, &node);
+        for (int i = 0; i < core_dummy_size; i++) /* Workaround in case of cpu number != 0 getting pushed in the vector */
+        {
+            core_dummy_array[i] = cpu;
+        }
+        for (int i = 0; i < core_dummy_size; i++)
+        {
+            node_dummy_array[i] = node;
+        }
+        cvector_push_back(cores_vector, cpu);
+        cvector_push_back(nodes_vector, node);
     }
     else
     {
-        if (openmp == 1)
-        {
-            nrm_openmp();
-        }
-        else if (mpi == 1)
-        {
-            nrm_mpi();
-        }
-        else if (hybrid == 1)
-        {
-            nrm_hybrid();
-        }
-        else if (gpu == 1)
-        {
-            nrm_gpu();
-        }
-    }   
+        nrm_get_topo();
+    }
+
+#ifdef VERBOSE
     printf("******************\n");
     printf("Used cores: ");
     for (int i = 0; i < cvector_size(cores_vector); i++)
@@ -221,50 +225,65 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
         printf("%d ", cores_vector[i]);
     }
     printf("\n");
+
+    printf("Used nodes: ");
+    for (int i = 0; i < cvector_size(nodes_vector); i++)
+    {
+        printf("%d ", nodes_vector[i]);
+    }
+    printf("\n");
+
+    if (mode != 0)
+    { 
+        printf("Used gpus: ");
+        for (int i = 0; i < cvector_size(gpus_vector); i++)
+        {
+            printf("%d ", gpus_vector[i]);
+        }
+        printf("\n");
+    }
+#endif
+
     return 0;
 }
 
-void nrm_set(int array_size, char* config)
+void nrm_set(int array_size, int input_mode, int input_gpu_array[], int input_gpu_size)  //mode 0: cpu, mode 1: gpu, mode 2: hybrid
 {
-    dummy_array = malloc(array_size * sizeof(int));
-    dummy_size = array_size;
-    if (strcmp(config, "openmp") == 0)
+    node_dummy_array = malloc(array_size * sizeof(int));
+    core_dummy_array = malloc(array_size * sizeof(int));
+    node_dummy_size = array_size;
+    core_dummy_size = array_size;
+
+    mode = input_mode;
+    if (mode != 0)
     {
-        openmp = 1;
-    }
-    else if (strcmp(config, "mpi") == 0)
-    {
-        mpi = 1;
-    }
-    else if (strcmp(config, "hybrid") == 0)
-    {
-        hybrid = 1;
-    }
-    else if (strcmp(config, "gpu") == 0)
-    {
-        gpu = 1;
-    }
-    else
-    {
-        printf("Error: check your config syntax.\n");
-        exit(0);
+        gpu_dummy_size = input_gpu_size;
+        gpu_dummy_array = input_gpu_array;
     }
 }
 
 void nrm_topo(int iter)
 {
-    dummy_array[iter] = omp_get_thread_num();
+    if (mode != 1)
+    {
+        unsigned int cpu;
+        unsigned int node;
+        getcpu(&cpu, &node);
+        core_dummy_array[iter] = cpu;
+        node_dummy_array[iter] = node;
+    }
     warmup = 0;
 }
 
-void nrm_openmp()
+void nrm_get_topo()
 {
-    for (int i = 0; i < dummy_size; i++)
+    // CPUs
+    for (int i = 0; i < core_dummy_size; i++)
     {
         int var = 0;
         for (int j = 0; j < cvector_size(cores_vector); j++)
         {
-            if (cores_vector[j] == dummy_array[i])
+            if (cores_vector[j] == core_dummy_array[i])
             {
                 var++;
                 break;
@@ -272,16 +291,44 @@ void nrm_openmp()
         }
         if (var == 0)
         {
-            cvector_push_back(cores_vector, dummy_array[i]);
+            cvector_push_back(cores_vector, core_dummy_array[i]);
+        }
+    }
+    // Nodes
+    for (int i = 0; i < node_dummy_size; i++)
+    {
+        int var = 0;
+        for (int j = 0; j < cvector_size(nodes_vector); j++)
+        {
+            if (nodes_vector[j] == node_dummy_array[i])
+            {
+                var++;
+                break;
+            }
+        }
+        if (var == 0)
+        {
+            cvector_push_back(nodes_vector, node_dummy_array[i]);
+        }
+    }
+    // GPUs
+    if (mode != 0)
+    {
+        for (int i = 0; i < gpu_dummy_size; i++)
+        {
+            int var = 0;
+            for (int j = 0; j < cvector_size(gpus_vector); j++)
+            {
+                if (gpus_vector[j] == gpu_dummy_array[i])
+                {
+                    var++;
+                    break;
+                }
+            }
+            if (var == 0)
+            {
+                cvector_push_back(gpus_vector, gpu_dummy_array[i]);
+            }
         }
     }
 }
-
-void nrm_mpi()
-{}
-
-void nrm_hybrid()
-{}
-
-void nrm_gpu()
-{}
