@@ -39,7 +39,7 @@ int node_dummy_size   = 0;
 int core_dummy_size   = 0;
 int gpu_dummy_size    = 0;
 
-cvector_vector_type(int) cores_vector = NULL;
+cvector_vector_type(int) cpus_vector = NULL;
 cvector_vector_type(int) gpus_vector  = NULL;
 cvector_vector_type(int) nodes_vector = NULL;
 
@@ -164,7 +164,7 @@ int nrm_fini(struct nrm_context *ctxt)
     free(ctxt->task_id);
     nrm_net_fini(ctxt);
     
-    cvector_free(cores_vector);
+    cvector_free(cpus_vector);
     cvector_free(nodes_vector);
     cvector_free(gpus_vector);
     
@@ -209,7 +209,7 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
         {
             node_dummy_array[i] = node;
         }
-        cvector_push_back(cores_vector, cpu);
+        cvector_push_back(cpus_vector, cpu);
         cvector_push_back(nodes_vector, node);
     }
     else
@@ -217,12 +217,16 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
         nrm_get_topo();
     }
 
+    ctxt->cpus_vec = cpus_vector;
+    ctxt->gpus_vec = gpus_vector;
+    ctxt->nodes_vec = nodes_vector;
+
 #ifdef VERBOSE
     printf("******************\n");
     printf("Used cores: ");
-    for (int i = 0; i < cvector_size(cores_vector); i++)
+    for (int i = 0; i < cvector_size(cpus_vector); i++)
     {
-        printf("%d ", cores_vector[i]);
+        printf("%d ", cpus_vector[i]);
     }
     printf("\n");
 
@@ -281,9 +285,9 @@ void nrm_get_topo()
     for (int i = 0; i < core_dummy_size; i++)
     {
         int var = 0;
-        for (int j = 0; j < cvector_size(cores_vector); j++)
+        for (int j = 0; j < cvector_size(cpus_vector); j++)
         {
-            if (cores_vector[j] == core_dummy_array[i])
+            if (cpus_vector[j] == core_dummy_array[i])
             {
                 var++;
                 break;
@@ -291,7 +295,7 @@ void nrm_get_topo()
         }
         if (var == 0)
         {
-            cvector_push_back(cores_vector, core_dummy_array[i]);
+            cvector_push_back(cpus_vector, core_dummy_array[i]);
         }
     }
     // Nodes

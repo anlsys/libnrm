@@ -59,6 +59,9 @@ struct nrm_context {
 	pid_t process_id;
 	nrm_time_t time;
 	unsigned long acc;
+    int* cpus_vec;
+    int* nodes_vec;
+    int* gpus_vec;
 };
 
 #ifdef __cplusplus
