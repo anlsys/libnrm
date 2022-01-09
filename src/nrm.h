@@ -99,7 +99,7 @@ int nrm_fini(struct nrm_context *ctxt);
  * @param progress: cumulative value that represents the application progress
  * since the last progress report.
  */
-int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress);
+int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress, int init, int array_size, int input_mode, int input_gpu_array[], int input_gpu_size);
 
 void nrm_set(int array_size, int input_mode, int input_gpu_array[], int input_gpu_size);
 void nrm_topo(int iter);

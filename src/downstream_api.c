@@ -171,30 +171,14 @@ int nrm_fini(struct nrm_context *ctxt)
     return 0;
 }
 
-int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
+int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress, 
+        int init, int array_size, int input_mode, int input_gpu_array[], int input_gpu_size)
 {
-    char buf[512];
-    nrm_time_t now;
-    int64_t tm;
-    nrm_time_gettime(&now);
-    tm = nrm_time_tons(&now);
-    int64_t timediff = nrm_time_diff(&ctxt->time, &now);
-    ctxt->acc += progress;
-    if (timediff > nrm_ratelimit_threshold) {
-        snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, tm, ctxt->acc,
-                ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
-                ctxt->rank_id, ctxt->thread_id);
-        int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
-        if (err == -1) {
-            assert(errno == EAGAIN);
-            /* send would block, so act like a ratelimit */
-        } else {
-            assert(err > 0);
-            ctxt->acc = 0;
-            ctxt->time = now;
-        }
+    if (init == 1)
+    {
+        nrm_set(array_size, input_mode, input_gpu_array, input_gpu_size);
     }
-
+   
     // Only one CPU is used anyway in the warmup step
     if (warmup == 1)
     {
@@ -221,7 +205,30 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
     ctxt->gpus_vec = gpus_vector;
     ctxt->nodes_vec = nodes_vector;
 
-#ifdef VERBOSE
+    char buf[512];
+    nrm_time_t now;
+    int64_t tm;
+    nrm_time_gettime(&now);
+    tm = nrm_time_tons(&now);
+    int64_t timediff = nrm_time_diff(&ctxt->time, &now);
+    ctxt->acc += progress;
+    if (timediff > nrm_ratelimit_threshold) {
+        snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, tm, ctxt->acc,
+                ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
+                ctxt->rank_id, ctxt->thread_id, ctxt->cpus_vec, ctxt->gpus_vec,
+                ctxt->nodes_vec);
+        int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
+        if (err == -1) {
+            assert(errno == EAGAIN);
+            /* send would block, so act like a ratelimit */
+        } else {
+            assert(err > 0);
+            ctxt->acc = 0;
+            ctxt->time = now;
+        }
+    }
+
+    #ifdef VERBOSE
     printf("******************\n");
     printf("Used cores: ");
     for (int i = 0; i < cvector_size(cpus_vector); i++)

@@ -53,7 +53,11 @@ int FC_FUNC_(nrmf_fini, NRMF_FINI)(uintptr_t *ctxt)
 }
 
 int FC_FUNC_(nrmf_send_progress, NRMF_SEND_PROGRESS)(uintptr_t *ctxt,
-                                                     unsigned long *progress)
+                                                     unsigned long *progress, 
+                                                     int *init, int *array_size,
+                                                     int *input_mode,
+                                                     int *input_gpu_array[],
+                                                     int *input_gpu_size)
 {
-	return nrm_send_progress(*((struct nrm_context **)ctxt), *progress);
+	return nrm_send_progress(*((struct nrm_context **)ctxt), *progress, *init, *array_size, *input_mode, *input_gpu_array, *input_gpu_size);
 }
