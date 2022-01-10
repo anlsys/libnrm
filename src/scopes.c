@@ -10,10 +10,10 @@
 
 #include "config.h"
 
-#include "nrm.h"
-
 #include <sched.h>
 #include <stdlib.h>
+
+#include "nrm.h"
 
 struct nrm_bitmap {
 	size_t size;
@@ -24,7 +24,7 @@ struct nrm_scope {
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
 };
 
-nrm_scope_t *nrm_scope_create() 
+nrm_scope_t *nrm_scope_create()
 {
 	return calloc(1, sizeof(nrm_scope_t));
 }
@@ -52,7 +52,6 @@ size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type)
 	return 0;
 }
 
-
 int nrm_scope_delete(nrm_scope_t *s)
 {
 	(void)s;
@@ -75,7 +74,7 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
  * #omp parallel for
  * for(int i = 0; i < max_iter; i++) {
  *	nrm_scope_t *th_scp = thread_scope[omp_get_num_thread()];
- * 	// touched by every thread 
+ * 	// touched by every thread
  * 	nrm_scope_threadshared(region_scope);
  * 	// one per thread
  * 	nrm_scope_threadprivate(th_scp);
@@ -103,9 +102,9 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
  */
 int nrm_scope_threadshared(const nrm_scope_t *s)
 {
-        unsigned int cpu;
-        unsigned int node;
-        getcpu(&cpu, &node);
+	unsigned int cpu;
+	unsigned int node;
+	getcpu(&cpu, &node);
 	nrm_scope_add_atomic(s, NRM_SCOPE_TYPE_CPU, cpu);
 	nrm_scope_add_atomic(s, NRM_SCOPE_TYPE_NUMA, cpu);
 	return 0;
@@ -116,9 +115,9 @@ int nrm_scope_threadshared(const nrm_scope_t *s)
  */
 int nrm_scope_threadprivate(const nrm_scope_t *s)
 {
-        unsigned int cpu;
-        unsigned int node;
-        getcpu(&cpu, &node);
+	unsigned int cpu;
+	unsigned int node;
+	getcpu(&cpu, &node);
 	nrm_scope_add(s, NRM_SCOPE_TYPE_CPU, cpu);
 	nrm_scope_add(s, NRM_SCOPE_TYPE_NUMA, cpu);
 	return 0;
