@@ -30,21 +30,6 @@
 #include "internal-downstream.h"
 
 #include <sched.h>
-#include "cvector.h"
-
-int* node_dummy_array = NULL;
-int* core_dummy_array = NULL;
-int* gpu_dummy_array  = NULL;
-int node_dummy_size   = 0;
-int core_dummy_size   = 0;
-int gpu_dummy_size    = 0;
-
-cvector_vector_type(int) cpus_vector = NULL;
-cvector_vector_type(int) gpus_vector  = NULL;
-cvector_vector_type(int) nodes_vector = NULL;
-
-int warmup   = 1;
-int mode = 0;
 
 static long long int nrm_ratelimit_threshold;
 static int nrm_transmit = 1;
@@ -151,12 +136,6 @@ int nrm_fini(struct nrm_context *ctxt)
     assert(ctxt != NULL);
     nrm_time_gettime(&now);
     tm = nrm_time_tons(&now);
-    if (ctxt->acc != 0) {
-        snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, tm, ctxt->acc,
-                ctxt->cmd_id, ctxt->task_id, ctxt->process_id,
-                ctxt->rank_id, ctxt->thread_id);
-        err = nrm_net_send(ctxt, buf, 512, 0);
-    }
     snprintf(buf, 512, NRM_THREADPAUSE_FORMAT, tm, ctxt->cmd_id, ctxt->task_id,
             ctxt->process_id, ctxt->rank_id, ctxt->thread_id);
     err = nrm_net_send(ctxt, buf, 512, 0);
@@ -164,182 +143,32 @@ int nrm_fini(struct nrm_context *ctxt)
     free(ctxt->task_id);
     nrm_net_fini(ctxt);
     
-    cvector_free(cpus_vector);
-    cvector_free(nodes_vector);
-    cvector_free(gpus_vector);
-    
     return 0;
 }
 
-int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress, 
-        int init, int array_size, int input_mode, int input_gpu_array[], int input_gpu_size)
+int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress,
+		      nrm_scope_t *cpu_scope, nrm_scope_t *numa_scope,
+		      nrm_scope_t *gpu_scope)
 {
-    if (init == 1)
-    {
-        nrm_set(array_size, input_mode, input_gpu_array, input_gpu_size);
-    }
-   
-    // Only one CPU is used anyway in the warmup step
-    if (warmup == 1)
-    {
-        unsigned int cpu;
-        unsigned int node;
-        getcpu(&cpu, &node);
-        for (int i = 0; i < core_dummy_size; i++) /* Workaround in case of cpu number != 0 getting pushed in the vector */
-        {
-            core_dummy_array[i] = cpu;
-        }
-        for (int i = 0; i < core_dummy_size; i++)
-        {
-            node_dummy_array[i] = node;
-        }
-        cvector_push_back(cpus_vector, cpu);
-        cvector_push_back(nodes_vector, node);
-    }
-    else
-    {
-        nrm_get_topo();
-    }
-
-    ctxt->cpus_vec = cpus_vector;
-    ctxt->gpus_vec = gpus_vector;
-    ctxt->nodes_vec = nodes_vector;
-
-    char buf[512];
+    char buf[1024];
     nrm_time_t now;
     int64_t tm;
     nrm_time_gettime(&now);
     tm = nrm_time_tons(&now);
-    int64_t timediff = nrm_time_diff(&ctxt->time, &now);
-    ctxt->acc += progress;
-    if (timediff > nrm_ratelimit_threshold) {
-        snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, tm, ctxt->acc,
-                ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
-                ctxt->rank_id, ctxt->thread_id, ctxt->cpus_vec, ctxt->gpus_vec,
-                ctxt->nodes_vec);
-        int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
-        if (err == -1) {
-            assert(errno == EAGAIN);
-            /* send would block, so act like a ratelimit */
-        } else {
-            assert(err > 0);
-            ctxt->acc = 0;
-            ctxt->time = now;
-        }
-    }
 
-    #ifdef VERBOSE
-    printf("******************\n");
-    printf("Used cores: ");
-    for (int i = 0; i < cvector_size(cpus_vector); i++)
-    {
-        printf("%d ", cpus_vector[i]);
-    }
-    printf("\n");
+    char scopes[64][3];
+    nrm_scope_snprintf(scopes[0], 64, cpu_scope);
+    nrm_scope_snprintf(scopes[1], 64, numa_scope);
+    nrm_scope_snprintf(scopes[2], 64, gpu_scope);
 
-    printf("Used nodes: ");
-    for (int i = 0; i < cvector_size(nodes_vector); i++)
-    {
-        printf("%d ", nodes_vector[i]);
+    snprintf(buf, 1024, NRM_THREADPROGRESS_FORMAT, tm, progress,
+	     ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
+	     ctxt->rank_id, ctxt->thread_id, scopes[0], scopes[1], scopes[2]);
+    int err = nrm_net_send(ctxt, buf, 1024, ZMQ_DONTWAIT);
+    while(err == -1 && errno == EAGAIN) {
+	err = nrm_net_send(ctxt, buf, 1024, ZMQ_DONTWAIT);
     }
-    printf("\n");
-
-    if (mode != 0)
-    { 
-        printf("Used gpus: ");
-        for (int i = 0; i < cvector_size(gpus_vector); i++)
-        {
-            printf("%d ", gpus_vector[i]);
-        }
-        printf("\n");
-    }
-#endif
 
     return 0;
 }
 
-void nrm_set(int array_size, int input_mode, int input_gpu_array[], int input_gpu_size)  //mode 0: cpu, mode 1: gpu, mode 2: hybrid
-{
-    node_dummy_array = malloc(array_size * sizeof(int));
-    core_dummy_array = malloc(array_size * sizeof(int));
-    node_dummy_size = array_size;
-    core_dummy_size = array_size;
-
-    mode = input_mode;
-    if (mode != 0)
-    {
-        gpu_dummy_size = input_gpu_size;
-        gpu_dummy_array = input_gpu_array;
-    }
-}
-
-void nrm_topo(int iter)
-{
-    if (mode != 1)
-    {
-        unsigned int cpu;
-        unsigned int node;
-        getcpu(&cpu, &node);
-        core_dummy_array[iter] = cpu;
-        node_dummy_array[iter] = node;
-    }
-    warmup = 0;
-}
-
-void nrm_get_topo()
-{
-    // CPUs
-    for (int i = 0; i < core_dummy_size; i++)
-    {
-        int var = 0;
-        for (int j = 0; j < cvector_size(cpus_vector); j++)
-        {
-            if (cpus_vector[j] == core_dummy_array[i])
-            {
-                var++;
-                break;
-            }
-        }
-        if (var == 0)
-        {
-            cvector_push_back(cpus_vector, core_dummy_array[i]);
-        }
-    }
-    // Nodes
-    for (int i = 0; i < node_dummy_size; i++)
-    {
-        int var = 0;
-        for (int j = 0; j < cvector_size(nodes_vector); j++)
-        {
-            if (nodes_vector[j] == node_dummy_array[i])
-            {
-                var++;
-                break;
-            }
-        }
-        if (var == 0)
-        {
-            cvector_push_back(nodes_vector, node_dummy_array[i]);
-        }
-    }
-    // GPUs
-    if (mode != 0)
-    {
-        for (int i = 0; i < gpu_dummy_size; i++)
-        {
-            int var = 0;
-            for (int j = 0; j < cvector_size(gpus_vector); j++)
-            {
-                if (gpus_vector[j] == gpu_dummy_array[i])
-                {
-                    var++;
-                    break;
-                }
-            }
-            if (var == 0)
-            {
-                cvector_push_back(gpus_vector, gpu_dummy_array[i]);
-            }
-        }
-    }
-}

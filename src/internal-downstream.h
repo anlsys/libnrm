@@ -38,7 +38,7 @@ extern "C" {
 #define NRM_THREADPROGRESS_FORMAT \
 	"{\"timestamp\": %" PRId64 "," \
 	" \"info\":" \
-	"{\"threadProgress\":{\"progress\":%lu,\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}}}" \
+	"{\"threadProgress\":{\"progress\":%lu,\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}, \"cpu_scope\":%s, }\"numa_scope\":%s, \"gpu_scope\":%s}" \
 	"}"
 #define NRM_THREADPAUSE_FORMAT                                                 \
 	"{\"timestamp\": %" PRId64 "," \

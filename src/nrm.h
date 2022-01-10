@@ -60,6 +60,33 @@ int64_t nrm_time_diff(const nrm_time_t *start, const nrm_time_t *end);
 int64_t nrm_time_tons(const nrm_time_t *time);
 
 /*******************************************************************************
+ * Scopes
+ * List of ints used to annotate an event
+ ******************************************************************************/
+
+/**
+ * Define a type used internally to represent a list of unique unsigned ints
+ **/
+typedef struct nrm_scope nrm_scope_t;
+
+nrm_scope_t *nrm_scope_create(void);
+
+/**
+ * Add an int to the list
+ */
+int nrm_scope_add(const nrm_scope_t *, unsigned int num);
+
+/**
+ * Size of the list (number of elements)
+ **/
+size_t nrm_scope_length(const nrm_scope_t *);
+
+
+int nrm_scope_delete(nrm_scope_t *);
+
+int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *);
+
+/*******************************************************************************
  * Downstream API
  ******************************************************************************/
 
@@ -99,9 +126,10 @@ int nrm_fini(struct nrm_context *ctxt);
  * @param progress: cumulative value that represents the application progress
  * since the last progress report.
  */
-int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress, int init, int array_size, int input_mode, int input_gpu_array[], int input_gpu_size);
+int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress,
+		      nrm_scope_t *cpu_scope, nrm_scope_t *numa_scope, 
+		      nrm_scope_t *gpu_scope);
 
-void nrm_set(int array_size, int input_mode, int input_gpu_array[], int input_gpu_size);
 void nrm_topo(int iter);
 void nrm_get_topo();
 
