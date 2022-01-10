@@ -12,11 +12,16 @@
 
 #include "nrm.h"
 
+#include <sched.h>
 #include <stdlib.h>
 
-struct nrm_scope {
+struct nrm_bitmap {
 	size_t size;
-	int *array;
+	unsigned long *array;
+};
+
+struct nrm_scope {
+	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
 };
 
 nrm_scope_t *nrm_scope_create() 
@@ -24,16 +29,26 @@ nrm_scope_t *nrm_scope_create()
 	return calloc(1, sizeof(nrm_scope_t));
 }
 
-int nrm_scope_add(const nrm_scope_t *s, unsigned int num)
+int nrm_scope_add(const nrm_scope_t *s, unsigned int type, unsigned int num)
 {
 	(void)s;
+	(void)type;
 	(void)num;
 	return 0;
 }
 
-size_t nrm_scope_length(const nrm_scope_t *s)
+int nrm_scope_add_atomic(const nrm_scope_t *s, unsigned type, unsigned int num)
 {
 	(void)s;
+	(void)type;
+	(void)num;
+	return 0;
+}
+
+size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type)
+{
+	(void)s;
+	(void)type;
 	return 0;
 }
 
@@ -52,95 +67,59 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 	return 0;
 }
 
-/* Given a loop like this:
- * #omp parallel for (+ any other options)
+/* UTIL FUNCTIONS: helpful when users want to build out scopes that are
+ * meaningful to an OpenMP application.
+ */
+
+/* nrm_scope_t *region_scope, *thread_scope[NUM_THREADS];
+ * #omp parallel for
  * for(int i = 0; i < max_iter; i++) {
- *	nrm_scope_from_omp(scope[tid], i);
+ *	nrm_scope_t *th_scp = thread_scope[omp_get_num_thread()];
+ * 	// touched by every thread 
+ * 	nrm_scope_threadshared(region_scope);
+ * 	// one per thread
+ * 	nrm_scope_threadprivate(th_scp);
+ *
+ *	do_work(i);
+ *
+ *	nrm_send_progress(ctxt, th_scp, 1);
  * }
- * builds out a scope for a thread tid.
+ *
+ * nrm_send_progress(ctxt, region_scope, 1);
+ *
+ * #omp parallel for
+ * for(int i = 0; i < max_iter; i++) {
+ *	nrm_scope_t *th_scp = thread_scope[omp_get_num_thread()];
+ *
+ *      do_another_work(i);
+ *	nrm_send_progress(ctxt, th_scp, 1);
+ * }
+ *
+ * nrm_send_progress(ctxt, region_scope, 1);
  */
-int nrm_scope_from_omp(const nrm_scope_t *s, int i)
-{
-	(void)s;
-	(void)i;
-	return 0;
-}
 
-#if 0
-
-/* make it so that it builds a scope based on openmp loop.
- * TODO: should we add openmp support in the library, or elsewhere ?
+/* called once per thread involved, maps to the union of all resources in use
+ * by ALL threads.
  */
-
-void nrm_topo(int iter)
+int nrm_scope_threadshared(const nrm_scope_t *s)
 {
-    if (mode != 1)
-    {
         unsigned int cpu;
         unsigned int node;
         getcpu(&cpu, &node);
-        core_dummy_array[iter] = cpu;
-        node_dummy_array[iter] = node;
-    }
-    warmup = 0;
+	nrm_scope_add_atomic(s, NRM_SCOPE_TYPE_CPU, cpu);
+	nrm_scope_add_atomic(s, NRM_SCOPE_TYPE_NUMA, cpu);
+	return 0;
 }
 
-void nrm_get_topo()
+/* called once by the thread involved, maps to the resources in use by this
+ * thread ONLY
+ */
+int nrm_scope_threadprivate(const nrm_scope_t *s)
 {
-    // CPUs
-    for (int i = 0; i < core_dummy_size; i++)
-    {
-        int var = 0;
-        for (int j = 0; j < cvector_size(cpus_vector); j++)
-        {
-            if (cpus_vector[j] == core_dummy_array[i])
-            {
-                var++;
-                break;
-            }
-        }
-        if (var == 0)
-        {
-            cvector_push_back(cpus_vector, core_dummy_array[i]);
-        }
-    }
-    // Nodes
-    for (int i = 0; i < node_dummy_size; i++)
-    {
-        int var = 0;
-        for (int j = 0; j < cvector_size(nodes_vector); j++)
-        {
-            if (nodes_vector[j] == node_dummy_array[i])
-            {
-                var++;
-                break;
-            }
-        }
-        if (var == 0)
-        {
-            cvector_push_back(nodes_vector, node_dummy_array[i]);
-        }
-    }
-    // GPUs
-    if (mode != 0)
-    {
-        for (int i = 0; i < gpu_dummy_size; i++)
-        {
-            int var = 0;
-            for (int j = 0; j < cvector_size(gpus_vector); j++)
-            {
-                if (gpus_vector[j] == gpu_dummy_array[i])
-                {
-                    var++;
-                    break;
-                }
-            }
-            if (var == 0)
-            {
-                cvector_push_back(gpus_vector, gpu_dummy_array[i]);
-            }
-        }
-    }
+        unsigned int cpu;
+        unsigned int node;
+        getcpu(&cpu, &node);
+	nrm_scope_add(s, NRM_SCOPE_TYPE_CPU, cpu);
+	nrm_scope_add(s, NRM_SCOPE_TYPE_NUMA, cpu);
+	return 0;
 }
-
-#endif

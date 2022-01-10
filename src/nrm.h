@@ -61,7 +61,8 @@ int64_t nrm_time_tons(const nrm_time_t *time);
 
 /*******************************************************************************
  * Scopes
- * List of ints used to annotate an event
+ * List of resources (uniqued ints across 3 types: cpu, numa nodes, gpus)
+ * corresponding to a progress report.
  ******************************************************************************/
 
 /**
@@ -71,20 +72,35 @@ typedef struct nrm_scope nrm_scope_t;
 
 nrm_scope_t *nrm_scope_create(void);
 
+#define NRM_SCOPE_TYPE_CPU 0
+#define NRM_SCOPE_TYPE_NUMA 1
+#define NRM_SCOPE_TYPE_GPU 2
+#define NRM_SCOPE_TYPE_MAX 3
+
 /**
  * Add an int to the list
  */
-int nrm_scope_add(const nrm_scope_t *, unsigned int num);
+int nrm_scope_add(const nrm_scope_t *, unsigned int type, unsigned int num);
+
+int nrm_scope_add_atomic(const nrm_scope_t *, unsigned int type, unsigned int num);
 
 /**
  * Size of the list (number of elements)
  **/
-size_t nrm_scope_length(const nrm_scope_t *);
+size_t nrm_scope_length(const nrm_scope_t *, unsigned int type);
 
 
 int nrm_scope_delete(nrm_scope_t *);
 
 int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *);
+
+/*******************************************************************************
+ * Scope Utils
+ ******************************************************************************/
+
+int nrm_scope_threadshared(const nrm_scope_t *);
+int nrm_scope_threadprivate(const nrm_scope_t *);
+
 
 /*******************************************************************************
  * Downstream API
@@ -127,11 +143,7 @@ int nrm_fini(struct nrm_context *ctxt);
  * since the last progress report.
  */
 int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress,
-		      nrm_scope_t *cpu_scope, nrm_scope_t *numa_scope, 
-		      nrm_scope_t *gpu_scope);
-
-void nrm_topo(int iter);
-void nrm_get_topo();
+		      nrm_scope_t *scope);
 
 #ifdef __cplusplus
 }

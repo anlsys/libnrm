@@ -147,8 +147,7 @@ int nrm_fini(struct nrm_context *ctxt)
 }
 
 int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress,
-		      nrm_scope_t *cpu_scope, nrm_scope_t *numa_scope,
-		      nrm_scope_t *gpu_scope)
+		      nrm_scope_t *scope)
 {
     char buf[1024];
     nrm_time_t now;
@@ -156,14 +155,12 @@ int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress,
     nrm_time_gettime(&now);
     tm = nrm_time_tons(&now);
 
-    char scopes[64][3];
-    nrm_scope_snprintf(scopes[0], 64, cpu_scope);
-    nrm_scope_snprintf(scopes[1], 64, numa_scope);
-    nrm_scope_snprintf(scopes[2], 64, gpu_scope);
+    char scopes[256];
+    nrm_scope_snprintf(scopes, 256, scope);
 
     snprintf(buf, 1024, NRM_THREADPROGRESS_FORMAT, tm, progress,
 	     ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
-	     ctxt->rank_id, ctxt->thread_id, scopes[0], scopes[1], scopes[2]);
+	     ctxt->rank_id, ctxt->thread_id, scopes);
     int err = nrm_net_send(ctxt, buf, 1024, ZMQ_DONTWAIT);
     while(err == -1 && errno == EAGAIN) {
 	err = nrm_net_send(ctxt, buf, 1024, ZMQ_DONTWAIT);
