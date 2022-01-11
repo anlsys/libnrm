@@ -12,13 +12,10 @@
 
 #include <sched.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "nrm.h"
-
-struct nrm_bitmap {
-	size_t size;
-	unsigned long *array;
-};
 
 struct nrm_scope {
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
@@ -29,40 +26,41 @@ nrm_scope_t *nrm_scope_create()
 	return calloc(1, sizeof(nrm_scope_t));
 }
 
-int nrm_scope_add(const nrm_scope_t *s, unsigned int type, unsigned int num)
+int nrm_scope_add(nrm_scope_t *s, unsigned int type, unsigned int num)
 {
-	(void)s;
-	(void)type;
-	(void)num;
-	return 0;
+	return nrm_bitmap_set(&s->maps[type], num);
 }
 
-int nrm_scope_add_atomic(const nrm_scope_t *s, unsigned type, unsigned int num)
+int nrm_scope_add_atomic(nrm_scope_t *s, unsigned type, unsigned int num)
 {
-	(void)s;
-	(void)type;
-	(void)num;
-	return 0;
+	return nrm_bitmap_set_atomic(&s->maps[type], num);
 }
 
 size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type)
 {
-	(void)s;
-	(void)type;
-	return 0;
+	return nrm_bitmap_nset(&s->maps[type]);
 }
 
 int nrm_scope_delete(nrm_scope_t *s)
 {
-	(void)s;
+	free(s);
 	return 0;
 }
 
 int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 {
-	(void)s;
-	(void)buf;
-	(void)bufsize;
+	char *scopes[NRM_SCOPE_TYPE_MAX];
+	for(int i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
+		scopes[i] = nrm_bitmap_to_string(&s->maps[i]);
+	size_t length = 0;
+	for(int i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
+		length += strlen(scopes[i]);
+
+	if(bufsize < length + 21)
+		return -1;
+
+	snprintf(buf, bufsize, "cpu: %s, numa: %s, gpu: %s",
+		scopes[0], scopes[1], scopes[2]);
 	return 0;
 }
 
@@ -100,7 +98,7 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 /* called once per thread involved, maps to the union of all resources in use
  * by ALL threads.
  */
-int nrm_scope_threadshared(const nrm_scope_t *s)
+int nrm_scope_threadshared(nrm_scope_t *s)
 {
 	unsigned int cpu;
 	unsigned int node;
@@ -113,7 +111,7 @@ int nrm_scope_threadshared(const nrm_scope_t *s)
 /* called once by the thread involved, maps to the resources in use by this
  * thread ONLY
  */
-int nrm_scope_threadprivate(const nrm_scope_t *s)
+int nrm_scope_threadprivate(nrm_scope_t *s)
 {
 	unsigned int cpu;
 	unsigned int node;

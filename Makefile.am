@@ -14,7 +14,8 @@ libnrm_la_SOURCES = \
 		    src/downstream_api.c \
 		    src/internal-downstream.h \
 		    src/timers.c \
-		    src/scopes.c
+		    src/scopes.c \
+		    src/bitmaps.c
 libnrm_la_LIBADD = @LIBZMQ_LIBS@
 
 libnrmf_la_SOURCES = \
@@ -22,7 +23,8 @@ libnrmf_la_SOURCES = \
 		     src/f_downstream_api.c \
 		     src/internal-downstream.h \
 		     src/timers.c \
-		     src/scopes.c
+		     src/scopes.c \
+		     src/bitmaps.c
 libnrmf_la_LIBADD = @LIBZMQ_LIBS@
 
 
