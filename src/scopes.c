@@ -106,7 +106,7 @@ int nrm_scope_threadshared(const nrm_scope_t *s)
 	unsigned int node;
 	getcpu(&cpu, &node);
 	nrm_scope_add_atomic(s, NRM_SCOPE_TYPE_CPU, cpu);
-	nrm_scope_add_atomic(s, NRM_SCOPE_TYPE_NUMA, cpu);
+	nrm_scope_add_atomic(s, NRM_SCOPE_TYPE_NUMA, node);
 	return 0;
 }
 
@@ -119,6 +119,6 @@ int nrm_scope_threadprivate(const nrm_scope_t *s)
 	unsigned int node;
 	getcpu(&cpu, &node);
 	nrm_scope_add(s, NRM_SCOPE_TYPE_CPU, cpu);
-	nrm_scope_add(s, NRM_SCOPE_TYPE_NUMA, cpu);
+	nrm_scope_add(s, NRM_SCOPE_TYPE_NUMA, node);
 	return 0;
 }
