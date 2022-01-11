@@ -59,7 +59,7 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 	if(bufsize < length + 21)
 		return -1;
 
-	snprintf(buf, bufsize, "cpu: %s, numa: %s, gpu: %s",
+	snprintf(buf, bufsize, " { \"cpu\": [%s], \"numa\": [%s], \"gpu\": [%s] }",
 		scopes[0], scopes[1], scopes[2]);
 	return 0;
 }
