@@ -20,6 +20,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,9 +72,13 @@ static void nrm_net_fini(struct nrm_context *ctxt)
 static int
 nrm_net_send(struct nrm_context *ctxt, char *buf, size_t bufsize, int flags)
 {
+	int err;
 	if (!nrm_transmit)
 		return 1;
-	return zmq_send(ctxt->socket, buf, strnlen(buf, bufsize), flags);
+	pthread_mutex_lock(&ctxt->lock);
+	err = zmq_send(ctxt->socket, buf, strnlen(buf, bufsize), flags);
+	pthread_mutex_unlock(&ctxt->lock);
+	return err;
 }
 
 int nrm_init(struct nrm_context *ctxt,
@@ -115,6 +120,7 @@ int nrm_init(struct nrm_context *ctxt,
 
 	ctxt->rank_id = rank_id;
 	ctxt->thread_id = thread_id;
+	pthread_mutex_init(&ctxt->lock, 0);
 
 	/* net init */
 	nrm_net_init(ctxt, uri);
@@ -135,43 +141,36 @@ int nrm_fini(struct nrm_context *ctxt)
 	assert(ctxt != NULL);
 	nrm_time_gettime(&now);
 	tm = nrm_time_tons(&now);
-	if (ctxt->acc != 0) {
-		snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, tm, ctxt->acc,
-		         ctxt->cmd_id, ctxt->task_id, ctxt->process_id,
-		         ctxt->rank_id, ctxt->thread_id);
-		err = nrm_net_send(ctxt, buf, 512, 0);
-	}
-	snprintf(buf, 512, NRM_THREADPAUSE_FORMAT, tm, ctxt->cmd_id, ctxt->task_id,
-	         ctxt->process_id, ctxt->rank_id, ctxt->thread_id);
+	snprintf(buf, 512, NRM_THREADPAUSE_FORMAT, tm, ctxt->cmd_id,
+	         ctxt->task_id, ctxt->process_id, ctxt->rank_id,
+	         ctxt->thread_id);
 	err = nrm_net_send(ctxt, buf, 512, 0);
 	assert(err > 0);
+	pthread_mutex_destroy(&ctxt->lock, 0);
 	free(ctxt->task_id);
 	nrm_net_fini(ctxt);
+
 	return 0;
 }
 
-int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress)
+int nrm_send_progress(struct nrm_context *ctxt,
+                      unsigned long progress,
+                      nrm_scope_t *scope)
 {
-	char buf[512];
+	char buf[1024];
 	nrm_time_t now;
 	int64_t tm;
 	nrm_time_gettime(&now);
 	tm = nrm_time_tons(&now);
-	int64_t timediff = nrm_time_diff(&ctxt->time, &now);
-	ctxt->acc += progress;
-	if (timediff > nrm_ratelimit_threshold) {
-		snprintf(buf, 512, NRM_THREADPROGRESS_FORMAT, tm, ctxt->acc,
-		         ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
-		         ctxt->rank_id, ctxt->thread_id);
-		int err = nrm_net_send(ctxt, buf, 512, ZMQ_DONTWAIT);
-		if (err == -1) {
-			assert(errno == EAGAIN);
-			/* send would block, so act like a ratelimit */
-		} else {
-			assert(err > 0);
-			ctxt->acc = 0;
-			ctxt->time = now;
-		}
-	}
+
+	char scopes[256];
+	nrm_scope_snprintf(scopes, 256, scope);
+
+	snprintf(buf, 1024, NRM_THREADPROGRESS_FORMAT, tm, progress,
+	         ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
+	         ctxt->rank_id, ctxt->thread_id, scopes);
+	int err = nrm_net_send(ctxt, buf, 1024, 0);
+	assert(err > 0);
+
 	return 0;
 }

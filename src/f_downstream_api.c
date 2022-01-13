@@ -53,7 +53,9 @@ int FC_FUNC_(nrmf_fini, NRMF_FINI)(uintptr_t *ctxt)
 }
 
 int FC_FUNC_(nrmf_send_progress, NRMF_SEND_PROGRESS)(uintptr_t *ctxt,
-                                                     unsigned long *progress)
+                                                     unsigned long *progress,
+                                                     uintptr_t *scope)
 {
-	return nrm_send_progress(*((struct nrm_context **)ctxt), *progress);
+	return nrm_send_progress(*((struct nrm_context **)ctxt), *progress,
+	                         *((nrm_scope_t **)scope));
 }
