@@ -25,24 +25,24 @@ extern "C" {
 #define NRM_ENV_TRANSMIT "NRM_TRANSMIT"
 #define NRM_DEFAULT_RATELIMIT_THRESHOLD (10000000LL)
 
-#define NRM_CMDPERFORMANCE_FORMAT \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
-	"{\"cmdPerformance\":{\"cmdID\":\"%s\",\"perf\":%lu}}" \
+#define NRM_CMDPERFORMANCE_FORMAT                                              \
+	"{\"timestamp\": %" PRId64 ","                                         \
+	" \"info\":"                                                           \
+	"{\"cmdPerformance\":{\"cmdID\":\"%s\",\"perf\":%lu}}"                 \
 	"}"
-#define NRM_CMDPAUSE_FORMAT \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
-	"{\"cmdPause\":{\"cmdID\":\"%s\"}}" \
+#define NRM_CMDPAUSE_FORMAT                                                    \
+	"{\"timestamp\": %" PRId64 ","                                         \
+	" \"info\":"                                                           \
+	"{\"cmdPause\":{\"cmdID\":\"%s\"}}"                                    \
 	"}"
-#define NRM_THREADPROGRESS_FORMAT \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
+#define NRM_THREADPROGRESS_FORMAT                                                                                                                                           \
+	"{\"timestamp\": %" PRId64 ","                                                                                                                                      \
+	" \"info\":"                                                                                                                                                        \
 	"{\"threadProgress\":{\"progress\":%lu,\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}, \"scopes\":%s}}" \
 	"}"
-#define NRM_THREADPAUSE_FORMAT                                                 \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
+#define NRM_THREADPAUSE_FORMAT                                                                                                           \
+	"{\"timestamp\": %" PRId64 ","                                                                                                   \
+	" \"info\":"                                                                                                                     \
 	"{\"threadPause\":{\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}}}" \
 	"}"
 

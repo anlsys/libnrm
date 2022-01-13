@@ -63,13 +63,13 @@ int64_t nrm_time_tons(const nrm_time_t *time);
  * Bitmaps
  ******************************************************************************/
 
-#define NRM_BITMAP_MAX   2048
+#define NRM_BITMAP_MAX 2048
 /** The size in Bytes of aml_bitmap **/
-#define NRM_BITMAP_BYTES (NRM_BITMAP_MAX/8)
+#define NRM_BITMAP_BYTES (NRM_BITMAP_MAX / 8)
 /** The type used to store bits **/
-#define NRM_BITMAP_TYPE  unsigned long
+#define NRM_BITMAP_TYPE unsigned long
 /** The number of basic type elements used to store bits **/
-#define NRM_BITMAP_SIZE  ((size_t)(NRM_BITMAP_BYTES/sizeof(NRM_BITMAP_TYPE)))
+#define NRM_BITMAP_SIZE ((size_t)(NRM_BITMAP_BYTES / sizeof(NRM_BITMAP_TYPE)))
 /** The number of bits held in each basic type element **/
 #define NRM_BITMAP_NBITS ((size_t)(8 * sizeof(NRM_BITMAP_TYPE)))
 
@@ -103,7 +103,8 @@ int nrm_bitmap_set_atomic(struct nrm_bitmap *bitmap, const unsigned int i);
 int nrm_bitmap_nset(const struct nrm_bitmap *bitmap);
 
 /**
- * Bitmap conversion to string. Output strings are index numbers wrapped in brackets [].
+ * Bitmap conversion to string. Output strings are index numbers wrapped in
+ *brackets [].
  **/
 char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap);
 
@@ -137,7 +138,6 @@ int nrm_scope_add_atomic(nrm_scope_t *, unsigned int type, unsigned int num);
  **/
 size_t nrm_scope_length(const nrm_scope_t *, unsigned int type);
 
-
 int nrm_scope_delete(nrm_scope_t *);
 
 int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *);
@@ -148,7 +148,6 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *);
 
 int nrm_scope_threadshared(nrm_scope_t *);
 int nrm_scope_threadprivate(nrm_scope_t *);
-
 
 /*******************************************************************************
  * Downstream API
@@ -190,8 +189,9 @@ int nrm_fini(struct nrm_context *ctxt);
  * @param progress: cumulative value that represents the application progress
  * since the last progress report.
  */
-int nrm_send_progress(struct nrm_context *ctxt, unsigned long progress,
-		      nrm_scope_t *scope);
+int nrm_send_progress(struct nrm_context *ctxt,
+                      unsigned long progress,
+                      nrm_scope_t *scope);
 
 #ifdef __cplusplus
 }

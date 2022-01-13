@@ -8,18 +8,18 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-#include "nrm.h"
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define NRM_BITMAP_EMPTY       (0UL)
-#define NRM_BITMAP_FULL        (~0UL)
-#define NRM_BITMAP_NTH(i)      ((i) / NRM_BITMAP_NBITS)
-#define NRM_BITMAP_ITH(i)      (((i) % NRM_BITMAP_NBITS))
+#include "nrm.h"
+
+#define NRM_BITMAP_EMPTY (0UL)
+#define NRM_BITMAP_FULL (~0UL)
+#define NRM_BITMAP_NTH(i) ((i) / NRM_BITMAP_NBITS)
+#define NRM_BITMAP_ITH(i) (((i) % NRM_BITMAP_NBITS))
 
 /**
  * Check whether a bit in bitmap is set.
@@ -56,8 +56,8 @@ int nrm_bitmap_set_atomic(struct nrm_bitmap *bitmap, const unsigned int i)
 	if (i >= NRM_BITMAP_MAX)
 		return -1;
 
-	__atomic_or_fetch(&bitmap->mask[NRM_BITMAP_NTH(i)], 1UL <<
-			   NRM_BITMAP_ITH(i), __ATOMIC_RELAXED);
+	__atomic_or_fetch(&bitmap->mask[NRM_BITMAP_NTH(i)],
+	                  1UL << NRM_BITMAP_ITH(i), __ATOMIC_RELAXED);
 	return 0;
 }
 
@@ -84,11 +84,12 @@ int nrm_bitmap_nset(const struct nrm_bitmap *bitmap)
 }
 
 /**
- * Bitmap conversion to string. Output strings are index numbers wrapped in brackets [].
+ * Bitmap conversion to string. Output strings are index numbers wrapped in
+ *brackets [].
  **/
 char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap)
 {
-	if(bitmap == NULL)
+	if (bitmap == NULL)
 		return NULL;
 
 	size_t bufsize = 256;
@@ -100,18 +101,18 @@ char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap)
 	/* need to keep space for the null byte */
 	size_t size = 1;
 
-	for(size_t i = 0, printed = 0; i < NRM_BITMAP_MAX && printed <
-	    nbits; i++) {
+	for (size_t i = 0, printed = 0; i < NRM_BITMAP_MAX && printed < nbits;
+	     i++) {
 
-		if(nrm_bitmap_isset(bitmap, i)) {
+		if (nrm_bitmap_isset(bitmap, i)) {
 			int used;
 			/* if buffer is too small, realloc */
-			if(log10f(i) >= bufsize - size) {
+			if (log10f(i) >= bufsize - size) {
 				buf = realloc(buf, bufsize * 2);
 				bufsize = bufsize * 2;
 			}
 			/* do we need a comma ? */
-			if(printed)
+			if (printed)
 				used = snprintf(cur, bufsize - size, ",%zd", i);
 			else
 				used = snprintf(cur, bufsize - size, "%zd", i);
