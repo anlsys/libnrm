@@ -72,9 +72,13 @@ static void nrm_net_fini(struct nrm_context *ctxt)
 static int
 nrm_net_send(struct nrm_context *ctxt, char *buf, size_t bufsize, int flags)
 {
+	int err;
 	if (!nrm_transmit)
 		return 1;
-	return zmq_send(ctxt->socket, buf, strnlen(buf, bufsize), flags);
+	pthread_mutex_lock(&ctxt->lock);
+	err = zmq_send(ctxt->socket, buf, strnlen(buf, bufsize), flags);
+	pthread_mutex_unlock(&ctxt->lock);
+	return err;
 }
 
 int nrm_init(struct nrm_context *ctxt,
@@ -116,6 +120,7 @@ int nrm_init(struct nrm_context *ctxt,
 
 	ctxt->rank_id = rank_id;
 	ctxt->thread_id = thread_id;
+	pthread_mutex_init(&ctxt->lock, 0);
 
 	/* net init */
 	nrm_net_init(ctxt, uri);
@@ -141,6 +146,7 @@ int nrm_fini(struct nrm_context *ctxt)
 	         ctxt->thread_id);
 	err = nrm_net_send(ctxt, buf, 512, 0);
 	assert(err > 0);
+	pthread_mutex_destroy(&ctxt->lock, 0);
 	free(ctxt->task_id);
 	nrm_net_fini(ctxt);
 
@@ -163,10 +169,8 @@ int nrm_send_progress(struct nrm_context *ctxt,
 	snprintf(buf, 1024, NRM_THREADPROGRESS_FORMAT, tm, progress,
 	         ctxt->cmd_id, ctxt->task_id, (int)ctxt->process_id,
 	         ctxt->rank_id, ctxt->thread_id, scopes);
-	int err = nrm_net_send(ctxt, buf, 1024, ZMQ_DONTWAIT);
-	while (err == -1 && errno == EAGAIN) {
-		err = nrm_net_send(ctxt, buf, 1024, ZMQ_DONTWAIT);
-	}
+	int err = nrm_net_send(ctxt, buf, 1024, 0);
+	assert(err > 0);
 
 	return 0;
 }

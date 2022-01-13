@@ -52,15 +52,19 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 	char *scopes[NRM_SCOPE_TYPE_MAX];
 	for(int i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
 		scopes[i] = nrm_bitmap_to_string(&s->maps[i]);
+	/* count the terminating byte directly */
 	size_t length = 0;
 	for(int i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
 		length += strlen(scopes[i]);
 
-	if(bufsize < length + 21)
+	const char format[] = "{\"cpu\": [%s], \"numa\": [%s], \"gpu\": [%s]}";
+	/* "-6 for the %s */
+	if(bufsize < length + sizeof(format) - 6)
 		return -1;
 
-	snprintf(buf, bufsize, " { \"cpu\": [%s], \"numa\": [%s], \"gpu\": [%s] }",
-		scopes[0], scopes[1], scopes[2]);
+	snprintf(buf, bufsize, format, scopes[0], scopes[1], scopes[2]);
+	for(int i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
+		free(scopes[i]);
 	return 0;
 }
 

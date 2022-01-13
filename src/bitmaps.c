@@ -56,7 +56,7 @@ int nrm_bitmap_set_atomic(struct nrm_bitmap *bitmap, const unsigned int i)
 	if (i >= NRM_BITMAP_MAX)
 		return -1;
 
-	__atomic_and_fetch(&bitmap->mask[NRM_BITMAP_NTH(i)], 1UL <<
+	__atomic_or_fetch(&bitmap->mask[NRM_BITMAP_NTH(i)], 1UL <<
 			   NRM_BITMAP_ITH(i), __ATOMIC_RELAXED);
 	return 0;
 }
@@ -97,7 +97,8 @@ char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap)
 	size_t nbits = nrm_bitmap_nset(bitmap);
 
 	char *cur = buf;
-	size_t size = 0;
+	/* need to keep space for the null byte */
+	size_t size = 1;
 
 	for(size_t i = 0, printed = 0; i < NRM_BITMAP_MAX && printed <
 	    nbits; i++) {
