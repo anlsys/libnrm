@@ -1,7 +1,7 @@
-{ stdenv, autoreconfHook, pkgconfig, zeromq, czmq, gfortran }:
+{ stdenv, autoreconfHook, pkgconfig, zeromq, jansson, check }:
 stdenv.mkDerivation {
   src = ../.;
   name = "libnrm";
-  nativeBuildInputs = [ autoreconfHook gfortran pkgconfig ];
-  buildInputs = [ zeromq czmq gfortran ];
+  nativeBuildInputs = [ autoreconfHook pkgconfig ];
+  buildInputs = [ zeromq check jansson];
 }

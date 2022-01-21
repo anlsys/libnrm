@@ -1,29 +1,13 @@
 ACLOCAL_AMFLAGS = -I m4
-AM_CPPFLAGS = @LIBZMQ_CFLAGS@ $(PTHREAD_CFLAGS)
-AM_LDFLAGS = $(PTHREAD_LIBS)
+SUBDIRS = include src tests
 
 pkgconfigdir = $(libdir)/pkgconfig
-pkgconfig_DATA = libnrm.pc libnrmf.pc
+pkgconfig_DATA = libnrm.pc
 
-EXTRA_DIST = autogen.sh libnrm.pc libnrmf.pc README.md
+EXTRA_DIST = autogen.sh libnrm.pc README.md .version
 
-include_HEADERS = src/nrm.h src/nrmf.fh
-
-lib_LTLIBRARIES = libnrm.la libnrmf.la
-
-libnrm_la_SOURCES = \
-		    src/downstream_api.c \
-		    src/internal-downstream.h \
-		    src/timers.c \
-		    src/scopes.c \
-		    src/bitmaps.c
-libnrm_la_LIBADD = @LIBZMQ_LIBS@ $(LTLIBOBJS)
-
-libnrmf_la_SOURCES = \
-		     src/downstream_api.c \
-		     src/f_downstream_api.c \
-		     src/internal-downstream.h \
-		     src/timers.c \
-		     src/scopes.c \
-		     src/bitmaps.c
-libnrmf_la_LIBADD = @LIBZMQ_LIBS@ $(LTLIBOBJS)
+BUILT_SOURCES = $(top_srcdir)/.version
+$(top_srcdir)/.version:
+		echo $(VERSION) > $@-t && mv $@-t $@
+dist-hook:
+		echo $(VERSION) > $(distdir)/.tarball-version
