@@ -20,6 +20,14 @@ extern "C" {
 #include <jansson.h>
 
 /*******************************************************************************
+ * Compat functions
+ ******************************************************************************/
+
+#ifndef HAVE_GETCPU
+int getcpu(unsigned int *cpu, unsigned int *node);
+#endif
+
+/*******************************************************************************
  * LIBNRM Defaults Values
  ******************************************************************************/
 
@@ -90,22 +98,11 @@ struct nrm_sensor_emitter_ctxt {
 	struct nrm_net_ctxt net;
 	char *name;
 	char *cmd_id;
-	nrm_time_t time;
-	unsigned long acc;
 };
 
-/*******************************************************************************
- * Packing API
- ******************************************************************************/
+json_t *nrm_scope_to_json(nrm_scope_t *s);
 
-struct nrm_sensor_emitter_msg {
-
-	nrm_time_t timestamp;
-	nrm_scope_t scope;
-	unsigned long value;
-};
-
-char *nrm_pack_ssem_dumps(struct nrm_sensor_emitter_msg *msg);
+json_t *nrm_bitmap_to_json(nrm_bitmap_t *b);
 
 #define NRM_CMDPERFORMANCE_FORMAT \
 	"{\"timestamp\": %" PRId64 "," \
@@ -120,7 +117,7 @@ char *nrm_pack_ssem_dumps(struct nrm_sensor_emitter_msg *msg);
 #define NRM_THREADPROGRESS_FORMAT \
 	"{\"timestamp\": %" PRId64 "," \
 	" \"info\":" \
-	"{\"threadProgress\":{\"progress\":%lu,\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}}}" \
+	"{\"threadProgress\":{\"progress\":%lu,\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}, \"scopes\":%s}}" \
 	"}"
 #define NRM_THREADPAUSE_FORMAT                                                 \
 	"{\"timestamp\": %" PRId64 "," \

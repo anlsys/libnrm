@@ -10,7 +10,7 @@ libnrm_la_SOURCES = \
 		 nrm.c \
 		 net.c
 		 downstream_api.c \
-		 internal-downstream.h \
+		 nrm-internal.h \
 		 utils/bitmaps.c \
 		 utils/scopes.c \
 		 utils/timers.c

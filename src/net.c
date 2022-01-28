@@ -100,5 +100,5 @@ int nrm_net_send(struct nrm_net_ctxt *ctxt, char *buf, size_t bufsize, int flags
 {
 	if (!nrm_transmit)
 		return 1;
-	return zmq_send(ctxt->socket, buf, strnlen(buf, bufsize), flags);
+	return zmq_send(ctxt->socket, buf, bufsize, flags);
 }

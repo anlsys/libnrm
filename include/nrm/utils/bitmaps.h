@@ -11,7 +11,6 @@
 #ifndef NRM_BITMAPS_H
 #define NRM_BITMAPS_H 1
 
-#endif /* NRM_TIMERS_H */
 #define NRM_BITMAP_MAX 2048
 /** The size in Bytes of aml_bitmap **/
 #define NRM_BITMAP_BYTES (NRM_BITMAP_MAX / 8)
@@ -25,6 +24,8 @@
 struct nrm_bitmap {
 	unsigned long mask[NRM_BITMAP_SIZE];
 };
+
+typedef struct nrm_bitmap nrm_bitmap_t;
 
 /**
  * Check whether a bit in bitmap is set.

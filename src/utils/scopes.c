@@ -17,9 +17,7 @@
 
 #include "nrm.h"
 
-#ifndef HAVE_GETCPU
-int getcpu(unsigned int *cpu, unsigned int *node);
-#endif
+#include "nrm-internal.h"
 
 struct nrm_scope {
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
@@ -70,6 +68,17 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 	for (int i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
 		free(scopes[i]);
 	return 0;
+}
+
+json_t *nrm_scope_to_json(nrm_scope_t *scope)
+{
+	json_t *cpu, *numa, *gpu;
+
+	cpu = nrm_pack_bitmap_dumps(scope->maps[0]);
+	numa = nrm_pack_bitmap_dumps(scopes->maps[1]);
+	gpu = nrm_pack_bitmap_dumsp(scopes->maps[2]);
+	return json_pack("{s:o, s:o, s:o}",
+			 "cpu", cpu, "numa", numa, "gpu", gpu);
 }
 
 /* UTIL FUNCTIONS: helpful when users want to build out scopes that are
