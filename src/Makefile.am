@@ -9,7 +9,8 @@ lib_LTLIBRARIES = libnrm.la
 libnrm_la_SOURCES = \
 		 nrm.c \
 		 net.c
-		 downstream_api.c \
+		 sensor_emitter.c \
+		 sensor_receiver.c \
 		 nrm-internal.h \
 		 utils/bitmaps.c \
 		 utils/scopes.c \

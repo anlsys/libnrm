@@ -55,7 +55,7 @@ int nrm_init(int *argc, char **argv[]);
 int nrm_finalize(void);
 
 /*******************************************************************************
- * Downstream API
+ * Downstream Client API
  ******************************************************************************/
 
 /** an opaque context required for a sensor to emit data back to the NRM. */
@@ -84,8 +84,41 @@ int nrm_sensor_emitter_exit(struct nrm_sensor_emitter_ctxt *ctxt);
  * @param progress: cumulative value that represents the application progress
  * since the last progress report.
  */
-int nrm_sensor_emitter_send(struct nrm_sensor_emitter_ctxt *ctxt,
-			    unsigned long progress);
+int nrm_sensor_emitter_send_progress(struct nrm_sensor_emitter_ctxt *ctxt,
+			    unsigned long progress, nrm_scope_t *scope);
+
+
+/*******************************************************************************
+ * Downstream Server API
+ ******************************************************************************/
+
+/** an opaque context required for receiving info from sensors. */
+struct nrm_sensor_receiver_ctxt;
+
+/** allocates an new empty context for a sensor receiver */
+struct nrm_sensor_receiver_ctxt *nrm_sensor_receiver_create(void);
+
+/** destroys a context for a sensor receiver. pointer is set to NULL upon
+ * completion.
+ */
+int nrm_sensor_receiver_destroy(struct nrm_sensor_receiver_ctxt *);
+
+/**
+ * Establish a connection and set up basic information about the receiver.
+ **/
+int nrm_sensor_receiver_start(struct nrm_sensor_receiver_ctxt *ctxt);
+
+/**
+ * Disconnect from sensors.
+ **/
+int nrm_sensor_receiver_exit(struct nrm_sensor_receiver_ctxt *ctxt);
+
+/**
+ * @param identity: identity of the sensor
+ * @param buf: raw data
+ */
+int nrm_sensor_receiver_recv_multipart(struct nrm_sensor_receiver_ctxt *ctxt,
+			    char **identity, char **buf);
 
 #ifdef __cplusplus
 }

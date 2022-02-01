@@ -82,6 +82,11 @@ struct nrm_net_ctxt {
  */
 int nrm_net_down_client_init(struct nrm_net_ctxt *ctxt, const char *uri);
 
+/* initializes a net context for a downstream server (recv messages to the
+ * NRM on the downstream socket).
+ */
+int nrm_net_down_server_init(struct nrm_net_ctxt *ctxt, const char *uri);
+
 /* closes a net context.
  * Does not destroy the pointer. */
 int nrm_net_fini(struct nrm_net_ctxt *ctxt);
@@ -90,6 +95,9 @@ int nrm_net_fini(struct nrm_net_ctxt *ctxt);
 int nrm_net_send(struct nrm_net_ctxt *ctxt, char *buf, size_t bufsize, int
 		 flags);
 
+/* recvs a raw buffer */
+int nrm_net_recv_multipart(struct nrm_net_ctxt *ctxt, char **identity,
+			   char **buf);
 /*******************************************************************************
  * NRM SENSOR EMITTER
  ******************************************************************************/
@@ -124,6 +132,15 @@ json_t *nrm_bitmap_to_json(nrm_bitmap_t *b);
 	" \"info\":" \
 	"{\"threadPause\":{\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}}}" \
 	"}"
+
+/*******************************************************************************
+ * NRM SENSOR EMITTER
+ ******************************************************************************/
+
+struct nrm_sensor_receiver_ctxt {
+	struct nrm_net_ctxt net;
+};
+
 
 #ifdef __cplusplus
 }

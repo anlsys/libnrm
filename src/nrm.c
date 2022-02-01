@@ -39,6 +39,8 @@ int nrm_init(int *argc, char **argv[])
 	}
 	if (transmit != NULL)
 		nrm_transmit = atoi(transmit);
+	else
+		nrm_transmit = 1;
 
 	/* context init */
 	if (nrm_ratelimit_threshold <= 0)

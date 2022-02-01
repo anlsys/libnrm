@@ -87,6 +87,23 @@ int nrm_net_down_client_init(struct nrm_net_ctxt *ctxt, const char *uri)
 	return 0;
 }
 
+int nrm_net_down_server_init(struct nrm_net_ctxt *ctxt, const char *uri)
+{
+	int err;
+	if (!nrm_transmit)
+		return 0;
+	ctxt->context = zmq_ctx_new();
+
+	ctxt->socket = zmq_socket(ctxt->context, ZMQ_ROUTER);
+	assert(ctxt->socket != NULL);
+
+	/* now accept connections */
+	err = zmq_bind(ctxt->socket, uri);
+	assert(err == 0);
+
+	return 0;
+}
+
 int nrm_net_fini(struct nrm_net_ctxt *ctxt)
 {
 	if (!nrm_transmit)
@@ -101,4 +118,56 @@ int nrm_net_send(struct nrm_net_ctxt *ctxt, char *buf, size_t bufsize, int flags
 	if (!nrm_transmit)
 		return 1;
 	return zmq_send(ctxt->socket, buf, bufsize, flags);
+}
+
+int nrm_net_copy_frame(void **dest, zmq_msg_t *frame)
+{
+	size_t size;
+
+	assert(dest != NULL);
+	assert(frame != NULL);
+
+	size = zmq_msg_size(frame);
+	*dest = malloc(size);
+	assert(*dest != NULL);
+
+	memcpy(*dest, zmq_msg_data(frame), size);
+
+	return 0;
+}
+
+/* the only multipart messages we receive are in the form <identity, content>, 
+ * and that's mainly because zmq router sockets append that stuff to it in the
+ * first place.
+ * We use the msg infra of zmq to convert both into an identity buffer and a
+ * content buffer.
+ */
+int nrm_net_recv_multipart(struct nrm_net_ctxt *ctxt, char **identity, char **content)
+{
+	int err;
+	zmq_msg_t ident, cont;
+	if (!nrm_transmit)
+		return 1;
+
+	/* receive the two frames in zmq_msg_t */
+	err = zmq_msg_init(&ident);
+	assert(err == 0);
+	zmq_msg_init(&cont);
+	assert(err == 0);
+	err = zmq_msg_recv(&ident, ctxt->socket, 0);
+	assert(err != -1);
+	err = zmq_msg_recv(&cont, ctxt->socket, 0);
+	assert(err != -1);
+
+	/* the zmq doc is not very clear on ownership, but it seems that the
+	 * data will be freed once we close the msg structs, so we need to copy
+	 * them
+	 */
+	nrm_net_copy_frame((void**)identity, &ident);
+	nrm_net_copy_frame((void**)content, &cont);
+	
+	zmq_msg_close(&ident);
+	zmq_msg_close(&cont);
+
+	return 0;
 }
