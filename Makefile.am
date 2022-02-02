@@ -1,5 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
-AM_CPPFLAGS = @LIBZMQ_CFLAGS@
+AM_CPPFLAGS = @LIBZMQ_CFLAGS@ $(PTHREAD_CFLAGS)
+AM_LDFLAGS = $(PTHREAD_LIBS)
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = libnrm.pc libnrmf.pc
@@ -26,5 +27,3 @@ libnrmf_la_SOURCES = \
 		     src/scopes.c \
 		     src/bitmaps.c
 libnrmf_la_LIBADD = @LIBZMQ_LIBS@
-
-

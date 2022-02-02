@@ -27,6 +27,10 @@ AM_PROG_AR
 # dependencies
 PKG_CHECK_MODULES([LIBZMQ],[libzmq])
 
+# doc in m4/ax_pthread.m4. Defines automake PTHREAD_CFLAGS and PTHREAD_LIBS
+AX_PTHREAD([],[AC_MSG_ERROR([Cannot find how to compile with pthreads.])])
+CC="$PTHREAD_CC"
+
 # check for libtool
 LT_INIT
 AC_SEARCH_LIBS([dlsym], [dl dld], [], [

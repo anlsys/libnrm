@@ -20,6 +20,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <pthread.h>
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -146,7 +147,7 @@ int nrm_fini(struct nrm_context *ctxt)
 	         ctxt->thread_id);
 	err = nrm_net_send(ctxt, buf, 512, 0);
 	assert(err > 0);
-	pthread_mutex_destroy(&ctxt->lock, 0);
+	pthread_mutex_destroy(&ctxt->lock);
 	free(ctxt->task_id);
 	nrm_net_fini(ctxt);
 
