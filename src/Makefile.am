@@ -8,7 +8,7 @@ lib_LTLIBRARIES = libnrm.la
 
 libnrm_la_SOURCES = \
 		 nrm.c \
-		 net.c
+		 net.c \
 		 sensor_emitter.c \
 		 sensor_receiver.c \
 		 nrm-internal.h \
