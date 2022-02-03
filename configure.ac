@@ -8,6 +8,7 @@ AC_CONFIG_SRCDIR([src/nrm.h])
 # build artefacts in separate dir
 AC_CONFIG_AUX_DIR([m4])
 AC_CONFIG_MACRO_DIR([m4])
+AC_CONFIG_LIBOBJ_DIR([lib])
 
 # automake should fail on any error
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects 1.12])
@@ -23,6 +24,9 @@ AC_TYPE_INTPTR_T
 AC_PROG_FC
 AC_FC_WRAPPERS
 AM_PROG_AR
+
+# getcpu is somewhat new, and might be missing from the system libc
+AC_REPLACE_FUNCS(getcpu)
 
 # dependencies
 PKG_CHECK_MODULES([LIBZMQ],[libzmq])
