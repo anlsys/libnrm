@@ -54,6 +54,25 @@ jobs:
           name: out-of-tree
           path: |
             out/config.log
+  old:
+    runs-on: ubuntu-18.04
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 gfortran
+      - uses: actions/checkout@v2
+      - name: configure
+        run: |
+          ./autogen.sh
+          mkdir build
+          ./configure --prefix=`pwd`/build
+      - run: make
+      - run: make install
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: old
+          path: |
+            config.log
   nix:
     runs-on: ubuntu-latest
     steps:
