@@ -17,6 +17,10 @@
 
 #include "nrm.h"
 
+#ifndef HAVE_GETCPU
+int getcpu(unsigned int *cpu, unsigned int *node);
+#endif
+
 struct nrm_scope {
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
 };
