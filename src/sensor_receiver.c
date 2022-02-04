@@ -92,6 +92,6 @@ int nrm_sensor_receiver_exit(struct nrm_sensor_receiver_ctxt *ctxt)
 int nrm_sensor_receiver_recv(struct nrm_sensor_receiver_ctxt *ctxt,
 			     char **identity, char **buf)
 {
-	nrm_net_recv_multipart(ctxt->net, identity, buf);
+	nrm_net_recv_multipart(&ctxt->net, identity, buf);
 	return 0;
 }

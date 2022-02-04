@@ -7,6 +7,7 @@ mkShell {
   buildInputs = [
     # deps for debug
     gdb
+    valgrind
     # style checks
     clang-tools
     python3

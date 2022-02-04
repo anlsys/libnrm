@@ -44,30 +44,49 @@ int nrm_sensor_emitter_destroy(struct nrm_sensor_emitter_ctxt *ctxt)
 }
 
 json_t *nrm_ssem_encode_progress(struct nrm_sensor_emitter_ctxt *ctxt,
-				int64_t timestamp, unsigned long progress,
+				nrm_time_t timestamp, unsigned long progress,
 				nrm_scope_t *scope)
 {
 	json_t *msg;
 	json_t *sc;
+	json_t *time;
+	json_error_t error;
+	time = nrm_time_to_json(&timestamp);
+	assert(time != NULL);
 	sc = nrm_scope_to_json(scope);
-	msg = json_pack("{s:i, s:{s:{s:i, s:{s:s, s:s, s:i, s:i, s:i},s:o}}}",
-			"timestamp", timestamp,
+	assert(sc != NULL);
+	msg = json_pack_ex(&error, 0, "{s:o, s:{s:{s:i, s:{s:s, s:s, s:i, s:i, s:i},s:o}}}",
+			"timestamp", time,
 			"info", "threadProgress", "progress", progress,
 			"downstreamThreadID", "cmdID", ctxt->cmd_id,
 			"taskID", ctxt->name, "processID", 0, "rankID", 0,
-			"scopes", sc);
+			"threadID", 0, "scopes", sc);
+	if (msg == NULL) {
+		fprintf(stderr,"error packing json: %s\n", error.text);
+	}
 	return msg;
 }
 
 json_t *nrm_ssem_encode_pause(struct nrm_sensor_emitter_ctxt *ctxt,
-			      int64_t timestamp)
+			      nrm_time_t timestamp)
 {
 	json_t *msg;
-	msg = json_pack("{s:i, s:{s:{s:{s:s, s:s, s:i, s:i, s:i}}}}",
-			"timestamp", timestamp,
-			"info", "threadPause", "cmdID", ctxt->cmd_id,
-			"taskID", ctxt->name, "processID", 0, "rankID", 0);
-	return 0;
+	json_t *time;
+	json_error_t error;
+	time = nrm_time_to_json(&timestamp);
+	assert(time != NULL);
+	msg = json_pack_ex(&error, 0, "{s:o, s:{s:{s:{s:s, s:s, s:i, s:i, s:i}}}}",
+			"timestamp", time,
+			"info", "threadPause", "downstreamThreadID", 
+			"cmdID", ctxt->cmd_id,
+			"taskID", ctxt->name, "processID", 0, "rankID", 0,
+			"threadID", 0);
+	if (msg == NULL) {
+		fprintf(stderr,"error packing json: %s, %s, %d, %d, %d\n",
+			error.text, error.source, error.line, error.column,
+			error.position);
+	}
+	return msg;
 }
 
 
@@ -84,7 +103,13 @@ int nrm_sensor_emitter_start(struct nrm_sensor_emitter_ctxt *ctxt,
 	/* context init */
 	ctxt->cmd_id = getenv(NRM_ENV_DOWNSTREAM_CMDID);
 	assert(ctxt->cmd_id != NULL);
-	ctxt->name = (char *)sensor_name;
+
+	/* copy sensor name */
+	size_t bufsize = snprintf(NULL, 0, "%s", ctxt->name);
+	bufsize++;
+	ctxt->name = calloc(1,bufsize);
+	assert(ctxt->name != NULL);
+	snprintf(ctxt->name, bufsize, "%s", sensor_name);
 
 	/* net init */
 	nrm_net_down_client_init(&ctxt->net, uri);
@@ -97,12 +122,10 @@ int nrm_sensor_emitter_exit(struct nrm_sensor_emitter_ctxt *ctxt)
 	char *buf;
 	size_t bufsize;
 	nrm_time_t now;
-	int64_t tm;
 	json_t *msg;
 	assert(ctxt != NULL);
 	nrm_time_gettime(&now);
-	tm = nrm_time_tons(&now);
-	msg = nrm_ssem_encode_pause(ctxt, tm);
+	msg = nrm_ssem_encode_pause(ctxt, now);
 	assert(msg != NULL);
 	bufsize = json_dumpb(msg, NULL, 0, 0);
 	assert(bufsize != 0);
@@ -122,15 +145,17 @@ int nrm_sensor_emitter_send_progress(struct nrm_sensor_emitter_ctxt *ctxt,
 	char *buf;
 	size_t bufsize;
 	nrm_time_t now;
-	int64_t tm;
 	json_t *msg;
 	nrm_time_gettime(&now);
-	tm = nrm_time_tons(&now);
-	msg = nrm_ssem_encode_progress(ctxt, tm, progress, scope);
+	msg = nrm_ssem_encode_progress(ctxt, now, progress, scope);
+	/* jansson recommends this to figure out the size of the buffer */
 	bufsize = json_dumpb(msg, NULL, 0, 0);
 	assert(bufsize != 0);
 	buf = malloc(bufsize);
 	assert(buf != NULL);
 	int err = nrm_net_send(&ctxt->net, buf, bufsize, ZMQ_DONTWAIT);
+	assert(err > 0);
+	free(buf);
+	json_decref(msg);
 	return 0;
 }

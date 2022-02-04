@@ -16,48 +16,46 @@
 #include <stdlib.h>
 
 /* fixtures for pair of sensor receiver and emitter */
-struct nrm_sensor_emitter_ctxt sensor;
-struct nrm_sensor_receiver_ctxt receiver;
+struct nrm_sensor_emitter_ctxt *sensor;
+struct nrm_sensor_receiver_ctxt *receiver;
 
 void setup_both(void)
 {
 	/* need to create the server first, otherwise the client will block
 	 * indefinitely */
 
-	ck_assert(!nrm_net_down_server_init(&down_server,
-					    NRM_DEFAULT_DOWNSTREAM_URI));
-	ck_assert(!nrm_net_down_client_init(&down_client,
-					    NRM_DEFAULT_DOWNSTREAM_URI));
+	sensor = nrm_sensor_emitter_create();
+	ck_assert_ptr_nonnull(sensor);
+	receiver = nrm_sensor_receiver_create();
+	ck_assert_ptr_nonnull(receiver);
+
+	ck_assert(!nrm_sensor_receiver_start(receiver));
+	ck_assert(!nrm_sensor_emitter_start(sensor, "test-sensor"));
 }
 
 void teardown_both(void)
 {
-	ck_assert(!nrm_net_fini(&down_client));
-	ck_assert(!nrm_net_fini(&down_server));
+	ck_assert(!nrm_sensor_emitter_exit(sensor));
+	ck_assert(!nrm_sensor_receiver_exit(receiver));
+	nrm_sensor_emitter_destroy(sensor);
+	nrm_sensor_receiver_destroy(receiver);
 }
 
-START_TEST(test_net_down_empty)
+START_TEST(test_send_progress)
 {
-	/* do nothing, just make sure that the fixtures are ok */
-}
-END_TEST
-
-
-START_TEST(test_net_down_send_onemsg)
-{
-	/* make sure we can send one message properly, and that it is received
-	 */
-	char sndbuf[] = "{'test':'value'}";
-	ck_assert_int_eq(nrm_net_send(&down_client, sndbuf, sizeof(sndbuf), 0),
-			 sizeof(sndbuf));
-	char *recvbuf = NULL, *identity = NULL;
-	ck_assert(!nrm_net_recv_multipart(&down_server, &identity, &recvbuf));
-	ck_assert_ptr_nonnull(recvbuf);
+	char *identity, *buf;	
+	nrm_scope_t *scope = nrm_scope_create();
+	ck_assert_ptr_nonnull(scope);
+	ck_assert(!nrm_scope_threadprivate(scope));
+	ck_assert(!nrm_sensor_emitter_send_progress(sensor, 42, scope));
+	ck_assert(!nrm_sensor_receiver_recv(receiver, &identity, &buf));
 	ck_assert_ptr_nonnull(identity);
-	ck_assert_str_eq(recvbuf, sndbuf);
+	ck_assert_ptr_nonnull(buf);
+	free(identity);
+	free(buf);
+	nrm_scope_destroy(scope);
 }
 END_TEST
-
 
 Suite *sensor_suite(void)
 {
@@ -69,8 +67,6 @@ Suite *sensor_suite(void)
 	tc_dc = tcase_create("normal_workflow");
 	tcase_add_checked_fixture(tc_dc, setup_both, teardown_both);
 	tcase_add_test(tc_dc, test_send_progress);
-	tcase_add_test(tc_dc, test_progress_format);
-	tcase_add_test(tc_dc, test_pause_format);
 	suite_add_tcase(s, tc_dc);
 
 	return s;

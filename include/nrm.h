@@ -117,7 +117,7 @@ int nrm_sensor_receiver_exit(struct nrm_sensor_receiver_ctxt *ctxt);
  * @param identity: identity of the sensor
  * @param buf: raw data
  */
-int nrm_sensor_receiver_recv_multipart(struct nrm_sensor_receiver_ctxt *ctxt,
+int nrm_sensor_receiver_recv(struct nrm_sensor_receiver_ctxt *ctxt,
 			    char **identity, char **buf);
 
 #ifdef __cplusplus

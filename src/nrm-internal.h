@@ -108,6 +108,8 @@ struct nrm_sensor_emitter_ctxt {
 	char *cmd_id;
 };
 
+json_t *nrm_time_to_json(nrm_time_t *t);
+
 json_t *nrm_scope_to_json(nrm_scope_t *s);
 
 json_t *nrm_bitmap_to_json(nrm_bitmap_t *b);

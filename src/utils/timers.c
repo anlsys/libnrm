@@ -12,6 +12,8 @@
 
 #include "nrm.h"
 
+#include "nrm-internal.h"
+
 void nrm_time_gettime(nrm_time_t *now)
 {
 	clock_gettime(CLOCK_REALTIME, now);
@@ -28,4 +30,30 @@ int64_t nrm_time_diff(const nrm_time_t *start, const nrm_time_t *end)
 int64_t nrm_time_tons(const nrm_time_t *now)
 {
 	return now->tv_nsec + 1000000000 * now->tv_sec;
+}
+
+json_t *nrm_time_to_json(nrm_time_t *time)
+{
+	/* jansson doesn't support unsigned longs, so we end up doing the
+	 * conversion ourselves.
+	 */
+	int64_t ns = nrm_time_tons(time);
+	
+	/* snprintf can be used to figure out how much characters will be
+	 * written.
+	 */
+	size_t bufsize;
+	char *buf;
+	bufsize = snprintf(NULL, 0, "%" PRId64 "", ns);
+	assert(bufsize > 0);
+	bufsize++;
+	buf = calloc(1,bufsize);
+	assert(buf != NULL);
+	snprintf(buf, bufsize, "%" PRId64 "", ns);
+
+	json_t *msg;
+	msg = json_pack("s", buf);
+	assert(msg != NULL);
+	free(buf);
+	return msg;
 }
