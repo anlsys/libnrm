@@ -66,7 +66,9 @@ AC_SEARCH_LIBS([dlsym], [dl dld], [], [
 PKG_CHECK_MODULES([LIBZMQ],[libzmq],,
 		  AC_MSG_ERROR([unable to find libzmq]))
 
-=======
+PKG_CHECK_MODULES([LIBCZMQ],[libczmq],,
+		  AC_MSG_ERROR([unable to find libzmq]))
+
 PKG_CHECK_MODULES([JANSSON],[jansson],,
 		  AC_MSG_ERROR([unable to find jansson]))
 

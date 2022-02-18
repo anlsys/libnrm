@@ -23,7 +23,7 @@
 
 #include "nrm.h"
 
-#include "nrm-internal.h"
+#include "internal/nrmi.h"
 
 struct nrm_sensor_receiver_ctxt *nrm_sensor_receiver_create(void)
 {

@@ -12,7 +12,7 @@
 
 #include "nrm.h"
 
-#include "nrm-internal.h"
+#include "internal/nrmi.h"
 
 void nrm_time_gettime(nrm_time_t *now)
 {

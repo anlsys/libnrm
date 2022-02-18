@@ -17,7 +17,7 @@
 
 #include "nrm.h"
 
-#include "nrm-internal.h"
+#include "internal/nrmi.h"
 
 struct nrm_scope {
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];

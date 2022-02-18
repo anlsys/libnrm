@@ -12,7 +12,7 @@
 
 #include "nrm.h"
 
-#include "nrm-internal.h"
+#include "internal/nrmi.h"
 
 const int nrm_version_major = NRM_VERSION_MAJOR;
 const int nrm_version_minor = NRM_VERSION_MINOR;

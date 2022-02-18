@@ -1,5 +1,5 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include @LIBZMQ_CFLAGS@ @JANSSON_CFLAGS@
-AM_LDFLAGS = @LIBZMQ_LIBS@ @JANSSON_LIBS@
+AM_CPPFLAGS = -I$(top_srcdir)/include @LIBZMQ_CFLAGS@ @LIBCZMQ_CFLAGS@ @JANSSON_CFLAGS@
+AM_LDFLAGS = @LIBZMQ_LIBS@ @LIBCZMQ_LIBS@ @JANSSON_LIBS@
 
 # valgrind support
 @VALGRIND_CHECK_RULES@
@@ -11,7 +11,8 @@ libnrm_la_SOURCES = \
 		 net.c \
 		 sensor_emitter.c \
 		 sensor_receiver.c \
-		 nrm-internal.h \
+		 roles/sensor.c \
+		 messages.c \
 		 utils/bitmaps.c \
 		 utils/scopes.c \
 		 utils/timers.c

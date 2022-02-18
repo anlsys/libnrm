@@ -26,7 +26,7 @@
 
 #include "nrm.h"
 
-#include "nrm-internal.h"
+#include "internal/nrmi.h"
 
 struct nrm_sensor_emitter_ctxt *nrm_sensor_emitter_create(void)
 {

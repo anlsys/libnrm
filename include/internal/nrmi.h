@@ -56,10 +56,6 @@ int getcpu(unsigned int *cpu, unsigned int *node);
  */
 #define NRM_ENV_TRANSMIT "NRM_TRANSMIT"
 
-/*******************************************************************************
- * Global variables
- ******************************************************************************/
-
 /* post initialization value for ratelimit threshold */
 extern long long int nrm_ratelimit_threshold;
 /* post initialization value for transmit */

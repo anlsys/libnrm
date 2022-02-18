@@ -22,7 +22,7 @@
 
 #include "nrm.h"
 
-#include "nrm-internal.h"
+#include "internal/nrmi.h"
 
 int nrm_net_down_client_init(struct nrm_net_ctxt *ctxt, const char *uri)
 {
