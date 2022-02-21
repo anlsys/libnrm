@@ -21,6 +21,7 @@ extern "C" {
 
 #include <assert.h>
 #include <inttypes.h>
+#include <stdio.h>
 #include <time.h>
 
 #include "nrm/utils/bitmaps.h"
@@ -55,70 +56,67 @@ int nrm_init(int *argc, char **argv[]);
 int nrm_finalize(void);
 
 /*******************************************************************************
- * Downstream Client API
+ * NRM Messages
+ * Messages being transmitted between nrm components
  ******************************************************************************/
 
-/** an opaque context required for a sensor to emit data back to the NRM. */
-struct nrm_sensor_emitter_ctxt;
+enum nrm_msg_type_e {
+	NRM_MSG_TYPE_SENSOR_PROGRESS = 0,
+	NRM_MSG_TYPE_SENSOR_PAUSE = 1,
+};
 
-/** allocates an new empty context for a sensor emitter */
-struct nrm_sensor_emitter_ctxt *nrm_sensor_emitter_create(void);
+struct nrm_msg_sspg_s {
+	unsigned long progress;
+	nrm_scope_t *scope;
+	const char *name;
+	const char *cmdid;
+};
 
-/** destroys a context for a sensor emitter. pointer is set to NULL upon
- * completion.
- */
-int nrm_sensor_emitter_destroy(struct nrm_sensor_emitter_ctxt *);
+struct nrm_msg_sspa_s {
+	const char *name;
+	const char *cmdid;
+};
 
-/**
- * Establish a connection and set up basic information about the emitter.
- **/
-int nrm_sensor_emitter_start(struct nrm_sensor_emitter_ctxt *ctxt,
-			    const char *sensor_name);
+struct nrm_msg_s {
+	int type;	
+	nrm_time_t timestamp;
+	union {
+		struct nrm_msg_sspg_s sspg;
+		struct nrm_msg_sspa_s sspa;
+	} u;
+};
 
-/**
- * Disconnect from the NRM and shutdown the sensor
- **/
-int nrm_sensor_emitter_exit(struct nrm_sensor_emitter_ctxt *ctxt);
+typedef struct nrm_msg_s nrm_msg_t;
 
-/**
- * @param progress: cumulative value that represents the application progress
- * since the last progress report.
- */
-int nrm_sensor_emitter_send_progress(struct nrm_sensor_emitter_ctxt *ctxt,
-			    unsigned long progress, nrm_scope_t *scope);
+nrm_msg_t *nrm_msg_new_progress(nrm_time_t timestamp, unsigned long progress,
+				nrm_scope_t *scope);
 
+nrm_msg_t *nrm_msg_new_pause(nrm_time_t timestamp);
+
+void nrm_msg_fprintf(FILE *out, nrm_msg_t *msg);
+
+void nrm_msg_destroy(nrm_msg_t **msg);
 
 /*******************************************************************************
- * Downstream Server API
+ * NRM Role API
+ * A "role" is a set of features of NRM that a client of this library is using.
+ * A typical role is a sensor, or an actuator, or something monitoring sensor
+ * messages and so on.
+ * Behind each role is an event loop and a helper thread, related to its actions
+ * in the communication infrastructure of the NRM.
  ******************************************************************************/
 
-/** an opaque context required for receiving info from sensors. */
-struct nrm_sensor_receiver_ctxt;
+typedef struct nrm_role_s nrm_role_t;
 
-/** allocates an new empty context for a sensor receiver */
-struct nrm_sensor_receiver_ctxt *nrm_sensor_receiver_create(void);
+nrm_role_t *nrm_role_monitor_create_fromenv();
 
-/** destroys a context for a sensor receiver. pointer is set to NULL upon
- * completion.
- */
-int nrm_sensor_receiver_destroy(struct nrm_sensor_receiver_ctxt *);
+nrm_role_t *nrm_role_sensor_create_fromenv();
 
-/**
- * Establish a connection and set up basic information about the receiver.
- **/
-int nrm_sensor_receiver_start(struct nrm_sensor_receiver_ctxt *ctxt);
+int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg);
 
-/**
- * Disconnect from sensors.
- **/
-int nrm_sensor_receiver_exit(struct nrm_sensor_receiver_ctxt *ctxt);
+nrm_msg_t *nrm_role_recv(const nrm_role_t *role);
 
-/**
- * @param identity: identity of the sensor
- * @param buf: raw data
- */
-int nrm_sensor_receiver_recv(struct nrm_sensor_receiver_ctxt *ctxt,
-			    char **identity, char **buf);
+void nrm_role_destroy(nrm_role_t **);
 
 #ifdef __cplusplus
 }

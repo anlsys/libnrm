@@ -11,16 +11,13 @@
 #include "config.h"
 
 #include "nrm.h"
-
 #include "internal/nrmi.h"
-#include "internal/messages.h"
-
-#include <czmq.h>
+#include "internal/roles.h"
 
 /* actor thread that takes care of actually communicating with the rest of the
  * NRM infrastructure.
  */
-struct nrm_broker_monitor_s {
+struct nrm_role_monitor_broker_s {
 	/* communication channel with the creator of the broker */
 	zsock_t *pipe;
 	/* socket used to receive sensor messages */
@@ -31,7 +28,7 @@ struct nrm_broker_monitor_s {
 	int transmit;
 };
 
-struct nrm_broker_monitor_args {
+struct nrm_role_monitor_broker_args {
 	/* uri for in connection */
 	const char *uri;
 	/* transmit: actually open sockets */
@@ -162,13 +159,16 @@ struct nrm_role_monitor_s *nrm_role_monitor_create_fromenv()
 	return role;
 }
 
-int nrm_role_monitor_destroy(struct nrm_role_monitor_s *role)
+void nrm_role_monitor_destroy(nrm_role_t **role)
 {
+	struct nrm_role_monitor_s *monitor = (struct nrm_role_monitor_s *)
+		(*role)->data;
+
 	/* simply destroy the actor, in principle this should just send a
 	 * message on the pipe and wait for the actor to exit by itself */
-	zactor_destroy(&role->broker);
-
-	free(role);
+	zactor_destroy(&monitor->broker);
+	free(*role);
+	*role = NULL;
 	return 0;
 }
 

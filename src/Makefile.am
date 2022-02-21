@@ -8,9 +8,6 @@ lib_LTLIBRARIES = libnrm.la
 
 libnrm_la_SOURCES = \
 		 nrm.c \
-		 net.c \
-		 sensor_emitter.c \
-		 sensor_receiver.c \
 		 roles/sensor.c \
 		 roles/monitor.c \
 		 messages.c \

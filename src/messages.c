@@ -116,7 +116,7 @@ int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg)
 	return err;
 }
 
-void nrm_msg_print(FILE *out, nrm_msg_t *msg)
+void nrm_msg_fprintf(FILE *out, nrm_msg_t *msg)
 {
 	json_t *json = nrm_msg_encode(msg);
 	json_dumpf(json, out, JSON_INDENT(4)|JSON_SORT_KEYS);

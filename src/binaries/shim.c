@@ -17,7 +17,6 @@
 #include "internal/roles.h"
 
 #include <getopt.h>
-#include <czmq.h>
 
 int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
@@ -27,7 +26,7 @@ int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 	int msg_type;
 
 	msg = nrm_ctrlmsg_recv(socket, &msg_type);
-	nrm_msg_print(stdout, msg);
+	nrm_msg_fprintf(stdout, msg);
 	nrm_msg_destroy(&msg);
 	return 0;
 }
@@ -115,16 +114,14 @@ int main(int argc, char *argv[])
 	 *  - we have our own loop to listen to it, no on a different thread
 	 *  though, as we only have this to take care of
 	 */
-	struct nrm_role_monitor_s *monitor =
-		nrm_role_monitor_create_fromenv();
+	nrm_role_t *monitor = nrm_role_monitor_create_fromenv();
 	assert(monitor != NULL);
 
 	zloop_t *loop = zloop_new();
 	assert(loop != NULL);
 
-	zsock_t *pipe = (zsock_t *)nrm_role_monitor_broker(monitor);
-	zloop_reader(loop, pipe,
-		     nrmd_shim_monitor_read_callback, NULL);
+	nrm_role_register_recvcallback(loop, nrmd_shim_monitor_read_callback,
+				       NULL);
 	zloop_start(loop);	
 
 	return 0;

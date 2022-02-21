@@ -15,18 +15,42 @@
 extern "C" {
 #endif
 
-#include <time.h>
-#include <zmq.h>
-#include <czmq.h>
-#include <jansson.h>
-
 #include "internal/nrmi.h"
+#include "internal/messages.h"
 
-struct nrm_role_monitor_s;
+/*******************************************************************************
+ * Global definitions
+ ******************************************************************************/
 
-struct nrm_role_monitor_s *nrm_role_monitor_create_fromenv();
+struct nrm_role_data;
 
-zsock_t *nrm_role_monitor_broker(struct nrm_role_monitor_s *role);
+struct nrm_role_ops {
+	int (*send)(const struct nrm_role_data *data, nrm_msg_t *msg);
+	int (*recv)(const struct nrm_role_data *data, nrm_msg_t *msg);
+	void (*destroy)(nrm_role_t **role);
+};
+
+struct nrm_role_s {
+	struct nrm_role_ops *ops;
+	struct nrm_role_data *data;
+};
+
+int nrm_role_register_recvcallback(zloop_t *loop, zloop_reader_fn *fn,
+				   void *arg);
+
+/*******************************************************************************
+ * Monitor:
+ * monitors sensor data, recv a message each time a sensor sends something
+ ******************************************************************************/
+
+nrm_role_t *nrm_role_monitor_create_fromenv();
+
+/*******************************************************************************
+ * Monitor:
+ * monitors sensor data, recv a message each time a sensor sends something
+ ******************************************************************************/
+
+nrm_role_t *nrm_role_sensor_create_fromenv();
 
 #ifdef __cplusplus
 }

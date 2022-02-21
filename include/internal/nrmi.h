@@ -15,9 +15,10 @@
 extern "C" {
 #endif
 
+#include <jansson.h>
 #include <time.h>
 #include <zmq.h>
-#include <jansson.h>
+#include <czmq.h>
 
 /*******************************************************************************
  * Compat functions
@@ -56,89 +57,15 @@ int getcpu(unsigned int *cpu, unsigned int *node);
  */
 #define NRM_ENV_TRANSMIT "NRM_TRANSMIT"
 
-/* post initialization value for ratelimit threshold */
-extern long long int nrm_ratelimit_threshold;
-/* post initialization value for transmit */
-extern int nrm_transmit;
-/* post initialization value for downstream uri */
-extern const char *nrm_downstream_uri;
-
 /*******************************************************************************
- * NRM NETCODE
+ * Utils functions
  ******************************************************************************/
-
-struct nrm_net_ctxt {
-	void *context;
-	void *socket;
-};
-
-/* initializes a net context for a downstream client (sending messages to the
- * NRM on the downstream socket).
- * Will not return until the connection is established.
- */
-int nrm_net_down_client_init(struct nrm_net_ctxt *ctxt, const char *uri);
-
-/* initializes a net context for a downstream server (recv messages to the
- * NRM on the downstream socket).
- */
-int nrm_net_down_server_init(struct nrm_net_ctxt *ctxt, const char *uri);
-
-/* closes a net context.
- * Does not destroy the pointer. */
-int nrm_net_fini(struct nrm_net_ctxt *ctxt);
-
-/* sends a raw buffer */
-int nrm_net_send(struct nrm_net_ctxt *ctxt, char *buf, size_t bufsize, int
-		 flags);
-
-/* recvs a raw buffer */
-int nrm_net_recv_multipart(struct nrm_net_ctxt *ctxt, char **identity,
-			   char **buf);
-/*******************************************************************************
- * NRM SENSOR EMITTER
- ******************************************************************************/
-
-struct nrm_sensor_emitter_ctxt {
-	struct nrm_net_ctxt net;
-	char *name;
-	char *cmd_id;
-};
 
 json_t *nrm_time_to_json(nrm_time_t *t);
 
 json_t *nrm_scope_to_json(nrm_scope_t *s);
 
 json_t *nrm_bitmap_to_json(nrm_bitmap_t *b);
-
-#define NRM_CMDPERFORMANCE_FORMAT \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
-	"{\"cmdPerformance\":{\"cmdID\":\"%s\",\"perf\":%lu}}" \
-	"}"
-#define NRM_CMDPAUSE_FORMAT \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
-	"{\"cmdPause\":{\"cmdID\":\"%s\"}}" \
-	"}"
-#define NRM_THREADPROGRESS_FORMAT \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
-	"{\"threadProgress\":{\"progress\":%lu,\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}, \"scopes\":%s}}" \
-	"}"
-#define NRM_THREADPAUSE_FORMAT                                                 \
-	"{\"timestamp\": %" PRId64 "," \
-	" \"info\":" \
-	"{\"threadPause\":{\"downstreamThreadID\":{\"cmdID\":\"%s\",\"taskID\":\"%s\",\"processID\":%d,\"rankID\":%d,\"threadID\":%d}}}" \
-	"}"
-
-/*******************************************************************************
- * NRM SENSOR EMITTER
- ******************************************************************************/
-
-struct nrm_sensor_receiver_ctxt {
-	struct nrm_net_ctxt net;
-};
-
 
 #ifdef __cplusplus
 }
