@@ -61,6 +61,8 @@ nrm_msg_t *nrm_msg_new_progress(nrm_time_t timestamp, unsigned long progress,
 
 nrm_msg_t *nrm_msg_new_pause(nrm_time_t timestamp);
 
+void nrm_msg_print(FILE *out, nrm_msg_t *msg);
+
 void nrm_msg_destroy(nrm_msg_t **msg);
 
 /*******************************************************************************
@@ -74,12 +76,14 @@ void nrm_msg_destroy(nrm_msg_t **msg);
  */
 
 
-#define NRM_CTRLMSG_TYPE_STRING_SEND "SEND"
 #define NRM_CTRLMSG_TYPE_STRING_TERM "$TERM"
+#define NRM_CTRLMSG_TYPE_STRING_SEND "SEND"
+#define NRM_CTRLMSG_TYPE_STRING_RECV "RECV"
 
 enum nrm_ctrlmsg_type_e {
-	NRM_CTRLMSG_TYPE_SEND = 0,
-	NRM_CTRLMSG_TYPE_TERM = 1,
+	NRM_CTRLMSG_TYPE_TERM = 0,
+	NRM_CTRLMSG_TYPE_SEND = 1,
+	NRM_CTRLMSG_TYPE_RECV = 2,
 	NRM_CTRLMSG_TYPE_MAX,
 };
 

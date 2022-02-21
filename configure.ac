@@ -75,6 +75,17 @@ PKG_CHECK_MODULES([JANSSON],[jansson],,
 PKG_CHECK_MODULES([CHECK],[check],,
 		  AC_MSG_ERROR([unable to find check]))
 
+
+# options
+#########
+
+AC_ARG_ENABLE([binaries],
+	      [AS_HELP_STRING([--enable-binaries],
+			      [build optional binaries (dev tools)])]
+	      ,[binaries=true],[binaries=false])
+AM_CONDITIONAL([BUILD_BINARIES],[test "x$binaries" = "xtrue"])
+
+
 AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile

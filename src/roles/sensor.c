@@ -66,7 +66,8 @@ int nrm_sensor_out_init(struct nrm_sensor_broker_s *self, const char *uri)
 	 * connecting the monitor before connecting the real socket to the
 	 * server.
 	 */
-	self->out = zsock_new(ZMQ_DEALER); assert(self->out != NULL);
+	self->out = zsock_new(ZMQ_DEALER);
+	assert(self->out != NULL);
 	zsock_set_immediate(self->out, 1);
 	zsock_set_unbounded(self->out);
 

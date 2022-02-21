@@ -100,8 +100,27 @@ json_t *nrm_msg_encode(nrm_msg_t *msg)
 	case NRM_MSG_TYPE_SENSOR_PAUSE:
 		return nrm_msg_encode_pause(msg);
 	default:
+		assert(0);
 		return NULL;
 	}
+}
+
+int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg)
+{
+	int err;
+	json_t *json = nrm_msg_encode(msg);
+	char *s = json_dumps(json, JSON_COMPACT);
+	err = zsock_send(socket, "s", s); 
+	free(s);
+	json_decref(json);
+	return err;
+}
+
+void nrm_msg_print(FILE *out, nrm_msg_t *msg)
+{
+	json_t *json = nrm_msg_encode(msg);
+	json_dumpf(json, out, JSON_INDENT(4)|JSON_SORT_KEYS);
+	json_decref(json);
 }
 
 /* for ease of use, we build a table of those */
