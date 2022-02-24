@@ -14,9 +14,7 @@
 
 #include "internal/nrmi.h"
 #include "internal/messages.h"
-
-#include <czmq.h>
-
+#include "internal/roles.h"
 
 /* actor thread that takes care of actually communicating with the rest of the
  * NRM infrastructure.
@@ -171,12 +169,19 @@ void nrm_sensor_broker_fn(zsock_t *pipe, void *args)
 	free(self);
 }
 
-struct nrm_role_sensor_s *nrm_role_sensor_create_fromenv(const char *name)
+nrm_role_t *nrm_role_sensor_create_fromenv(const char *name)
 {
-	struct nrm_role_sensor_s *role;
-	role = calloc(1, sizeof(*role));
+	nrm_role_t *role;
+	struct nrm_role_sensor_s *data;
+	
+	role = NRM_INNER_MALLOC(nrm_role_t, struct nrm_role_sensor_s);
 	if (role == NULL)
 		return NULL;
+
+	data = NRM_INNER_MALLOC_GET_FIELD(role, 2, nrm_role_t, struct
+					  nrm_role_sensor_s);
+	role->data = (struct nrm_role_data *)data;
+	role->ops = &nrm_role_sensor_ops;
 
 	/* env init */
 	struct nrm_sensor_broker_args bargs;
@@ -190,42 +195,48 @@ struct nrm_role_sensor_s *nrm_role_sensor_create_fromenv(const char *name)
 		bargs.transmit = 1;
 
 	/* context init */
-	role->cmdid = getenv(NRM_ENV_DOWNSTREAM_CMDID);
-	assert(role->cmdid != NULL);
+	data->cmdid = getenv(NRM_ENV_DOWNSTREAM_CMDID);
+	assert(data->cmdid != NULL);
 
 	/* copy sensor name */
 	size_t bufsize = snprintf(NULL, 0, "%s", name);
 	bufsize++;
-	role->name = calloc(1,bufsize);
-	assert(role->name != NULL);
-	snprintf(role->name, bufsize, "%s", name);
+	data->name = calloc(1,bufsize);
+	assert(data->name != NULL);
+	snprintf(data->name, bufsize, "%s", name);
 
 	/* create broker */
-	role->broker = zactor_new(nrm_sensor_broker_fn, &bargs);
-	if (role->broker == NULL)
+	data->broker = zactor_new(nrm_sensor_broker_fn, &bargs);
+	if (data->broker == NULL)
 		return NULL;
-	zsock_set_unbounded(role->broker);
+	zsock_set_unbounded(data->broker);
 	return role;
 }
 
-int nrm_role_sensor_destroy(struct nrm_role_sensor_s *role)
+void nrm_role_sensor_destroy(nrm_role_t **role)
 {
+	if (role == NULL || *role == NULL)
+		return;
+
+	struct nrm_role_sensor_s *sensor = (struct nrm_role_sensor_s
+					    *)(*role)->data;
 	nrm_msg_t *msg;
 
 	/* need to push a pause message before the exit */
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 	msg = nrm_msg_new_pause(now);
-	nrm_ctrlmsg_send((zsock_t *)role->broker, NRM_CTRLMSG_TYPE_SEND, msg);
+	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg);
 
 	/* now exit: in principle this should just send a message on the pipe
 	 * and wait for the actor to exit by itself */
-	zactor_destroy(&role->broker);
+	zactor_destroy(&sensor->broker);
 
-	free(role->name);
-	free(role);
-	return 0;
+	free(sensor->name);
+	free(*role);
+	*role = NULL;	
 }
+
 
 int nrm_role_sensor_send_progress(struct nrm_role_sensor_s *s,
 				  unsigned long progress, nrm_scope_t *scope)
@@ -237,3 +248,17 @@ int nrm_role_sensor_send_progress(struct nrm_role_sensor_s *s,
 	nrm_ctrlmsg_send((zsock_t *)s->broker, NRM_CTRLMSG_TYPE_SEND, msg);
 	return 0;
 }
+
+int nrm_role_sensor_send(const struct nrm_role_data *data,
+			 nrm_msg_t *msg)
+{
+	struct nrm_role_sensor_s *sensor = (struct nrm_role_sensor_s *)data;
+	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg);
+	return 0;
+}
+
+struct nrm_role_ops nrm_role_sensor_ops = {
+	nrm_role_sensor_send,
+	NULL,
+	nrm_role_sensor_destroy,
+};

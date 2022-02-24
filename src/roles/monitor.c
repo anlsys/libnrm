@@ -40,7 +40,7 @@ struct nrm_role_monitor_s {
 	zactor_t *broker;
 };
 
-int nrm_monitor_in_init(struct nrm_broker_monitor_s *self, const char *uri)
+int nrm_monitor_in_init(struct nrm_role_monitor_broker_s *self, const char *uri)
 {
 	int err;
 	if (!self->transmit)
@@ -60,19 +60,21 @@ int nrm_monitor_in_init(struct nrm_broker_monitor_s *self, const char *uri)
 	return 0;
 }
 
-int nrm_broker_monitor_in_handler(zloop_t *loop, zsock_t *socket, void *arg)
+int nrm_monitor_broker_in_handler(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
-	struct nrm_broker_monitor_s *self = (struct nrm_broker_monitor_s *)arg;
+	struct nrm_role_monitor_broker_s *self = 
+		(struct nrm_role_monitor_broker_s *)arg;
 	(void)self;
 	(void)socket;
 	return 0;
 }
 
-int nrm_broker_monitor_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
+int nrm_monitor_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
-	struct nrm_broker_monitor_s *self = (struct nrm_broker_monitor_s *)arg;
+	struct nrm_role_monitor_broker_s *self =
+		(struct nrm_role_monitor_broker_s *)arg;
 	(void)self;
 
 	/* the only message we should ever receive here in the term one.
@@ -85,18 +87,18 @@ int nrm_broker_monitor_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	return -1;
 }
 
-void nrm_broker_monitor_fn(zsock_t *pipe, void *args)
+void nrm_monitor_broker_fn(zsock_t *pipe, void *args)
 {
 	int err;
-	struct nrm_broker_monitor_s *self;
-	struct nrm_broker_monitor_args *params;
+	struct nrm_role_monitor_broker_s *self;
+	struct nrm_role_monitor_broker_args *params;
 
 	assert(pipe);
 	assert(args);
 
 	/* avoid losing messages */
 	zsock_set_unbounded(pipe);
-	self = calloc(1, sizeof(struct nrm_broker_monitor_s));
+	self = calloc(1, sizeof(struct nrm_role_monitor_broker_s));
 	if (self == NULL)
 	{
 		zsock_signal(pipe,1);
@@ -104,7 +106,7 @@ void nrm_broker_monitor_fn(zsock_t *pipe, void *args)
 	}
 
 	self->pipe = pipe;
-	params = (struct nrm_broker_monitor_args *)args;
+	params = (struct nrm_role_monitor_broker_args *)args;
 
 	/* init network */
 	self->transmit = params->transmit;
@@ -116,10 +118,10 @@ void nrm_broker_monitor_fn(zsock_t *pipe, void *args)
 	assert(self->loop != NULL);
 
 	zloop_reader(self->loop, self->pipe,
-		     (zloop_reader_fn*)nrm_broker_monitor_pipe_handler,
+		     (zloop_reader_fn*)nrm_monitor_broker_pipe_handler,
 		     (void*)self);
 	zloop_reader(self->loop, self->in,
-		     (zloop_reader_fn*)nrm_broker_monitor_in_handler,
+		     (zloop_reader_fn*)nrm_monitor_broker_in_handler,
 		     (void*)self);
 
 	/* notify we are ready */
@@ -133,15 +135,22 @@ void nrm_broker_monitor_fn(zsock_t *pipe, void *args)
 	free(self);
 }
 
-struct nrm_role_monitor_s *nrm_role_monitor_create_fromenv()
+nrm_role_t *nrm_role_monitor_create_fromenv()
 {
-	struct nrm_role_monitor_s *role;
-	role = calloc(1, sizeof(struct nrm_role_monitor_s));
+	nrm_role_t *role;
+	struct nrm_role_monitor_s *data;
+
+	role = NRM_INNER_MALLOC(nrm_role_t, struct nrm_role_monitor_s);
 	if (role == NULL)
 		return NULL;
 
+	data = NRM_INNER_MALLOC_GET_FIELD(role, 2, nrm_role_t, struct
+					  nrm_role_monitor_s);
+	role->data = (struct nrm_role_data *)data;
+	role->ops = &nrm_role_monitor_ops;
+
 	/* env init */
-	struct nrm_broker_monitor_args bargs;
+	struct nrm_role_monitor_broker_args bargs;
 	bargs.uri = getenv(NRM_ENV_DOWNSTREAM_URI);
 	if (bargs.uri == NULL)
 		bargs.uri = NRM_DEFAULT_DOWNSTREAM_URI;
@@ -152,15 +161,18 @@ struct nrm_role_monitor_s *nrm_role_monitor_create_fromenv()
 		bargs.transmit = 1;
 
 	/* create broker */
-	role->broker = zactor_new(nrm_broker_monitor_fn, &bargs);
-	if (role->broker == NULL)
+	data->broker = zactor_new(nrm_monitor_broker_fn, &bargs);
+	if (data->broker == NULL)
 		return NULL;
-	zsock_set_unbounded(role->broker);
+	zsock_set_unbounded(data->broker);
 	return role;
 }
 
 void nrm_role_monitor_destroy(nrm_role_t **role)
 {
+	if(role == NULL && *role == NULL)
+		return;
+
 	struct nrm_role_monitor_s *monitor = (struct nrm_role_monitor_s *)
 		(*role)->data;
 
@@ -169,19 +181,30 @@ void nrm_role_monitor_destroy(nrm_role_t **role)
 	zactor_destroy(&monitor->broker);
 	free(*role);
 	*role = NULL;
-	return 0;
 }
 
-nrm_msg_t *nrm_role_monitor_recv(struct nrm_role_monitor_s *role)
+nrm_msg_t *nrm_role_monitor_recv(const struct nrm_role_data *data)
 {
+	struct nrm_role_monitor_s *monitor = (struct nrm_role_monitor_s *)data;
 	nrm_msg_t *msg;
 	int msgtype;
-	msg = nrm_ctrlmsg_recv((zsock_t *)role->broker, &msgtype);
+	msg = nrm_ctrlmsg_recv((zsock_t *)monitor->broker, &msgtype);
 	assert(msgtype == NRM_CTRLMSG_TYPE_RECV);
 	return msg;
 }
 
-zsock_t *nrm_role_monitor_broker(struct nrm_role_monitor_s *role)
+int nrm_role_monitor_register_recvcallback(nrm_role_t *role, zloop_t *loop,
+					   zloop_reader_fn *fn,
+					   void *arg)
 {
-	return (zsock_t *)role->broker;
+	struct nrm_role_monitor_s *monitor = (struct nrm_role_monitor_s
+					      *)role->data;
+	zloop_reader(loop, (zsock_t *)monitor->broker, fn, arg);
+	return 0;
 }
+
+struct nrm_role_ops nrm_role_monitor_ops = {
+	NULL,
+	nrm_role_monitor_recv,
+	nrm_role_monitor_destroy,
+};

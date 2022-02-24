@@ -120,8 +120,9 @@ int main(int argc, char *argv[])
 	zloop_t *loop = zloop_new();
 	assert(loop != NULL);
 
-	nrm_role_register_recvcallback(loop, nrmd_shim_monitor_read_callback,
-				       NULL);
+	nrm_role_monitor_register_recvcallback(monitor, loop,
+					       nrmd_shim_monitor_read_callback,
+					       NULL);
 	zloop_start(loop);	
 
 	return 0;

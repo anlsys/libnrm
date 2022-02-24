@@ -12,6 +12,13 @@
 #include "internal/nrmi.h"
 #include "internal/roles.h"
 
+nrm_msg_t *nrm_role_recv(const nrm_role_t *role)
+{
+	if (role == NULL || role->ops == NULL || role->ops->recv == NULL)
+		return NULL;
+	return role->ops->recv(role->data);
+}
+
 void nrm_role_destroy(nrm_role_t **role)
 {
 	if (*role != NULL) {

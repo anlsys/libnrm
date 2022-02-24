@@ -24,8 +24,10 @@ extern "C" {
 #include <stdio.h>
 #include <time.h>
 
+#include "nrm/utils/alloc.h"
 #include "nrm/utils/bitmaps.h"
 #include "nrm/utils/scopes.h"
+#include "nrm/utils/strings.h"
 #include "nrm/utils/timers.h"
 #include "nrm/utils/version.h"
 
@@ -60,32 +62,6 @@ int nrm_finalize(void);
  * Messages being transmitted between nrm components
  ******************************************************************************/
 
-enum nrm_msg_type_e {
-	NRM_MSG_TYPE_SENSOR_PROGRESS = 0,
-	NRM_MSG_TYPE_SENSOR_PAUSE = 1,
-};
-
-struct nrm_msg_sspg_s {
-	unsigned long progress;
-	nrm_scope_t *scope;
-	const char *name;
-	const char *cmdid;
-};
-
-struct nrm_msg_sspa_s {
-	const char *name;
-	const char *cmdid;
-};
-
-struct nrm_msg_s {
-	int type;	
-	nrm_time_t timestamp;
-	union {
-		struct nrm_msg_sspg_s sspg;
-		struct nrm_msg_sspa_s sspa;
-	} u;
-};
-
 typedef struct nrm_msg_s nrm_msg_t;
 
 nrm_msg_t *nrm_msg_new_progress(nrm_time_t timestamp, unsigned long progress,
@@ -110,7 +86,7 @@ typedef struct nrm_role_s nrm_role_t;
 
 nrm_role_t *nrm_role_monitor_create_fromenv();
 
-nrm_role_t *nrm_role_sensor_create_fromenv();
+nrm_role_t *nrm_role_sensor_create_fromenv(const char *sensor_name);
 
 int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg);
 

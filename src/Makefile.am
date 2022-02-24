@@ -13,6 +13,7 @@ libnrm_la_SOURCES = \
 		 messages.c \
 		 utils/bitmaps.c \
 		 utils/scopes.c \
+		 utils/strings.c \
 		 utils/timers.c
 libnrm_la_LIBADD = $(LTLIBOBJS)
 

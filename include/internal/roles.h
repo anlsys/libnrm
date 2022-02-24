@@ -26,7 +26,7 @@ struct nrm_role_data;
 
 struct nrm_role_ops {
 	int (*send)(const struct nrm_role_data *data, nrm_msg_t *msg);
-	int (*recv)(const struct nrm_role_data *data, nrm_msg_t *msg);
+	nrm_msg_t* (*recv)(const struct nrm_role_data *data);
 	void (*destroy)(nrm_role_t **role);
 };
 
@@ -35,8 +35,9 @@ struct nrm_role_s {
 	struct nrm_role_data *data;
 };
 
-int nrm_role_register_recvcallback(zloop_t *loop, zloop_reader_fn *fn,
-				   void *arg);
+int nrm_role_monitor_register_recvcallback(nrm_role_t *role,
+					   zloop_t *loop, zloop_reader_fn *fn,
+					   void *arg);
 
 /*******************************************************************************
  * Monitor:
@@ -45,12 +46,16 @@ int nrm_role_register_recvcallback(zloop_t *loop, zloop_reader_fn *fn,
 
 nrm_role_t *nrm_role_monitor_create_fromenv();
 
+extern struct nrm_role_ops nrm_role_monitor_ops;
+
 /*******************************************************************************
  * Monitor:
  * monitors sensor data, recv a message each time a sensor sends something
  ******************************************************************************/
 
 nrm_role_t *nrm_role_sensor_create_fromenv();
+
+extern struct nrm_role_ops nrm_role_sensor_ops;
 
 #ifdef __cplusplus
 }

@@ -23,6 +23,32 @@ extern "C" {
  * out a message to a different nrm component.
  ******************************************************************************/
 
+enum nrm_msg_type_e {
+	NRM_MSG_TYPE_SENSOR_PROGRESS = 0,
+	NRM_MSG_TYPE_SENSOR_PAUSE = 1,
+};
+
+struct nrm_msg_sspg_s {
+	unsigned long progress;
+	nrm_scope_t *scope;
+	const char *name;
+	const char *cmdid;
+};
+
+struct nrm_msg_sspa_s {
+	const char *name;
+	const char *cmdid;
+};
+
+struct nrm_msg_s {
+	int type;	
+	nrm_time_t timestamp;
+	union {
+		struct nrm_msg_sspg_s sspg;
+		struct nrm_msg_sspa_s sspa;
+	} u;
+};
+
 int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg);
 
 /*******************************************************************************
