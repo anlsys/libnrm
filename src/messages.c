@@ -18,26 +18,32 @@
 #include "internal/messages.h"
 
 
-nrm_msg_t *nrm_msg_new_progress(nrm_time_t timestamp, unsigned long progress,
-				nrm_scope_t *scope)
+nrm_msg_t *nrm_msg_new(int type, ...)
 {
 	nrm_msg_t *ret;
+	va_list ap;
 	ret = calloc(1, sizeof(nrm_msg_t));
-	assert(ret != NULL);
-	ret->type = NRM_MSG_TYPE_SENSOR_PROGRESS;
-	ret->timestamp = timestamp;
-	ret->u.sspg.progress = progress;
-	ret->u.sspg.scope = scope; 
-	return ret;
-}
+	if (!ret)
+		return NULL;
 
-nrm_msg_t *nrm_msg_new_pause(nrm_time_t timestamp)
-{
-	nrm_msg_t *ret;
-	ret = calloc(1, sizeof(nrm_msg_t));
-	assert(ret != NULL);
-	ret->type = NRM_MSG_TYPE_SENSOR_PAUSE;
-	ret->timestamp = timestamp;
+	va_start(ap, type);
+	switch(type) {
+		case NRM_MSG_TYPE_SENSOR_PROGRESS:
+			ret->type = type;
+			ret->timestamp = va_arg(ap, nrm_time_t);
+			ret->u.sspg.progress = va_arg(ap, unsigned long);
+			ret->u.sspg.scope = va_arg(ap, nrm_scope_t *);
+			break;
+		case NRM_MSG_TYPE_SENSOR_PAUSE:
+			ret->type = type;
+			ret->timestamp = va_arg(ap, nrm_time_t);
+			break;
+		default:
+			free(ret);
+			ret = NULL;
+			break;
+	}
+	va_end(ap);
 	return ret;
 }
 
@@ -116,6 +122,13 @@ int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg)
 	return err;
 }
 
+nrm_msg_t *nrm_msg_recv(zsock_t *socket, int *msg_type)
+{
+	(void)socket;
+	(void)msg_type;
+	return NULL;
+}
+
 void nrm_msg_fprintf(FILE *out, nrm_msg_t *msg)
 {
 	json_t *json = nrm_msg_encode(msg);
@@ -130,8 +143,11 @@ struct nrm_ctrlmsg_type_table_e {
 };
 
 static const struct nrm_ctrlmsg_type_table_e nrm_ctrlmsg_table[] = {
-	{ NRM_CTRLMSG_TYPE_SEND, NRM_CTRLMSG_TYPE_STRING_SEND },
 	{ NRM_CTRLMSG_TYPE_TERM, NRM_CTRLMSG_TYPE_STRING_TERM },
+	{ NRM_CTRLMSG_TYPE_SEND, NRM_CTRLMSG_TYPE_STRING_SEND },
+	{ NRM_CTRLMSG_TYPE_RECV, NRM_CTRLMSG_TYPE_STRING_RECV },
+	{ NRM_CTRLMSG_TYPE_PUB, NRM_CTRLMSG_TYPE_STRING_PUB },
+	{ NRM_CTRLMSG_TYPE_SUB, NRM_CTRLMSG_TYPE_STRING_SUB },
 };
 
 const char *nrm_ctrlmsg_t2s(int type)

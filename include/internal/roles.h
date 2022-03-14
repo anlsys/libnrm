@@ -27,6 +27,8 @@ struct nrm_role_data;
 struct nrm_role_ops {
 	int (*send)(const struct nrm_role_data *data, nrm_msg_t *msg);
 	nrm_msg_t* (*recv)(const struct nrm_role_data *data);
+	int (*pub)(const struct nrm_role_data *data, nrm_msg_t *msg);
+	nrm_msg_t* (*sub)(const struct nrm_role_data *data);
 	void (*destroy)(nrm_role_t **role);
 };
 
@@ -49,13 +51,33 @@ nrm_role_t *nrm_role_monitor_create_fromenv();
 extern struct nrm_role_ops nrm_role_monitor_ops;
 
 /*******************************************************************************
- * Monitor:
- * monitors sensor data, recv a message each time a sensor sends something
+ * Sensor:
+ * gather information about something, sends data out
  ******************************************************************************/
 
 nrm_role_t *nrm_role_sensor_create_fromenv();
 
 extern struct nrm_role_ops nrm_role_sensor_ops;
+
+/*******************************************************************************
+ * Controller:
+ * control the system, responds to client requests, publishes information on the
+ * system
+ ******************************************************************************/
+
+nrm_role_t *nrm_role_controller_create_fromparams(const char *, const char *,
+						  int);
+
+extern struct nrm_role_ops nrm_role_controller_ops;
+
+/*******************************************************************************
+ * Client:
+ * client of the controller, send requests to it.
+ ******************************************************************************/
+
+nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int, int);
+
+extern struct nrm_role_ops nrm_role_client_ops;
 
 #ifdef __cplusplus
 }

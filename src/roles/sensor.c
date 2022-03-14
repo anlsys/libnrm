@@ -260,5 +260,7 @@ int nrm_role_sensor_send(const struct nrm_role_data *data,
 struct nrm_role_ops nrm_role_sensor_ops = {
 	nrm_role_sensor_send,
 	NULL,
+	NULL,
+	NULL,
 	nrm_role_sensor_destroy,
 };

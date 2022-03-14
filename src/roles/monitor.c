@@ -206,5 +206,7 @@ int nrm_role_monitor_register_recvcallback(nrm_role_t *role, zloop_t *loop,
 struct nrm_role_ops nrm_role_monitor_ops = {
 	NULL,
 	nrm_role_monitor_recv,
+	NULL,
+	NULL,
 	nrm_role_monitor_destroy,
 };

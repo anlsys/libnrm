@@ -39,6 +39,9 @@ int getcpu(unsigned int *cpu, unsigned int *node);
  * interval between two messages in nanoseconds */
 #define NRM_DEFAULT_RATELIMIT_THRESHOLD (10000000LL)
 
+#define NRM_DEFAULT_UPSTREAM_URI "tcp://localhost"
+#define NRM_DEFAULT_UPSTREAM_PUB_PORT 2345
+#define NRM_DEFAULT_UPSTREAM_RPC_PORT 3456
 /*******************************************************************************
  * LIBNRM Environmnent variables
  ******************************************************************************/
@@ -61,11 +64,15 @@ int getcpu(unsigned int *cpu, unsigned int *node);
  * Utils functions
  ******************************************************************************/
 
-json_t *nrm_time_to_json(nrm_time_t *t);
+json_t *nrm_time_to_json(nrm_time_t *);
 
-json_t *nrm_scope_to_json(nrm_scope_t *s);
+json_t *nrm_scope_to_json(nrm_scope_t *);
 
-json_t *nrm_bitmap_to_json(nrm_bitmap_t *b);
+json_t *nrm_bitmap_to_json(nrm_bitmap_t *);
+
+json_t *nrm_uuid_to_json(nrm_uuid_t *);
+
+json_t *nrm_slice_to_json(nrm_slice_t *);
 
 #ifdef __cplusplus
 }

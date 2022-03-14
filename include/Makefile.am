@@ -7,6 +7,7 @@ include_nrm_utils_HEADERS = \
 			    nrm/utils/scopes.h \
 			    nrm/utils/strings.h \
 			    nrm/utils/timers.h \
+			    nrm/utils/uuids.h \
 			    nrm/utils/version.h
 
 noinst_HEADERS = \

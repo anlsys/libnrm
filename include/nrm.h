@@ -21,6 +21,7 @@ extern "C" {
 
 #include <assert.h>
 #include <inttypes.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -29,6 +30,7 @@ extern "C" {
 #include "nrm/utils/scopes.h"
 #include "nrm/utils/strings.h"
 #include "nrm/utils/timers.h"
+#include "nrm/utils/uuids.h"
 #include "nrm/utils/version.h"
 
 /*******************************************************************************
@@ -64,14 +66,49 @@ int nrm_finalize(void);
 
 typedef struct nrm_msg_s nrm_msg_t;
 
-nrm_msg_t *nrm_msg_new_progress(nrm_time_t timestamp, unsigned long progress,
-				nrm_scope_t *scope);
+nrm_msg_t *nrm_msg_new(int type, ...);
 
-nrm_msg_t *nrm_msg_new_pause(nrm_time_t timestamp);
+#define nrm_typecheck(var, type) \
+	do { \
+	type __dummy; \
+	__typeof__(var) __dummy2; \
+	(void)(&__dummy == &__dummy2); } while(0)
+
+#define nrm_msg_new_progress(t, p, s) ({ \
+	nrm_typecheck(t, nrm_time_t); \
+	nrm_typecheck(p, unsigned long); \
+	nrm_typecheck(s, nrm_scope_t *); \
+	nrm_msg_new((int)NRM_MSG_TYPE_SENSOR_PROGRESS, t, p, s); })
+
+#define nrm_msg_new_pause(t) ({ \
+	nrm_typecheck(t, nrm_time_t); \
+	nrm_msg_new((int)NRM_MSG_TYPE_SENSOR_PAUSE, t); })
+
+
+#define nrm_msg_new_list_slices_req() ({ \
+	nrm_msg_new((int)NRM_MSG_TYPE_SLICE_LIST_REQ); })
+
 
 void nrm_msg_fprintf(FILE *out, nrm_msg_t *msg);
 
 void nrm_msg_destroy(nrm_msg_t **msg);
+
+/*******************************************************************************
+ * Slice: a resource arbitration unit
+ ******************************************************************************/
+
+struct nrm_slice_s {
+	char *name;
+	nrm_uuid_t *uuid;
+};
+
+typedef struct nrm_slice_s nrm_slice_t;
+
+nrm_slice_t *nrm_slice_create(char *name);
+
+void nrm_slice_destroy(nrm_slice_t **);
+
+void nrm_slice_fprintf(FILE *out, nrm_slice_t *);
 
 /*******************************************************************************
  * NRM Role API
@@ -87,6 +124,8 @@ typedef struct nrm_role_s nrm_role_t;
 nrm_role_t *nrm_role_monitor_create_fromenv();
 
 nrm_role_t *nrm_role_sensor_create_fromenv(const char *sensor_name);
+
+nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int, int);
 
 int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg);
 
