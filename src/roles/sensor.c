@@ -33,8 +33,6 @@ struct nrm_sensor_broker_s {
 struct nrm_sensor_broker_args {
 	/* uri for out connection */
 	const char *uri;
-	/* whether or not to transmit messages */
-	int transmit;
 };
 
 struct nrm_role_sensor_s {
@@ -44,60 +42,6 @@ struct nrm_role_sensor_s {
 	/* name of the sensor */
 	char *name;
 };
-
-int nrm_sensor_out_init(struct nrm_sensor_broker_s *self, const char *uri)
-{
-	int err;
-	int connected;
-
-	if (!self->transmit)
-		return 0;
-	
-	/* the process is a little more complicated that you would think, as
-	 * we're trying to avoid returning from this function before the socket
-	 * is fully connected.
-	 *
-	 * To do that, we also create a socket monitor (socket pair + actor)
-	 * that will loop until we actually receive a connection message.
-	 *
-	 * To avoid missing that message on the monitor, we're also careful of
-	 * connecting the monitor before connecting the real socket to the
-	 * server.
-	 */
-	self->out = zsock_new(ZMQ_DEALER);
-	assert(self->out != NULL);
-	zsock_set_immediate(self->out, 1);
-	zsock_set_unbounded(self->out);
-
-	zactor_t *monitor = zactor_new(zmonitor, self->out);
-	assert(monitor != NULL);
-
-	zstr_sendx(monitor, "LISTEN", "CONNECTED");
-	zstr_send(monitor, "START");
-	zsock_wait(monitor);
-
-	/* now connect the original client */
-	err = zsock_connect(self->out, "%s", uri);
-	assert(err == 0);
-
-	connected = 0;
-	while(!connected) {
-		/* read first frame for event number */
-		zmsg_t *msg = zmsg_recv(monitor);
-		assert(msg != NULL);
-
-		char *event = zmsg_popstr (msg);
-
-		if(!strcmp(event, "CONNECTED"))
-			connected = 1;
-		free(event);
-		zmsg_destroy(&msg);
-	}
-	/* cleanup monitor */
-	zactor_destroy(&monitor);
-	return 0;
-
-}
 
 int nrm_sensor_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 {
@@ -109,7 +53,7 @@ int nrm_sensor_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	int msg_type;
 	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type);
 	if (msg_type == NRM_CTRLMSG_TYPE_SEND
-	    && self->transmit) {
+	    && nrm_transmit) {
 		/* just send it back for now, we'll implement aggregation
 		 * another time
 		 */
@@ -146,8 +90,9 @@ void nrm_sensor_broker_fn(zsock_t *pipe, void *args)
 	params = (struct nrm_sensor_broker_args *)args;
 
 	/* init network */
-	self->transmit = params->transmit;
-	err = nrm_sensor_out_init(self, params->uri);
+	err = nrm_net_rpc_client_init(&self->out);
+	assert(!err);
+	err = nrm_net_connect_and_wait(self->out, params->uri);
 	assert(!err);
 
 	/* set ourselves up to handle messages */
@@ -188,11 +133,6 @@ nrm_role_t *nrm_role_sensor_create_fromenv(const char *name)
 	bargs.uri = getenv(NRM_ENV_DOWNSTREAM_URI);
 	if (bargs.uri == NULL)
 		bargs.uri = NRM_DEFAULT_DOWNSTREAM_URI;
-	const char *transmit = getenv(NRM_ENV_TRANSMIT);
-	if (transmit != NULL)
-		bargs.transmit = atoi(transmit);
-	else
-		bargs.transmit = 1;
 
 	/* context init */
 	data->cmdid = getenv(NRM_ENV_DOWNSTREAM_CMDID);

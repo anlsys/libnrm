@@ -28,8 +28,6 @@ struct nrm_client_broker_s {
 	zsock_t *sub;
 	/* monitoring loop */
 	zloop_t *loop;
-	/* transmit ok */
-	int transmit;
 };
 
 struct nrm_client_broker_args {
@@ -39,119 +37,24 @@ struct nrm_client_broker_args {
 	int rpc_port;
 	/* port to use for client */
 	int sub_port;
-	/* whether or not to transmit messages */
-	int transmit;
 };
 
 struct nrm_role_client_s {
 	zactor_t *broker;
 };
 
-int nrm_client_rpc_init(struct nrm_client_broker_s *self, const char *uri, int
-			port)
-{
-	int err;
-	int connected;
-
-	if (!self->transmit)
-		return 0;
-	
-	/* the process is a little more complicated that you would think, as
-	 * we're trying to avoid returning from this function before the socket
-	 * is fully connected.
-	 *
-	 * To do that, we also create a socket monitor (socket pair + actor)
-	 * that will loop until we actually receive a connection message.
-	 *
-	 * To avoid missing that message on the monitor, we're also careful of
-	 * connecting the monitor before connecting the real socket to the
-	 * server.
-	 */
-	self->rpc = zsock_new(ZMQ_DEALER);
-	assert(self->rpc != NULL);
-	zsock_set_immediate(self->rpc, 1);
-	zsock_set_unbounded(self->rpc);
-
-	zactor_t *monitor = zactor_new(zmonitor, self->rpc);
-	assert(monitor != NULL);
-
-	zstr_sendx(monitor, "LISTEN", "CONNECTED", NULL);
-	zstr_send(monitor, "START");
-	zsock_wait(monitor);
-
-	/* now connect the original client */
-	err = zsock_connect(self->rpc, "%s:%d", uri, port);
-	assert(err == 0);
-
-	connected = 0;
-	while(!connected) {
-		/* read first frame for event number */
-		zmsg_t *msg = zmsg_recv(monitor);
-		assert(msg != NULL);
-
-		char *event = zmsg_popstr(msg);
-
-		if(!strcmp(event, "CONNECTED"))
-			connected = 1;
-		free(event);
-		zmsg_destroy(&msg);
-	}
-	/* cleanup monitor */
-	zactor_destroy(&monitor);
-	return 0;
-}
-
-int nrm_client_sub_init(struct nrm_client_broker_s *self, const char *uri, int
-			port)
-{
-	int err, connected;
-	if (!self->transmit)
-		return 0;
-	
-	self->sub = zsock_new(ZMQ_SUB);
-	assert(self->sub != NULL);
-	zsock_set_rcvhwm(self->sub, 0);
-
-	zactor_t *monitor = zactor_new(zmonitor, self->sub);
-	assert(monitor != NULL);
-
-	zstr_sendx(monitor, "LISTEN", "CONNECTED", NULL);
-	zstr_send(monitor, "START");
-	zsock_wait(monitor);
-
-	/* now connect the original client */
-	err = zsock_connect(self->rpc, "%s:%d", uri, port);
-	assert(err == 0);
-
-	connected = 0;
-	while(!connected) {
-		/* read first frame for event number */
-		zmsg_t *msg = zmsg_recv(monitor);
-		assert(msg != NULL);
-
-		char *event = zmsg_popstr(msg);
-
-		if(!strcmp(event, "CONNECTED"))
-			connected = 1;
-		free(event);
-		zmsg_destroy(&msg);
-	}
-	/* cleanup monitor */
-	zactor_destroy(&monitor);
-	return 0;
-}
-
 int nrm_client_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
 	struct nrm_client_broker_s *self = (struct nrm_client_broker_s *)arg;
+	(void)self;
 
 	/* pipe messages are in shared memory, not actually packed on
 	 * the network */
 	int msg_type;
 	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type);
 	if (msg_type == NRM_CTRLMSG_TYPE_SEND
-	    && self->transmit) {
+	    && nrm_transmit) {
 	}
 	else if(msg_type == NRM_CTRLMSG_TYPE_TERM) {
 		/* returning -1 exits the loop */
@@ -207,14 +110,15 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	self->pipe = pipe;
 	params = (struct nrm_client_broker_args *)args;
 
-	fprintf(stderr, "%s:%d: %s:%d:%d\n",__FILE__,__LINE__,params->uri,
-		params->rpc_port, params->sub_port);
-
 	/* init network */
-	self->transmit = params->transmit;
-	err = nrm_client_rpc_init(self, params->uri, params->rpc_port);
+	err = nrm_net_rpc_client_init(&self->rpc);
 	assert(!err);
-	err = nrm_client_sub_init(self, params->uri, params->sub_port);
+	err = nrm_net_connect_and_wait_2(self->rpc, params->uri, params->rpc_port);
+	assert(!err);
+
+	err = nrm_net_sub_init(&self->sub);
+	assert(!err);
+	err = nrm_net_connect_and_wait_2(self->sub, params->uri, params->sub_port);
 	assert(!err);
 
 	/* set ourselves up to handle messages */
@@ -244,8 +148,7 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 
 nrm_role_t *nrm_role_client_create_fromparams(const char *uri,
 					      int sub_port,
-					      int rpc_port,
-					      int transmit)
+					      int rpc_port)
 {
 	nrm_role_t *role;
 	struct nrm_role_client_s *data;
@@ -264,7 +167,6 @@ nrm_role_t *nrm_role_client_create_fromparams(const char *uri,
 	bargs.uri = uri;
 	bargs.sub_port = sub_port;
 	bargs.rpc_port = rpc_port;
-	bargs.transmit = transmit;
 
 	/* create broker */
 	data->broker = zactor_new(nrm_client_broker_fn, &bargs);

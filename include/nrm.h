@@ -125,7 +125,7 @@ nrm_role_t *nrm_role_monitor_create_fromenv();
 
 nrm_role_t *nrm_role_sensor_create_fromenv(const char *sensor_name);
 
-nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int, int);
+nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int);
 
 int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg);
 

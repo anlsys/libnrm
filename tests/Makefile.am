@@ -8,7 +8,7 @@ AM_LDFLAGS = ../src/libnrm.la @LIBZMQ_LIBS@ @JANSSON_LIBS@ @CHECK_LIBS@
 
 GENERAL_TESTS = \
 		core \
-		sensor
+		net
 
 # unit tests
 UNIT_TESTS = \

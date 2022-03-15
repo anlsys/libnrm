@@ -130,7 +130,7 @@ int cmd_list(int argc, char **argv) {
 
 	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
 							       pub_port,
-							       rpc_port,1);
+							       rpc_port);
 	/* craft the message we want to send */
 	nrm_msg_t *msg = nrm_msg_new_list_slices_req();
 	nrm_role_send(client, msg);

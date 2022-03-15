@@ -7,6 +7,7 @@ AM_LDFLAGS = @LIBZMQ_LIBS@ @LIBCZMQ_LIBS@ @JANSSON_LIBS@
 lib_LTLIBRARIES = libnrm.la
 
 libnrm_la_SOURCES = \
+		 net.c \
 		 nrm.c \
 		 messages.c \
 		 roles/client.c \

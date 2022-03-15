@@ -39,7 +39,7 @@ int getcpu(unsigned int *cpu, unsigned int *node);
  * interval between two messages in nanoseconds */
 #define NRM_DEFAULT_RATELIMIT_THRESHOLD (10000000LL)
 
-#define NRM_DEFAULT_UPSTREAM_URI "tcp://localhost"
+#define NRM_DEFAULT_UPSTREAM_URI "tcp://127.0.0.1"
 #define NRM_DEFAULT_UPSTREAM_PUB_PORT 2345
 #define NRM_DEFAULT_UPSTREAM_RPC_PORT 3456
 /*******************************************************************************
@@ -59,6 +59,21 @@ int getcpu(unsigned int *cpu, unsigned int *node);
  * open sockets or send messages
  */
 #define NRM_ENV_TRANSMIT "NRM_TRANSMIT"
+
+extern int nrm_transmit;
+
+/*******************************************************************************
+ * NET
+ ******************************************************************************/
+
+int nrm_net_rpc_client_init(zsock_t **socket);
+int nrm_net_rpc_server_init(zsock_t **socket);
+int nrm_net_sub_init(zsock_t **socket);
+int nrm_net_pub_init(zsock_t **socket);
+int nrm_net_connect_and_wait(zsock_t *socket, const char *uri);
+int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port);
+int nrm_net_bind(zsock_t *socket, const char *uri);
+int nrm_net_bind_2(zsock_t *socket, const char *uri, int port);
 
 /*******************************************************************************
  * Utils functions

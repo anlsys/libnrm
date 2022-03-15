@@ -65,8 +65,7 @@ extern struct nrm_role_ops nrm_role_sensor_ops;
  * system
  ******************************************************************************/
 
-nrm_role_t *nrm_role_controller_create_fromparams(const char *, const char *,
-						  int);
+nrm_role_t *nrm_role_controller_create_fromparams(const char *, int, int);
 
 extern struct nrm_role_ops nrm_role_controller_ops;
 
@@ -75,7 +74,7 @@ extern struct nrm_role_ops nrm_role_controller_ops;
  * client of the controller, send requests to it.
  ******************************************************************************/
 
-nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int, int);
+nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int);
 
 extern struct nrm_role_ops nrm_role_client_ops;
 

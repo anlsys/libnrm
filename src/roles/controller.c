@@ -26,58 +26,18 @@ struct nrm_role_controller_broker_s {
 	zsock_t *pub;
 	/* controllering loop */
 	zloop_t *loop;
-	/* transmit ok */
-	int transmit;
 };
 
 struct nrm_role_controller_broker_args {
-	const char *pub_uri;
-	const char *rpc_uri;
-	/* transmit: actually open sockets */
-	int transmit;
+	const char *uri;
+	int pub_port;
+	int rpc_port;
 };
 
 struct nrm_role_controller_s {
 	/* the broker itself */
 	zactor_t *broker;
 };
-
-int nrm_controller_rpc_init(struct nrm_role_controller_broker_s *self, const char *uri)
-{
-	int err;
-	if (!self->transmit)
-		return 0;
-
-	/* standard setup. Might be a bid careless to remove the high water mark
-	 * on the socket, but until it causes us trouble we should keep it.
-	 */
-	self->rpc =  zsock_new(ZMQ_ROUTER);
-	assert(self->rpc != NULL);
-	zsock_set_immediate(self->rpc, 1);
-	zsock_set_unbounded(self->rpc);
-
-	/* now accept connections */
-	err = zsock_bind(self->rpc, "%s", uri);
-	assert(err == 0);
-	return 0;
-}
-
-int nrm_controller_pub_init(struct nrm_role_controller_broker_s *self, const char *uri)
-{
-	int err;
-	if (!self->transmit)
-		return 0;
-
-	self->pub =  zsock_new(ZMQ_PUB);
-	assert(self->pub != NULL);
-	zsock_set_linger(self->pub, 0);
-	zsock_set_sndhwm(self->pub, 0);
-
-	/* now accept connections */
-	err = zsock_bind(self->pub, "%s", uri);
-	assert(err == 0);
-	return 0;
-}
 
 int nrm_controller_broker_rpc_handler(zloop_t *loop, zsock_t *socket, void *arg)
 {
@@ -128,10 +88,14 @@ void nrm_controller_broker_fn(zsock_t *pipe, void *args)
 	params = (struct nrm_role_controller_broker_args *)args;
 
 	/* init network */
-	self->transmit = params->transmit;
-	err = nrm_controller_rpc_init(self, params->rpc_uri);
+	err = nrm_net_rpc_server_init(&self->rpc);
 	assert(!err);
-	err = nrm_controller_pub_init(self, params->pub_uri);
+	err = nrm_net_bind_2(self->rpc, params->uri, params->rpc_port);
+	assert(!err);
+
+	err = nrm_net_pub_init(&self->pub);
+	assert(!err);
+	err = nrm_net_bind_2(self->pub, params->uri, params->pub_port);
 	assert(!err);
 
 	/* set ourselves up to handle messages */
@@ -157,8 +121,8 @@ void nrm_controller_broker_fn(zsock_t *pipe, void *args)
 	free(self);
 }
 
-nrm_role_t *nrm_role_controller_create_fromparams(const char *pub_uri, const
-						  char *rpc_uri, int transmit)
+nrm_role_t *nrm_role_controller_create_fromparams(const char *uri, int pub_port,
+						  int rpc_port)
 {
 	nrm_role_t *role;
 	struct nrm_role_controller_s *data;
@@ -174,9 +138,9 @@ nrm_role_t *nrm_role_controller_create_fromparams(const char *pub_uri, const
 
 	/* env init */
 	struct nrm_role_controller_broker_args bargs;
-	bargs.pub_uri = pub_uri;
-	bargs.rpc_uri = rpc_uri;
-	bargs.transmit = transmit;
+	bargs.uri = uri;
+	bargs.pub_port = pub_port;
+	bargs.rpc_port = rpc_port;
 
 	/* create broker */
 	data->broker = zactor_new(nrm_controller_broker_fn, &bargs);

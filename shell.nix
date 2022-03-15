@@ -12,6 +12,7 @@ mkShell {
     clang-tools
     python3
     llvmPackages.clang-unwrapped.python
+    bear
   ];
 
   CFLAGS =

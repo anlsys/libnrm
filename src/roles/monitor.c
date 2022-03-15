@@ -24,15 +24,11 @@ struct nrm_role_monitor_broker_s {
 	zsock_t *in;
 	/* monitoring loop */
 	zloop_t *loop;
-	/* transmit ok */
-	int transmit;
 };
 
 struct nrm_role_monitor_broker_args {
 	/* uri for in connection */
 	const char *uri;
-	/* transmit: actually open sockets */
-	int transmit;
 };
 
 struct nrm_role_monitor_s {
@@ -40,25 +36,6 @@ struct nrm_role_monitor_s {
 	zactor_t *broker;
 };
 
-int nrm_monitor_in_init(struct nrm_role_monitor_broker_s *self, const char *uri)
-{
-	int err;
-	if (!self->transmit)
-		return 0;
-
-	/* standard setup. Might be a bid careless to remove the high water mark
-	 * on the socket, but until it causes us trouble we should keep it.
-	 */
-	self->in =  zsock_new(ZMQ_ROUTER);
-	assert(self->in != NULL);
-	zsock_set_immediate(self->in, 1);
-	zsock_set_unbounded(self->in);
-
-	/* now accept connections */
-	err = zsock_bind(self->in, "%s", uri);
-	assert(err == 0);
-	return 0;
-}
 
 int nrm_monitor_broker_in_handler(zloop_t *loop, zsock_t *socket, void *arg)
 {
@@ -109,8 +86,9 @@ void nrm_monitor_broker_fn(zsock_t *pipe, void *args)
 	params = (struct nrm_role_monitor_broker_args *)args;
 
 	/* init network */
-	self->transmit = params->transmit;
-	err = nrm_monitor_in_init(self, params->uri);
+	err = nrm_net_rpc_server_init(&self->in);
+	assert(!err);
+	err = nrm_net_bind(self->in, params->uri);
 	assert(!err);
 
 	/* set ourselves up to handle messages */
@@ -154,11 +132,6 @@ nrm_role_t *nrm_role_monitor_create_fromenv()
 	bargs.uri = getenv(NRM_ENV_DOWNSTREAM_URI);
 	if (bargs.uri == NULL)
 		bargs.uri = NRM_DEFAULT_DOWNSTREAM_URI;
-	const char *transmit = getenv(NRM_ENV_TRANSMIT);
-	if (transmit != NULL)
-		bargs.transmit = atoi(transmit);
-	else
-		bargs.transmit = 1;
 
 	/* create broker */
 	data->broker = zactor_new(nrm_monitor_broker_fn, &bargs);
