@@ -80,6 +80,7 @@ int nrm_net_bind_2(zsock_t *socket, const char *uri, int port);
  ******************************************************************************/
 
 json_t *nrm_time_to_json(nrm_time_t *);
+int nrm_time_from_json(nrm_time_t *, json_t *);
 
 json_t *nrm_scope_to_json(nrm_scope_t *);
 

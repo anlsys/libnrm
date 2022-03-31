@@ -51,7 +51,7 @@ int nrm_sensor_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	/* pipe messages are in shared memory, not actually packed on
 	 * the network */
 	int msg_type;
-	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type);
+	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
 	if (msg_type == NRM_CTRLMSG_TYPE_SEND
 	    && nrm_transmit) {
 		/* just send it back for now, we'll implement aggregation
@@ -166,7 +166,8 @@ void nrm_role_sensor_destroy(nrm_role_t **role)
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 	msg = nrm_msg_new_pause(now);
-	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg);
+	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg,
+			 NULL);
 
 	/* now exit: in principle this should just send a message on the pipe
 	 * and wait for the actor to exit by itself */
@@ -185,7 +186,7 @@ int nrm_role_sensor_send_progress(struct nrm_role_sensor_s *s,
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 	msg = nrm_msg_new_progress(now, progress, scope);
-	nrm_ctrlmsg_send((zsock_t *)s->broker, NRM_CTRLMSG_TYPE_SEND, msg);
+	nrm_ctrlmsg_send((zsock_t *)s->broker, NRM_CTRLMSG_TYPE_SEND, msg, NULL);
 	return 0;
 }
 
@@ -193,7 +194,8 @@ int nrm_role_sensor_send(const struct nrm_role_data *data,
 			 nrm_msg_t *msg)
 {
 	struct nrm_role_sensor_s *sensor = (struct nrm_role_sensor_s *)data;
-	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg);
+	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg,
+			 NULL);
 	return 0;
 }
 

@@ -8,19 +8,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
-#ifndef NRM_UUIDS_H
-#define NRM_UUIDS_H 1
+#ifndef NRM_STRINGS_H
+#define NRM_STRINGS_H 1
 
-struct nrm_uuid_s {
-	char data[16];
-};
+typedef char * nrm_string_t;
 
-typedef struct nrm_uuid_s nrm_uuid_t;
+nrm_string_t nrm_string_fromchar(const char *buf);
 
-nrm_uuid_t *nrm_uuid_create();
+void nrm_string_incref(nrm_string_t *s);
 
-void nrm_uuid_destroy(nrm_uuid_t **);
-
-nrm_uuid_t *nrm_uuid_create_fromchar(char *s);
+void nrm_string_decref(nrm_string_t *s);
 
 #endif

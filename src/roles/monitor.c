@@ -57,7 +57,7 @@ int nrm_monitor_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	/* the only message we should ever receive here in the term one.
 	 */
 	int msg_type;
-	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type);
+	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
 	assert(msg_type == NRM_CTRLMSG_TYPE_TERM);
 	assert(msg == NULL);
 	/* returning -1 exits the loop */
@@ -161,7 +161,7 @@ nrm_msg_t *nrm_role_monitor_recv(const struct nrm_role_data *data)
 	struct nrm_role_monitor_s *monitor = (struct nrm_role_monitor_s *)data;
 	nrm_msg_t *msg;
 	int msgtype;
-	msg = nrm_ctrlmsg_recv((zsock_t *)monitor->broker, &msgtype);
+	msg = nrm_ctrlmsg_recv((zsock_t *)monitor->broker, &msgtype, NULL);
 	assert(msgtype == NRM_CTRLMSG_TYPE_RECV);
 	return msg;
 }

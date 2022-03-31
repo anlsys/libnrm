@@ -8,6 +8,7 @@ include_nrm_utils_HEADERS = \
 			    nrm/utils/strings.h \
 			    nrm/utils/timers.h \
 			    nrm/utils/uuids.h \
+			    nrm/utils/vectors.h \
 			    nrm/utils/version.h
 
 noinst_HEADERS = \

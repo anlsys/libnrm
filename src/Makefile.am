@@ -17,10 +17,12 @@ libnrm_la_SOURCES = \
 		 roles/sensor.c \
 		 slices.c \
 		 utils/bitmaps.c \
+		 utils/error.c \
 		 utils/scopes.c \
 		 utils/strings.c \
 		 utils/timers.c \
-		 utils/uuids.c
+		 utils/uuids.c \
+		 utils/vectors.c
 libnrm_la_LIBADD = $(LTLIBOBJS)
 
 if BUILD_BINARIES

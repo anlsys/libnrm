@@ -18,6 +18,19 @@
 
 #include <getopt.h>
 
+struct nrm_daemon_s {
+	nrm_state_t *state;
+};
+
+struct nrm_daemon_s my_daemon;
+
+nrm_msg_t *nrmd_daemon_build_list_slices()
+{
+	nrm_msg_t *ret = nrm_msg_new_rep_list(NRM_MSG_REQ_TARGET_SLICES,
+					      my_daemon.state->slices);
+	return ret;
+}
+
 int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)arg;
@@ -25,8 +38,28 @@ int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 	nrm_msg_t *msg;
 	int msg_type;
 
-	msg = nrm_ctrlmsg_recv(socket, &msg_type);
+	msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
 	nrm_msg_fprintf(stdout, msg);
+	nrm_msg_destroy(&msg);
+	return 0;
+}
+
+int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
+{
+	(void)loop;
+	(void)arg;
+	nrm_msg_t *msg, *ret;
+	int msg_type;
+	nrm_uuid_t *uuid;
+	msg = nrm_ctrlmsg_recv(socket, &msg_type, &uuid);
+	fprintf(stderr, "shim receive\n");
+	nrm_msg_fprintf(stderr, msg);
+	switch(msg_type) {
+	case NRM_MSG_TYPE_REQ_LIST:
+		ret = nrmd_daemon_build_list_slices();
+		nrm_ctrlmsg_send(socket, NRM_CTRLMSG_TYPE_SEND, ret, uuid);
+		break;
+	}
 	nrm_msg_destroy(&msg);
 	return 0;
 }
@@ -114,8 +147,16 @@ int main(int argc, char *argv[])
 	 *  - we have our own loop to listen to it, no on a different thread
 	 *  though, as we only have this to take care of
 	 */
+
+	nrm_init(NULL, NULL);
 	nrm_role_t *monitor = nrm_role_monitor_create_fromenv();
 	assert(monitor != NULL);
+
+	nrm_role_t *controller =
+		nrm_role_controller_create_fromparams(NRM_DEFAULT_UPSTREAM_URI,
+						      NRM_DEFAULT_UPSTREAM_PUB_PORT,
+						      NRM_DEFAULT_UPSTREAM_RPC_PORT);
+	assert(controller != NULL);
 
 	zloop_t *loop = zloop_new();
 	assert(loop != NULL);
@@ -123,6 +164,9 @@ int main(int argc, char *argv[])
 	nrm_role_monitor_register_recvcallback(monitor, loop,
 					       nrmd_shim_monitor_read_callback,
 					       NULL);
+	nrm_role_controller_register_recvcallback(controller, loop,
+					nrmd_shim_controller_read_callback,
+					controller);
 	zloop_start(loop);	
 
 	return 0;

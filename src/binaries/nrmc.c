@@ -121,29 +121,36 @@ int cmd_run(int argc, char **argv) {
 	return 0;
 }
 
-int cmd_list(int argc, char **argv) {
+int cmd_list_slices(int argc, char **argv) {
 
 
 	/* no options at this time */
 	(void)argc;
 	(void)argv;
 
+	nrm_init(NULL, NULL);
+
+	fprintf(stderr, "creating client\n");
+
 	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
 							       pub_port,
 							       rpc_port);
+	fprintf(stderr, "sending request\n");
 	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_new_list_slices_req();
+	nrm_msg_t *msg = nrm_msg_new_req_list(NRM_MSG_REQ_TARGET_SLICES);
 	nrm_role_send(client, msg);
 
 	/* wait for the answer */
+	fprintf(stderr, "receiving reply\n");
 	msg = nrm_role_recv(client);
 	nrm_msg_fprintf(stdout, msg);
 	nrm_role_destroy(&client);
+	nrm_finalize();
 	return 0;
 }
 
 static struct client_cmd commands[] = {
-	{ "list", cmd_list },
+	{ "list-slices", cmd_list_slices },
 	{ "run", cmd_run },
 	{ 0, 0 },
 };

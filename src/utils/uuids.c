@@ -43,6 +43,17 @@ void nrm_uuid_destroy(nrm_uuid_t **uuid)
 	*uuid = NULL;
 }
 
+nrm_uuid_t *nrm_uuid_create_fromchar(char *s)
+{
+	 nrm_uuid_t *ret;
+	 ret = calloc(1, sizeof(nrm_uuid_t));
+	 if (ret == NULL)
+		 return NULL;
+	 assert(strnlen(s, 17) == 16);
+	 memcpy(ret->data, s, 16);
+	 return ret;
+}
+
 json_t *nrm_uuid_to_json(nrm_uuid_t *uuid)
 {
 	zuuid_t *u;

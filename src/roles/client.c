@@ -52,9 +52,12 @@ int nrm_client_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	/* pipe messages are in shared memory, not actually packed on
 	 * the network */
 	int msg_type;
-	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type);
+	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
 	if (msg_type == NRM_CTRLMSG_TYPE_SEND
 	    && nrm_transmit) {
+		fprintf(stderr, "client sending message: \n");
+		nrm_msg_fprintf(stderr, msg);
+		nrm_msg_send(self->rpc, msg);
 	}
 	else if(msg_type == NRM_CTRLMSG_TYPE_TERM) {
 		/* returning -1 exits the loop */
@@ -73,7 +76,7 @@ int nrm_client_broker_rpc_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	/* this should be a rpc answer, that we need to transmit to the pipe */
 	int msg_type;
 	nrm_msg_t *msg = nrm_msg_recv(socket, &msg_type);
-	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_SEND, msg);	
+	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_SEND, msg, NULL);
 	return 0;
 }
 
@@ -81,11 +84,11 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
 	struct nrm_client_broker_s *self = (struct nrm_client_broker_s *)arg;
-	
+
 	/* this should be a sub message, that we need to transmit to the pipe */
 	int msg_type;
 	nrm_msg_t *msg = nrm_msg_recv(socket, &msg_type);
-	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_SUB, msg);	
+	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_SUB, msg, NULL);
 	return 0;
 }
 
@@ -111,17 +114,20 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	params = (struct nrm_client_broker_args *)args;
 
 	/* init network */
+	fprintf(stderr, "client: creating rpc socket\n");
 	err = nrm_net_rpc_client_init(&self->rpc);
 	assert(!err);
 	err = nrm_net_connect_and_wait_2(self->rpc, params->uri, params->rpc_port);
 	assert(!err);
 
+	fprintf(stderr, "client: creating sub socket\n");
 	err = nrm_net_sub_init(&self->sub);
 	assert(!err);
 	err = nrm_net_connect_and_wait_2(self->sub, params->uri, params->sub_port);
 	assert(!err);
 
 	/* set ourselves up to handle messages */
+	fprintf(stderr, "client: finishing setup\n");
 	self->loop = zloop_new();
 	assert(self->loop != NULL);
 
@@ -188,14 +194,15 @@ void nrm_role_client_destroy(nrm_role_t **role)
 	zactor_destroy(&client->broker);
 
 	free(*role);
-	*role = NULL;	
+	*role = NULL;
 }
 
 int nrm_role_client_send(const struct nrm_role_data *data,
 			 nrm_msg_t *msg)
 {
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
-	nrm_ctrlmsg_send((zsock_t *)client->broker, NRM_CTRLMSG_TYPE_SEND, msg);
+	nrm_ctrlmsg_send((zsock_t *)client->broker, NRM_CTRLMSG_TYPE_SEND, msg,
+			 NULL);
 	return 0;
 }
 
@@ -204,7 +211,7 @@ nrm_msg_t *nrm_role_client_recv(const struct nrm_role_data *data)
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
 	nrm_msg_t *msg;
 	int msgtype;
-	msg = nrm_ctrlmsg_recv((zsock_t *)client->broker, &msgtype);
+	msg = nrm_ctrlmsg_recv((zsock_t *)client->broker, &msgtype, NULL);
 	assert(msgtype == NRM_CTRLMSG_TYPE_RECV);
 	return msg;
 }
@@ -214,7 +221,7 @@ nrm_msg_t *nrm_role_client_sub(const struct nrm_role_data *data)
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
 	nrm_msg_t *msg;
 	int msgtype;
-	msg = nrm_ctrlmsg_recv((zsock_t *)client->broker, &msgtype);
+	msg = nrm_ctrlmsg_recv((zsock_t *)client->broker, &msgtype, NULL);
 	assert(msgtype == NRM_CTRLMSG_TYPE_SUB);
 	return msg;
 }

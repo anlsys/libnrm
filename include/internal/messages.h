@@ -26,8 +26,8 @@ extern "C" {
 enum nrm_msg_type_e {
 	NRM_MSG_TYPE_SENSOR_PROGRESS = 0,
 	NRM_MSG_TYPE_SENSOR_PAUSE = 1,
-	NRM_MSG_TYPE_SLICE_LIST_REQ = 2,
-	NRM_MSG_TYPE_SLICE_LIST_REP = 3,
+	NRM_MSG_TYPE_REQ_LIST = 2,
+	NRM_MSG_TYPE_REP_LIST = 3,
 };
 
 struct nrm_msg_sspg_s {
@@ -42,12 +42,17 @@ struct nrm_msg_sspa_s {
 	const char *cmdid;
 };
 
-struct nrm_msg_slreq_s {
+enum nrm_msg_req_type_e {
+	NRM_MSG_REQ_TARGET_SLICES = 0,
 };
 
-struct nrm_msg_slrep_s {
-	int num;
-	nrm_slice_t *slices;
+struct nrm_msg_reql_s {
+	int target;
+};
+
+struct nrm_msg_repl_s {
+	int target;
+	nrm_vector_t *items;
 };
 
 struct nrm_msg_s {
@@ -56,14 +61,16 @@ struct nrm_msg_s {
 	union {
 		struct nrm_msg_sspg_s sspg;
 		struct nrm_msg_sspa_s sspa;
-		struct nrm_msg_slreq_s slreq;
-		struct nrm_msg_slrep_s slrep;
+		struct nrm_msg_reql_s reql;
+		struct nrm_msg_repl_s repl;
 	} u;
 };
 
 int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg);
 
 nrm_msg_t *nrm_msg_recv(zsock_t *socket, int *msg_type);
+
+nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, int *msg_type, nrm_uuid_t **from);
 
 /*******************************************************************************
  * Control Messages: mostly needed to exchange through shared memory between
@@ -95,13 +102,15 @@ struct nrm_ctrlmsg_s {
 	int type;
 	struct nrm_msg_s *msg; /* almost always, a control message deals with
 				  sending or receiving a real message */
+	nrm_uuid_t *uuid; /* need to keep track of where those messages come
+			     from */
 };
 
 typedef struct nrm_ctrlmsg_s nrm_ctrlmsg_t;
 
-int nrm_ctrlmsg_send(zsock_t *socket, int type, nrm_msg_t *msg);
+int nrm_ctrlmsg_send(zsock_t *socket, int type, nrm_msg_t *msg, nrm_uuid_t *to);
 
-nrm_msg_t *nrm_ctrlmsg_recv(zsock_t *socket, int *type);
+nrm_msg_t *nrm_ctrlmsg_recv(zsock_t *socket, int *type, nrm_uuid_t **from);
 
 #ifdef __cplusplus
 }

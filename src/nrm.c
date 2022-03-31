@@ -22,6 +22,7 @@ const char *nrm_version_string = NRM_VERSION_STRING;
 
 long long int nrm_ratelimit_threshold;
 int nrm_transmit;
+int nrm_errno;
 
 int nrm_init(int *argc, char **argv[])
 {

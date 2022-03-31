@@ -32,6 +32,14 @@ int64_t nrm_time_tons(const nrm_time_t *now)
 	return now->tv_nsec + 1000000000 * now->tv_sec;
 }
 
+nrm_time_t nrm_time_fromns(int64_t ns)
+{
+	nrm_time_t ret;
+	ret.tv_sec = ns/1000000000;
+	ret.tv_nsec = ns % 1000000000;
+	return ret;
+}
+
 json_t *nrm_time_to_json(nrm_time_t *time)
 {
 	/* jansson doesn't support unsigned longs, so we end up doing the
@@ -56,4 +64,18 @@ json_t *nrm_time_to_json(nrm_time_t *time)
 	assert(msg != NULL);
 	free(buf);
 	return msg;
+}
+
+int nrm_time_from_json(nrm_time_t *time, json_t *json)
+{
+	char *s;
+	int64_t ns;
+	int err;
+	err = json_unpack(json, "s", &s);
+	if (err)
+		return -1;
+	err = sscanf(s, "%" PRId64 "", &ns);
+	assert(err == 1);
+	*time = nrm_time_fromns(ns);
+	return 0;
 }

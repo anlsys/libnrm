@@ -34,6 +34,9 @@ int nrm_net_rpc_client_init(zsock_t **socket)
 	zsock_set_immediate(ret, 1);
 	/* buffer as many messages as possible */
 	zsock_set_unbounded(ret);
+	/* add an identity to the socket */
+	nrm_uuid_t *uuid = nrm_uuid_create();
+	zsock_set_identity
 	*socket = ret;
 	return 0;
 }

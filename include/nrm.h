@@ -27,10 +27,12 @@ extern "C" {
 
 #include "nrm/utils/alloc.h"
 #include "nrm/utils/bitmaps.h"
+#include "nrm/utils/error.h"
 #include "nrm/utils/scopes.h"
 #include "nrm/utils/strings.h"
 #include "nrm/utils/timers.h"
 #include "nrm/utils/uuids.h"
+#include "nrm/utils/vectors.h"
 #include "nrm/utils/version.h"
 
 /*******************************************************************************
@@ -85,9 +87,8 @@ nrm_msg_t *nrm_msg_new(int type, ...);
 	nrm_msg_new((int)NRM_MSG_TYPE_SENSOR_PAUSE, t); })
 
 
-#define nrm_msg_new_list_slices_req() ({ \
-	nrm_msg_new((int)NRM_MSG_TYPE_SLICE_LIST_REQ); })
-
+nrm_msg_t *nrm_msg_new_req_list(int target);
+nrm_msg_t *nrm_msg_new_rep_list(int target, nrm_vector_t *items);
 
 void nrm_msg_fprintf(FILE *out, nrm_msg_t *msg);
 
@@ -109,6 +110,16 @@ nrm_slice_t *nrm_slice_create(char *name);
 void nrm_slice_destroy(nrm_slice_t **);
 
 void nrm_slice_fprintf(FILE *out, nrm_slice_t *);
+
+/*******************************************************************************
+ * State: the full state of a controller 
+ ******************************************************************************/
+
+struct nrm_state_s {
+	nrm_vector_t *slices;
+};
+
+typedef struct nrm_state_s nrm_state_t;
 
 /*******************************************************************************
  * NRM Role API

@@ -41,6 +41,9 @@ int nrm_role_monitor_register_recvcallback(nrm_role_t *role,
 					   zloop_t *loop, zloop_reader_fn *fn,
 					   void *arg);
 
+int nrm_role_controller_register_recvcallback(nrm_role_t *role,
+					   zloop_t *loop, zloop_reader_fn *fn,
+					   void *arg);
 /*******************************************************************************
  * Monitor:
  * monitors sensor data, recv a message each time a sensor sends something

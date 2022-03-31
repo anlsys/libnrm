@@ -44,8 +44,13 @@ int nrm_controller_broker_rpc_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	(void)loop;
 	struct nrm_role_controller_broker_s *self = 
 		(struct nrm_role_controller_broker_s *)arg;
-	(void)self;
-	(void)socket;
+
+	fprintf(stderr, "controller rpc recv\n");
+	int msg_type;
+	nrm_uuid_t *uuid;
+	nrm_msg_t *msg = nrm_msg_recvfrom(socket, &msg_type, &uuid);
+	nrm_msg_fprintf(stderr, msg);
+	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_RECV, msg, uuid);
 	return 0;
 }
 
@@ -59,7 +64,7 @@ int nrm_controller_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg
 	/* the only message we should ever receive here in the term one.
 	 */
 	int msg_type;
-	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type);
+	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
 	assert(msg_type == NRM_CTRLMSG_TYPE_TERM);
 	assert(msg == NULL);
 	/* returning -1 exits the loop */
@@ -169,7 +174,7 @@ int nrm_role_controller_send(const struct nrm_role_data *data,
 			 nrm_msg_t *msg)
 {
 	struct nrm_role_controller_s *controller = (struct nrm_role_controller_s *)data;
-	nrm_ctrlmsg_send((zsock_t *)controller->broker, NRM_CTRLMSG_TYPE_SEND, msg);
+	nrm_ctrlmsg_send((zsock_t *)controller->broker, NRM_CTRLMSG_TYPE_SEND, msg, NULL);
 	return 0;
 }
 
@@ -178,7 +183,7 @@ nrm_msg_t *nrm_role_controller_recv(const struct nrm_role_data *data)
 	struct nrm_role_controller_s *controller = (struct nrm_role_controller_s *)data;
 	nrm_msg_t *msg;
 	int msgtype;
-	msg = nrm_ctrlmsg_recv((zsock_t *)controller->broker, &msgtype);
+	msg = nrm_ctrlmsg_recv((zsock_t *)controller->broker, &msgtype, NULL);
 	assert(msgtype == NRM_CTRLMSG_TYPE_RECV);
 	return msg;
 }
@@ -196,7 +201,8 @@ int nrm_role_controller_register_recvcallback(nrm_role_t *role, zloop_t *loop,
 int nrm_role_controller_pub(const struct nrm_role_data *data, nrm_msg_t *msg)
 {
 	struct nrm_role_controller_s *controller = (struct nrm_role_controller_s *)data;
-	nrm_ctrlmsg_send((zsock_t *)controller->broker, NRM_CTRLMSG_TYPE_PUB, msg);
+	nrm_ctrlmsg_send((zsock_t *)controller->broker, NRM_CTRLMSG_TYPE_PUB, msg, 
+			 NULL);
 	return 0;
 }
 
