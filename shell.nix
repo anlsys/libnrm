@@ -13,6 +13,7 @@ mkShell {
     python3
     llvmPackages.clang-unwrapped.python
     bear
+    protobufc
   ];
 
   CFLAGS =

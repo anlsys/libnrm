@@ -25,8 +25,9 @@ extern "C" {
 struct nrm_role_data;
 
 struct nrm_role_ops {
-	int (*send)(const struct nrm_role_data *data, nrm_msg_t *msg);
-	nrm_msg_t* (*recv)(const struct nrm_role_data *data);
+	int (*send)(const struct nrm_role_data *data, nrm_msg_t *msg, nrm_uuid_t
+		    *to);
+	nrm_msg_t* (*recv)(const struct nrm_role_data *data, nrm_uuid_t **from);
 	int (*pub)(const struct nrm_role_data *data, nrm_msg_t *msg);
 	nrm_msg_t* (*sub)(const struct nrm_role_data *data);
 	void (*destroy)(nrm_role_t **role);

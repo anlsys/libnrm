@@ -76,6 +76,18 @@ PKG_CHECK_MODULES([CHECK],[check],,
 		  AC_MSG_ERROR([unable to find check]))
 
 
+# protobuf-c
+##############
+
+PKG_CHECK_MODULES([PROTOC], [libprotobuf-c],,
+		  AC_MSG_ERROR([unable to find protobuf-c]))
+AC_CHECK_PROG([PROTOCC], [protoc-c], [proto-c], [no])
+AS_IF([test "x${PROTOCC}" == "xno"],
+      [AC_MSG_ERROR([unable to find protoc-c])])
+
+
+
+
 # options
 #########
 

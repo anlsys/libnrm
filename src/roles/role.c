@@ -12,19 +12,19 @@
 #include "internal/nrmi.h"
 #include "internal/roles.h"
 
-int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg)
+int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg, nrm_uuid_t *to)
 {
 	if (role == NULL || role->ops == NULL || role->ops->send == NULL)
 		return -1;
 
-	return role->ops->send(role->data, msg);
+	return role->ops->send(role->data, msg, to);
 }
 
-nrm_msg_t *nrm_role_recv(const nrm_role_t *role)
+nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from)
 {
 	if (role == NULL || role->ops == NULL || role->ops->recv == NULL)
 		return NULL;
-	return role->ops->recv(role->data);
+	return role->ops->recv(role->data, from);
 }
 
 int nrm_role_pub(const nrm_role_t *role, nrm_msg_t *msg)

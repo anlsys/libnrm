@@ -1,0 +1,34 @@
+syntax = "proto3";
+package nrm;
+	
+enum LISTTYPE {
+	SLICE = 0;
+}
+
+enum MSGTYPE {
+	ACK = 0;
+	LIST = 1;
+}
+
+message Slice {
+	string name = 1;
+	string uuid = 2;
+}
+
+message SliceList {
+	repeated Slice slices = 1;
+}
+
+message List {
+	LISTTYPE type = 1;
+	oneof data {
+		SliceList slices = 2;
+	}
+}
+
+message Message {
+	MSGTYPE type = 1;
+	oneof data {
+		List list = 2;
+	}
+}

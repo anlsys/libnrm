@@ -6,6 +6,9 @@ AM_LDFLAGS = @LIBZMQ_LIBS@ @LIBCZMQ_LIBS@ @JANSSON_LIBS@
 
 lib_LTLIBRARIES = libnrm.la
 
+%.pb-c.c %.pc-c-h: %.proto
+	$(PROTOCC) --c_out=$(builddir) $^
+
 libnrm_la_SOURCES = \
 		 net.c \
 		 nrm.c \
@@ -23,6 +26,7 @@ libnrm_la_SOURCES = \
 		 utils/timers.c \
 		 utils/uuids.c \
 		 utils/vectors.c
+nodist_libnrm_la_SOURCES = $(builddir)/msg.pb-c.c $(builddir)/msg.pb-c.h
 libnrm_la_LIBADD = $(LTLIBOBJS)
 
 if BUILD_BINARIES
@@ -32,3 +36,7 @@ nrmc_SOURCES = binaries/nrmc.c
 nrmc_LDADD = libnrm.la
 bin_PROGRAMS = nrmd-shim nrmc
 endif
+
+dist_noinst_DATA = msg.proto
+BUILT_SOURCES = msg.pb-c.h
+MOSTLYCLEANFILES = msg.pb-c.c msg.pb-c.h

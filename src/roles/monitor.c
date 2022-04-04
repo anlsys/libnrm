@@ -156,12 +156,13 @@ void nrm_role_monitor_destroy(nrm_role_t **role)
 	*role = NULL;
 }
 
-nrm_msg_t *nrm_role_monitor_recv(const struct nrm_role_data *data)
+nrm_msg_t *nrm_role_monitor_recv(const struct nrm_role_data *data, nrm_uuid_t
+				 **from)
 {
 	struct nrm_role_monitor_s *monitor = (struct nrm_role_monitor_s *)data;
 	nrm_msg_t *msg;
 	int msgtype;
-	msg = nrm_ctrlmsg_recv((zsock_t *)monitor->broker, &msgtype, NULL);
+	msg = nrm_ctrlmsg_recv((zsock_t *)monitor->broker, &msgtype, from);
 	assert(msgtype == NRM_CTRLMSG_TYPE_RECV);
 	return msg;
 }

@@ -191,11 +191,11 @@ int nrm_role_sensor_send_progress(struct nrm_role_sensor_s *s,
 }
 
 int nrm_role_sensor_send(const struct nrm_role_data *data,
-			 nrm_msg_t *msg)
+			 nrm_msg_t *msg, nrm_uuid_t *to)
 {
 	struct nrm_role_sensor_s *sensor = (struct nrm_role_sensor_s *)data;
 	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg,
-			 NULL);
+			 to);
 	return 0;
 }
 

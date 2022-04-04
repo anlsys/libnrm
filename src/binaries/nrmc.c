@@ -138,11 +138,11 @@ int cmd_list_slices(int argc, char **argv) {
 	fprintf(stderr, "sending request\n");
 	/* craft the message we want to send */
 	nrm_msg_t *msg = nrm_msg_new_req_list(NRM_MSG_REQ_TARGET_SLICES);
-	nrm_role_send(client, msg);
+	nrm_role_send(client, msg, NULL);
 
 	/* wait for the answer */
 	fprintf(stderr, "receiving reply\n");
-	msg = nrm_role_recv(client);
+	msg = nrm_role_recv(client, NULL);
 	nrm_msg_fprintf(stdout, msg);
 	nrm_role_destroy(&client);
 	nrm_finalize();

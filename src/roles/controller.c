@@ -171,19 +171,20 @@ void nrm_role_controller_destroy(nrm_role_t **role)
 }
 
 int nrm_role_controller_send(const struct nrm_role_data *data,
-			 nrm_msg_t *msg)
+			 nrm_msg_t *msg, nrm_uuid_t *to)
 {
 	struct nrm_role_controller_s *controller = (struct nrm_role_controller_s *)data;
-	nrm_ctrlmsg_send((zsock_t *)controller->broker, NRM_CTRLMSG_TYPE_SEND, msg, NULL);
+	nrm_ctrlmsg_send((zsock_t *)controller->broker, NRM_CTRLMSG_TYPE_SEND, msg, to);
 	return 0;
 }
 
-nrm_msg_t *nrm_role_controller_recv(const struct nrm_role_data *data)
+nrm_msg_t *nrm_role_controller_recv(const struct nrm_role_data *data, nrm_uuid_t
+				    **from)
 {
 	struct nrm_role_controller_s *controller = (struct nrm_role_controller_s *)data;
 	nrm_msg_t *msg;
 	int msgtype;
-	msg = nrm_ctrlmsg_recv((zsock_t *)controller->broker, &msgtype, NULL);
+	msg = nrm_ctrlmsg_recv((zsock_t *)controller->broker, &msgtype, from);
 	assert(msgtype == NRM_CTRLMSG_TYPE_RECV);
 	return msg;
 }

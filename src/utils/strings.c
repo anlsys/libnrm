@@ -55,6 +55,18 @@ nrm_string_t nrm_string_fromchar(const char *string)
 	return ret;
 }
 
+nrm_string_t nrm_string_frombuf(const char *string, size_t len)
+{
+	/* from libc example, computes the number of characters needed to print
+	 * the string
+	 */
+	nrm_realstring_t *rs = nrm_string_new(len);
+	if (rs == NULL)
+		return NULL;
+	nrm_string_t ret = NRM_STRING_S2C(rs);
+	memcpy(ret, string, len);
+	return ret;
+}
 void nrm_string_incref(nrm_string_t *s)
 {
 	nrm_realstring_t *r = NRM_STRING_C2S(*s);
