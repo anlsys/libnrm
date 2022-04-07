@@ -78,5 +78,5 @@ void nrm_string_decref(nrm_string_t *s)
 	nrm_realstring_t *r = NRM_STRING_C2S(*s);
 	r->rc--;
 	if (r->rc == 0)
-		free(s);
+		free(r);
 }

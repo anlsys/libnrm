@@ -17,243 +17,213 @@
 #include "internal/nrmi.h"
 #include "internal/messages.h"
 
+/*******************************************************************************
+ * Protobuf Management
+ *******************************************************************************/
 
-nrm_msg_t *nrm_msg_new(int type, ...)
+nrm_msg_t *nrm_msg_create(void)
 {
-	nrm_msg_t *ret;
-	va_list ap;
-	ret = calloc(1, sizeof(nrm_msg_t));
-	if (!ret)
+	nrm_msg_t *ret = calloc(1, sizeof(nrm_msg_t));
+	if (ret == NULL)
 		return NULL;
-
-	va_start(ap, type);
-	switch(type) {
-		case NRM_MSG_TYPE_SENSOR_PROGRESS:
-			ret->type = type;
-			ret->timestamp = va_arg(ap, nrm_time_t);
-			ret->u.sspg.progress = va_arg(ap, unsigned long);
-			ret->u.sspg.scope = va_arg(ap, nrm_scope_t *);
-			break;
-		case NRM_MSG_TYPE_SENSOR_PAUSE:
-			ret->type = type;
-			ret->timestamp = va_arg(ap, nrm_time_t);
-			break;
-		case NRM_MSG_TYPE_REQ_LIST:
-			ret->type = type;
-			ret->u.reql.target = va_arg(ap, int);
-			break;
-		default:
-			free(ret);
-			ret = NULL;
-			break;
-	}
-	va_end(ap);
-	return ret;
-}
-
-
-nrm_msg_t *nrm_msg_new_req_list(int target)
-{
-	nrm_msg_t *ret;
-	ret = calloc(1, sizeof(nrm_msg_t));
-	if (!ret)
-		return NULL;
-	ret->type = NRM_MSG_TYPE_REQ_LIST;
-	ret->u.reql.target = target;
-	return ret;
-}
-
-nrm_msg_t *nrm_msg_new_rep_list(int target, nrm_vector_t *items)
-{
-	nrm_msg_t *ret;
-	ret = calloc(1, sizeof(nrm_msg_t));
-	if (!ret)
-		return NULL;
-	ret->type = NRM_MSG_TYPE_REQ_LIST;
-	ret->u.repl.target = target;
-	/* TODO: should probably copy it to avoid weird race conditions */
-	ret->u.repl.items = items;
+	nrm_msg_init(ret);
 	return ret;
 }
 
 void nrm_msg_destroy(nrm_msg_t **msg)
 {
-	free(*msg);
+	if (msg == NULL || *msg == NULL)
+		return;
+	nrm__message__free_unpacked(*msg, NULL);
 	*msg = NULL;
 }
 
-json_t *nrm_msg_encode_progress(nrm_msg_t *msg)
+int nrm_msg_fill(nrm_msg_t *msg, int type)
 {
-	json_t *json;
-	json_t *sc;
-	json_t *time;
-	json_error_t error;
-	struct nrm_msg_sspg_s *data = &msg->u.sspg;
-	time = nrm_time_to_json(&msg->timestamp);
-	assert(time != NULL);
-	sc = nrm_scope_to_json(data->scope);
-	assert(sc != NULL);
-	json = json_pack_ex(&error, 0, "{s:o, s:{s:{s:i, s:{s:s, s:s, s:i, s:i, s:i},s:o}}}",
-			"timestamp", time,
-			"info", "threadProgress", "progress", data->progress,
-			"downstreamThreadID", "cmdID", data->cmdid,
-			"taskID", data->name, "processID", 0, "rankID", 0,
-			"threadID", 0, "scopes", sc);
-	if (json == NULL) {
-		fprintf(stderr,"error packing json: %s\n", error.text);
-	}
-	return json;
+	if (msg == NULL || type < 0 || type >= NRM_MSG_TYPE_MAX)
+		return -NRM_EINVAL;
+	msg->type  = type;
+	return 0;
 }
 
-json_t *nrm_msg_encode_pause(nrm_msg_t *msg)
+static nrm_msg_list_t *nrm_msg_list_new(int type)
 {
-	json_t *json;
-	json_t *time;
-	json_error_t error;
-	struct nrm_msg_sspa_s *data = &msg->u.sspa;
-	time = nrm_time_to_json(&msg->timestamp);
-	assert(time != NULL);
-	json = json_pack_ex(&error, 0, "{s:o, s:{s:{s:{s:s, s:s, s:i, s:i, s:i}}}}",
-			"timestamp", time,
-			"info", "threadPause", "downstreamThreadID", 
-			"cmdID", data->cmdid,
-			"taskID", data->name, "processID", 0, "rankID", 0,
-			"threadID", 0);
-	if (json == NULL) {
-		fprintf(stderr,"error packing json: %s, %s, %d, %d, %d\n",
-			error.text, error.source, error.line, error.column,
-			error.position);
-	}
-	return json;
-}
-
-json_t *nrm_msg_encode_req_list(nrm_msg_t *msg)
-{
-	json_t *json;
-	json_t *time;
-	json_error_t error;
-	struct nrm_msg_reql_s *data = &msg->u.reql;
-	time = nrm_time_to_json(&msg->timestamp);
-	assert(time != NULL);
-	json = json_pack_ex(&error, 0, "{s:o, s:i, s:{s:i}}",
-			"timestamp", time,
-			"type", msg->type, "extra", 
-			"target", data->target, 0);
-	if (json == NULL) {
-		fprintf(stderr,"error packing json: %s, %s, %d, %d, %d\n",
-			error.text, error.source, error.line, error.column,
-			error.position);
-	}
-	return json;
-}
-
-json_t *nrm_msg_encode(nrm_msg_t *msg)
-{
-	switch(msg->type) {
-	case NRM_MSG_TYPE_SENSOR_PROGRESS:
-		return nrm_msg_encode_progress(msg);
-	case NRM_MSG_TYPE_SENSOR_PAUSE:
-		return nrm_msg_encode_pause(msg);
-	case NRM_MSG_TYPE_REQ_LIST:
-		return nrm_msg_encode_req_list(msg);
-	default:
-		assert(0);
+	nrm_msg_list_t *ret = calloc(1, sizeof(nrm_msg_list_t));
+	if (ret == NULL)
 		return NULL;
-	}
+	nrm_msg_list_init(ret);
+	ret->type = type;
+	return ret;
 }
 
-nrm_msg_t *nrm_msg_decode_req_list(json_t *extra)
+nrm_msg_slicelist_t *nrm_msg_new_slicelist(nrm_vector_t *slices)
 {
-	int target;
-	int err;
-	json_error_t error;
-	err = json_unpack_ex(extra, &error, 0, "{s:i}",
-			     "target", &target);
-	if (err) {
-		fprintf(stderr, "error unpacking json: %s, %s, %d, %d, %d\n",
-			error.text, error.source, error.line, error.column,
-			error.position);
-	}
-	return nrm_msg_new_req_list(target);		
-}
-
-nrm_msg_t *nrm_msg_decode(json_t *json, int *msg_type)
-{
-	int err;
-	json_error_t error;
-	json_t *time, *extra;
-	nrm_msg_t *msg;
-	err = json_unpack_ex(json, &error, 0, "{s:o, s:i, s:o}",
-			     "timestamp", &time,
-			     "type", msg_type,
-			     "extra", &extra);
-	if (err) {
-		fprintf(stderr, "error unpacking json: %s, %s, %d, %d, %d\n",
-			error.text, error.source, error.line, error.column,
-			error.position);
-	}
-	switch(*msg_type) {
-	case NRM_MSG_TYPE_REQ_LIST:
-		msg = nrm_msg_decode_req_list(extra);
-		break;
-	default:
-		assert(0);
+	void *p;
+	nrm_slice_t *s;
+	nrm_msg_slicelist_t *ret = calloc(1, sizeof(nrm_msg_slicelist_t));
+	if (ret == NULL)
 		return NULL;
+	nrm_msg_slicelist_init(ret);
+	if (slices == NULL) {
+		ret->n_slices = 0;
+		return ret;
 	}
-	err = nrm_time_from_json(&msg->timestamp, time);
-	assert(err == 0);
-	return msg;
+	nrm_vector_length(slices, &ret->n_slices);
+	ret->slices = calloc(ret->n_slices, sizeof(nrm_msg_slice_t *));
+	assert(ret->slices);
+	for (size_t i = 0; i < ret->n_slices; i++) {
+		nrm_vector_get(slices, i, &p);
+		s = (nrm_slice_t *)p;
+		ret->slices[i] = calloc(1, sizeof(nrm_msg_slice_t));
+		assert(ret->slices[i]);
+		nrm_msg_slice_init(ret->slices[i]);
+		ret->slices[i]->name = strdup(s->name);
+		ret->slices[i]->uuid = (char *)nrm_uuid_to_char(s->uuid);
+	}
+	return ret;
+}
+
+int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->list = nrm_msg_list_new(NRM_MSG_LIST_TYPE_SLICE);
+	assert(msg->list);
+	msg->list->slices = nrm_msg_new_slicelist(slices);
+	return 0;
+}
+
+static int nrm_msg_pop_packed_frames(zmsg_t *zm, nrm_msg_t **msg)
+{
+	/* empty frame delimiter */
+	zframe_t *frame = zmsg_pop(zm);
+	assert(zframe_size(frame) == 0);
+	zframe_destroy(&frame);
+	/* unpack */
+	frame = zmsg_pop(zm);
+	*msg = nrm__message__unpack(NULL, zframe_size(frame),
+				    zframe_data(frame));
+	zframe_destroy(&frame);
+	return 0;
+}
+
+static int nrm_msg_push_packed_frames(zmsg_t *zm, nrm_msg_t *msg)
+{
+	/* need to add a frame delimiter for zmq to consider this a separate
+	 * message
+	 */
+	zframe_t *frame = zframe_new_empty();
+	zmsg_append(zm, &frame);
+	/* now add the packed data */
+	size_t size = nrm__message__get_packed_size(msg);
+	unsigned char *buf = malloc(size);
+	assert(buf);
+	nrm__message__pack(msg, buf);
+	zmsg_addmem(zm, buf, size);
+	free(buf);
+	return 0;
+}
+
+/*******************************************************************************
+ * General API, NOT PROTOBUF STUFF
+ *******************************************************************************/
+
+static int nrm_msg_pop_identity(zmsg_t *zm, nrm_uuid_t **uuid)
+{
+	zframe_t *frame = zmsg_pop(zm);
+	nrm_uuid_t *id = nrm_uuid_create_fromchar((char *)zframe_data(frame));
+	zframe_destroy(&frame);
+	*uuid = id;
+	return 0;
+}
+
+static int nrm_msg_push_identity(zmsg_t *zm, nrm_uuid_t *uuid)
+{
+	zframe_t *frame = zframe_new(uuid->data, NRM_UUID_SIZE);
+	zmsg_append(zm, &frame);
+	return 0;	
 }
 
 int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg)
 {
-	int err;
-	json_t *json = nrm_msg_encode(msg);
-	char *s = json_dumps(json, JSON_COMPACT);
-	err = zsock_send(socket, "s", s); 
-	free(s);
-	json_decref(json);
-	return err;
+	zmsg_t *zm = zmsg_new();
+	if (zm == NULL)
+		return -NRM_ENOMEM;
+	nrm_msg_push_packed_frames(zm, msg);
+	return zmsg_send(&zm, socket);
 }
 
-nrm_msg_t *nrm_msg_recv(zsock_t *socket, int *msg_type)
+int nrm_msg_sendto(zsock_t *socket, nrm_msg_t *msg, nrm_uuid_t *uuid)
 {
-	int err;
-	char *s;
-	err = zsock_recv(socket, "s", &s);
-	assert(err == 0);
-	json_error_t error;
-	json_t *json = json_loads(s, 0, &error);
-	nrm_msg_t *ret = nrm_msg_decode(json, msg_type);
-	free(s);
-	json_decref(json);
+	zmsg_t *zm = zmsg_new();
+	if (zm == NULL)
+		return -NRM_ENOMEM;
+	nrm_msg_push_identity(zm, uuid);
+	nrm_msg_push_packed_frames(zm, msg);
+	return zmsg_send(&zm, socket);
+}
+
+nrm_msg_t *nrm_msg_recv(zsock_t *socket)
+{
+	zmsg_t *zm = zmsg_recv(socket);
+	assert(zm);
+	nrm_msg_t *msg = NULL;
+	nrm_msg_pop_packed_frames(zm, &msg);
+	zmsg_destroy(&zm);
+	return msg;
+}
+
+nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, nrm_uuid_t **uuid)
+{
+	zmsg_t *zm = zmsg_recv(socket);
+	assert(zm);
+	nrm_msg_pop_identity(zm, uuid);
+	nrm_msg_t *msg = NULL;
+	nrm_msg_pop_packed_frames(zm, &msg);
+	zmsg_destroy(&zm);
+	return msg;
+}
+
+/*******************************************************************************
+ * JSON Pretty-printing
+ *******************************************************************************/
+
+struct nrm_msg_type_table_e {
+	int type;
+	const char *s;
+};
+
+static const struct nrm_msg_type_table_e nrm_msg_type_table[] = {
+	{ NRM_MSG_TYPE_ACK, "ACK" },
+	{ NRM_MSG_TYPE_LIST, "LIST" },
+};
+
+const char *nrm_msg_type_t2s(int type)
+{
+	if (type < 0 || type > NRM_MSG_TYPE_MAX)
+		return NULL;
+	return nrm_msg_type_table[type].s;
+}
+
+json_t *nrm_msg_to_json(nrm_msg_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:s}", "type", nrm_msg_type_t2s(msg->type));
 	return ret;
 }
 
-nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, int *msg_type, nrm_uuid_t **from)
+int nrm_msg_fprintf(FILE *f, nrm_msg_t *msg)
 {
-	int err;
-	char *s, *uuid;
-	err = zsock_recv(socket, "ss", &uuid, &s);
-	assert(err == 0);
-	fprintf(stderr, "recvfrom uuid:'%s' msg:'%s'\n", uuid, s);
-	json_error_t error;
-	json_t *json = json_loads(s, 0, &error);
-	nrm_msg_t *ret = nrm_msg_decode(json, msg_type);
-	free(s);
-	json_decref(json);
-	*from = nrm_uuid_create_fromchar(uuid);
-	return ret;
+	json_t *json;
+	json = nrm_msg_to_json(msg);
+	char *s = json_dumps(json, JSON_INDENT(4) | JSON_SORT_KEYS);
+	fprintf(f, "%s\n", s);
+	return 0;
 }
 
-void nrm_msg_fprintf(FILE *out, nrm_msg_t *msg)
-{
-	if (out == NULL || msg == NULL)
-		return;
-	json_t *json = nrm_msg_encode(msg);
-	json_dumpf(json, out, JSON_INDENT(4)|JSON_SORT_KEYS);
-	json_decref(json);
-}
+/*******************************************************************************
+ * Broker Communication
+ *******************************************************************************/
 
 /* for ease of use, we build a table of those */
 struct nrm_ctrlmsg_type_table_e {

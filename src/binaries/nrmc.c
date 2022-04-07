@@ -121,6 +121,11 @@ int cmd_run(int argc, char **argv) {
 	return 0;
 }
 
+int cmd_add_slice(int argc, char **argv) {
+
+
+}
+
 int cmd_list_slices(int argc, char **argv) {
 
 
@@ -128,24 +133,23 @@ int cmd_list_slices(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 
-	nrm_init(NULL, NULL);
-
-	fprintf(stderr, "creating client\n");
+	nrm_log_info("creating client\n");
 
 	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
 							       pub_port,
 							       rpc_port);
-	fprintf(stderr, "sending request\n");
+	nrm_log_info("sending request\n");
 	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_new_req_list(NRM_MSG_REQ_TARGET_SLICES);
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_slices(msg, NULL);
 	nrm_role_send(client, msg, NULL);
 
 	/* wait for the answer */
-	fprintf(stderr, "receiving reply\n");
+	nrm_log_info("receiving reply\n");
 	msg = nrm_role_recv(client, NULL);
-	nrm_msg_fprintf(stdout, msg);
+	nrm_log_printmsg(LOG_DEBUG, msg);
 	nrm_role_destroy(&client);
-	nrm_finalize();
 	return 0;
 }
 
@@ -218,6 +222,10 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	nrm_init(NULL, NULL);
+	nrm_log_init(stderr, "nrmc");
+	nrm_log_setlevel(NRM_LOG_DEBUG);
+
 	int err = 0;
 	for(int i = 0; commands[i].name != NULL; i++) {
 		if(!strcmp(argv[0], commands[i].name)) {
@@ -228,5 +236,6 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "wrong command: %s\n", argv[0]);
 	err = EXIT_FAILURE;
 end:	
+	nrm_finalize();
 	return err;
 }

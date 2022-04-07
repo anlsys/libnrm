@@ -26,8 +26,9 @@ struct nrm_daemon_s my_daemon;
 
 nrm_msg_t *nrmd_daemon_build_list_slices()
 {
-	nrm_msg_t *ret = nrm_msg_new_rep_list(NRM_MSG_REQ_TARGET_SLICES,
-					      my_daemon.state->slices);
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_slices(ret, my_daemon.state->slices);
 	return ret;
 }
 
@@ -39,7 +40,7 @@ int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 	int msg_type;
 
 	msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
-	nrm_msg_fprintf(stdout, msg);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_msg_destroy(&msg);
 	return 0;
 }
@@ -47,17 +48,23 @@ int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
-	(void)arg;
+	(void)socket;
+	nrm_log_info("entering callback\n");
+	nrm_role_t *self = (nrm_role_t *)arg;
 	nrm_msg_t *msg, *ret;
-	int msg_type;
 	nrm_uuid_t *uuid;
-	msg = nrm_ctrlmsg_recv(socket, &msg_type, &uuid);
-	fprintf(stderr, "shim receive\n");
-	nrm_msg_fprintf(stderr, msg);
-	switch(msg_type) {
-	case NRM_MSG_TYPE_REQ_LIST:
+	nrm_log_debug("receiving\n");
+	msg = nrm_role_recv(self, &uuid);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	switch(msg->type) {
+	case NRM_MSG_TYPE_LIST:
+		nrm_log_info("building list of slices\n");
 		ret = nrmd_daemon_build_list_slices();
-		nrm_ctrlmsg_send(socket, NRM_CTRLMSG_TYPE_SEND, ret, uuid);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		nrm_role_send(self, ret, uuid);
+		break;
+	default:
+		nrm_log_error("message type not handled\n");
 		break;
 	}
 	nrm_msg_destroy(&msg);
@@ -149,6 +156,13 @@ int main(int argc, char *argv[])
 	 */
 
 	nrm_init(NULL, NULL);
+	nrm_log_init(stderr, "nrmd");
+
+
+	/* init state */
+	my_daemon.state = nrm_state_create();
+
+
 	nrm_role_t *monitor = nrm_role_monitor_create_fromenv();
 	assert(monitor != NULL);
 

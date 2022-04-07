@@ -62,3 +62,12 @@ json_t *nrm_uuid_to_json(nrm_uuid_t *uuid)
 	zuuid_destroy(&u);
 	return ret;
 }
+
+const char *nrm_uuid_to_char(nrm_uuid_t *uuid)
+{
+	zuuid_t *u;
+	u = zuuid_new_from((const byte *)uuid->data);
+	const char *ret = zuuid_str(u);
+	zuuid_destroy(&u);
+	return ret;
+}

@@ -53,13 +53,13 @@ int nrm_client_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	 * the network */
 	int msg_type;
 	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
-	if (msg_type == NRM_CTRLMSG_TYPE_SEND
-	    && nrm_transmit) {
-		fprintf(stderr, "client sending message: \n");
-		nrm_msg_fprintf(stderr, msg);
+	switch(msg_type) {
+	case NRM_CTRLMSG_TYPE_SEND:
+		nrm_log_debug("client sending message\n");
+		nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 		nrm_msg_send(self->rpc, msg);
-	}
-	else if(msg_type == NRM_CTRLMSG_TYPE_TERM) {
+		break;
+	case NRM_CTRLMSG_TYPE_TERM:
 		/* returning -1 exits the loop */
 		return -1;
 	}
@@ -74,9 +74,8 @@ int nrm_client_broker_rpc_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	struct nrm_client_broker_s *self = (struct nrm_client_broker_s *)arg;
 
 	/* this should be a rpc answer, that we need to transmit to the pipe */
-	int msg_type;
-	nrm_msg_t *msg = nrm_msg_recv(socket, &msg_type);
-	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_SEND, msg, NULL);
+	nrm_msg_t *msg = nrm_msg_recv(socket);
+	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_RECV, msg, NULL);
 	return 0;
 }
 
@@ -86,8 +85,7 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	struct nrm_client_broker_s *self = (struct nrm_client_broker_s *)arg;
 
 	/* this should be a sub message, that we need to transmit to the pipe */
-	int msg_type;
-	nrm_msg_t *msg = nrm_msg_recv(socket, &msg_type);
+	nrm_msg_t *msg = nrm_msg_recv(socket);
 	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_SUB, msg, NULL);
 	return 0;
 }

@@ -62,35 +62,35 @@ int nrm_init(int *argc, char **argv[]);
 int nrm_finalize(void);
 
 /*******************************************************************************
+ * Logging
+ ******************************************************************************/
+
+#define NRM_LOG_QUIET 0
+#define NRM_LOG_ERROR 1
+#define NRM_LOG_WARNING 2
+#define NRM_LOG_NORMAL 3
+#define NRM_LOG_INFO 4
+#define NRM_LOG_DEBUG 5
+
+int nrm_log_init(FILE *f, const char *nm);
+
+void nrm_log_printf(int level, const char *file, unsigned int line, const char
+		    *format, ...);
+
+int nrm_log_setlevel(int level);
+
+#define nrm_log_error(...) nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_warning(...) nrm_log_printf(NRM_LOG_WARNING, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_normal(...) nrm_log_printf(NRM_LOG_NORMAL, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_info(...) nrm_log_printf(NRM_LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_debug(...) nrm_log_printf(NRM_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+
+/*******************************************************************************
  * NRM Messages
  * Messages being transmitted between nrm components
  ******************************************************************************/
 
-typedef struct nrm_msg_s nrm_msg_t;
-
-nrm_msg_t *nrm_msg_new(int type, ...);
-
-#define nrm_typecheck(var, type) \
-	do { \
-	type __dummy; \
-	__typeof__(var) __dummy2; \
-	(void)(&__dummy == &__dummy2); } while(0)
-
-#define nrm_msg_new_progress(t, p, s) ({ \
-	nrm_typecheck(t, nrm_time_t); \
-	nrm_typecheck(p, unsigned long); \
-	nrm_typecheck(s, nrm_scope_t *); \
-	nrm_msg_new((int)NRM_MSG_TYPE_SENSOR_PROGRESS, t, p, s); })
-
-#define nrm_msg_new_pause(t) ({ \
-	nrm_typecheck(t, nrm_time_t); \
-	nrm_msg_new((int)NRM_MSG_TYPE_SENSOR_PAUSE, t); })
-
-
-nrm_msg_t *nrm_msg_new_req_list(int target);
-nrm_msg_t *nrm_msg_new_rep_list(int target, nrm_vector_t *items);
-
-void nrm_msg_fprintf(FILE *out, nrm_msg_t *msg);
+typedef struct _Nrm__Message nrm_msg_t;
 
 void nrm_msg_destroy(nrm_msg_t **msg);
 
@@ -99,7 +99,7 @@ void nrm_msg_destroy(nrm_msg_t **msg);
  ******************************************************************************/
 
 struct nrm_slice_s {
-	char *name;
+	const char *name;
 	nrm_uuid_t *uuid;
 };
 
@@ -120,6 +120,8 @@ struct nrm_state_s {
 };
 
 typedef struct nrm_state_s nrm_state_t;
+
+nrm_state_t *nrm_state_create(void);
 
 /*******************************************************************************
  * NRM Role API

@@ -23,54 +23,47 @@ extern "C" {
  * out a message to a different nrm component.
  ******************************************************************************/
 
-enum nrm_msg_type_e {
-	NRM_MSG_TYPE_SENSOR_PROGRESS = 0,
-	NRM_MSG_TYPE_SENSOR_PAUSE = 1,
-	NRM_MSG_TYPE_REQ_LIST = 2,
-	NRM_MSG_TYPE_REP_LIST = 3,
-};
+#include "msg.pb-c.h"
 
-struct nrm_msg_sspg_s {
-	unsigned long progress;
-	nrm_scope_t *scope;
-	const char *name;
-	const char *cmdid;
-};
+/* convert protobuf-c enums to more nice ones */
+#define NRM_MSG_TYPE_ACK (NRM__MSGTYPE__ACK)
+#define NRM_MSG_TYPE_LIST (NRM__MSGTYPE__LIST)
+#define NRM_MSG_TYPE_MAX (2)
 
-struct nrm_msg_sspa_s {
-	const char *name;
-	const char *cmdid;
-};
+#define NRM_MSG_LIST_TYPE_SLICE (NRM__LISTTYPE__SLICE)
 
-enum nrm_msg_req_type_e {
-	NRM_MSG_REQ_TARGET_SLICES = 0,
-};
 
-struct nrm_msg_reql_s {
-	int target;
-};
+typedef Nrm__Slice nrm_msg_slice_t;
+typedef Nrm__SliceList nrm_msg_slicelist_t;
+typedef Nrm__List nrm_msg_list_t;
+typedef Nrm__Message nrm_msg_t;
 
-struct nrm_msg_repl_s {
-	int target;
-	nrm_vector_t *items;
-};
+#define nrm_msg_slice_init(msg)     nrm__slice__init(msg)
+#define nrm_msg_slicelist_init(msg) nrm__slice_list__init(msg)
+#define nrm_msg_list_init(msg)      nrm__list__init(msg)
+#define nrm_msg_init(msg)           nrm__message__init(msg)
 
-struct nrm_msg_s {
-	int type;	
-	nrm_time_t timestamp;
-	union {
-		struct nrm_msg_sspg_s sspg;
-		struct nrm_msg_sspa_s sspa;
-		struct nrm_msg_reql_s reql;
-		struct nrm_msg_repl_s repl;
-	} u;
-};
+nrm_msg_t *nrm_msg_create(void);
+void nrm_msg_destroy(nrm_msg_t **msg);
+
+int nrm_msg_fill(nrm_msg_t *msg, int type);
+int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
+
+/*******************************************************************************
+ * Printing
+ ******************************************************************************/
+
+int nrm_msg_fprintf(FILE *f, nrm_msg_t *msg);
+
+/*******************************************************************************
+ * Socket Interaction
+ ******************************************************************************/
 
 int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg);
+int nrm_msg_sendto(zsock_t *socket, nrm_msg_t *msg, nrm_uuid_t *to);
 
-nrm_msg_t *nrm_msg_recv(zsock_t *socket, int *msg_type);
-
-nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, int *msg_type, nrm_uuid_t **from);
+nrm_msg_t *nrm_msg_recv(zsock_t *socket);
+nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, nrm_uuid_t **from);
 
 /*******************************************************************************
  * Control Messages: mostly needed to exchange through shared memory between

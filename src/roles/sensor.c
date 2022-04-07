@@ -165,7 +165,8 @@ void nrm_role_sensor_destroy(nrm_role_t **role)
 	/* need to push a pause message before the exit */
 	nrm_time_t now;
 	nrm_time_gettime(&now);
-	msg = nrm_msg_new_pause(now);
+	msg = nrm_msg_create();
+	//nrm_msg_new_pause(now);
 	nrm_ctrlmsg_send((zsock_t *)sensor->broker, NRM_CTRLMSG_TYPE_SEND, msg,
 			 NULL);
 
@@ -185,7 +186,10 @@ int nrm_role_sensor_send_progress(struct nrm_role_sensor_s *s,
 	nrm_msg_t *msg;
 	nrm_time_t now;
 	nrm_time_gettime(&now);
-	msg = nrm_msg_new_progress(now, progress, scope);
+	msg = nrm_msg_create();
+	(void) progress;
+	(void) scope;
+	// nrm_msg_new_progress(now, progress, scope);
 	nrm_ctrlmsg_send((zsock_t *)s->broker, NRM_CTRLMSG_TYPE_SEND, msg, NULL);
 	return 0;
 }

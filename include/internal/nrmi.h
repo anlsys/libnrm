@@ -79,6 +79,8 @@ int nrm_net_bind_2(zsock_t *socket, const char *uri, int port);
  * Utils functions
  ******************************************************************************/
 
+void nrm_log_printmsg(int level, nrm_msg_t *msg);
+
 json_t *nrm_time_to_json(nrm_time_t *);
 int nrm_time_from_json(nrm_time_t *, json_t *);
 

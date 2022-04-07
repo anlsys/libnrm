@@ -44,12 +44,10 @@ int nrm_controller_broker_rpc_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	(void)loop;
 	struct nrm_role_controller_broker_s *self = 
 		(struct nrm_role_controller_broker_s *)arg;
-
-	fprintf(stderr, "controller rpc recv\n");
-	int msg_type;
+	nrm_log_debug("controller rpc recv\n");
 	nrm_uuid_t *uuid;
-	nrm_msg_t *msg = nrm_msg_recvfrom(socket, &msg_type, &uuid);
-	nrm_msg_fprintf(stderr, msg);
+	nrm_msg_t *msg = nrm_msg_recvfrom(socket, &uuid);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_ctrlmsg_send(self->pipe, NRM_CTRLMSG_TYPE_RECV, msg, uuid);
 	return 0;
 }
@@ -59,16 +57,25 @@ int nrm_controller_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg
 	(void)loop;
 	struct nrm_role_controller_broker_s *self =
 		(struct nrm_role_controller_broker_s *)arg;
-	(void)self;
 
-	/* the only message we should ever receive here in the term one.
-	 */
+	nrm_log_debug("controller pipe recv\n");
 	int msg_type;
-	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
-	assert(msg_type == NRM_CTRLMSG_TYPE_TERM);
-	assert(msg == NULL);
-	/* returning -1 exits the loop */
-	return -1;
+	nrm_uuid_t *uuid;
+	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, &uuid);
+	switch(msg_type) {
+		case NRM_CTRLMSG_TYPE_TERM:
+			nrm_log_info("received term request\n");
+			/* returning -1 exits the loop */
+			return -1;
+		case NRM_CTRLMSG_TYPE_SEND:
+			nrm_log_info("received request to send to client\n");
+			nrm_msg_sendto(self->rpc, msg, uuid);
+			break;
+		default:
+			nrm_log_error("msg type %u not handled\n", msg_type);
+			break;
+	}
+	return 0;
 }
 
 void nrm_controller_broker_fn(zsock_t *pipe, void *args)
