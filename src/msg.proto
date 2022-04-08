@@ -8,6 +8,7 @@ enum LISTTYPE {
 enum MSGTYPE {
 	ACK = 0;
 	LIST = 1;
+	ADD = 2;
 }
 
 message Slice {
@@ -17,6 +18,13 @@ message Slice {
 
 message SliceList {
 	repeated Slice slices = 1;
+}
+
+message Add {
+	LISTTYPE type = 1;
+	oneof data {
+		Slice slice = 2;
+	}
 }
 
 message List {
@@ -30,5 +38,6 @@ message Message {
 	MSGTYPE type = 1;
 	oneof data {
 		List list = 2;
+		Add add = 3;
 	}
 }

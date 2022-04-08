@@ -123,7 +123,30 @@ int cmd_run(int argc, char **argv) {
 
 int cmd_add_slice(int argc, char **argv) {
 
+	if (argc < 2)
+		return EXIT_FAILURE;
+	
+	char *name = argv[1];
+	
+	nrm_log_info("creating client\n");
 
+	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
+							       pub_port,
+							       rpc_port);
+	nrm_log_info("sending request\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_slice(msg, name, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_send(client, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_info("receiving reply\n");
+	msg = nrm_role_recv(client, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_destroy(&client);
+	return 0;
 }
 
 int cmd_list_slices(int argc, char **argv) {
@@ -148,12 +171,13 @@ int cmd_list_slices(int argc, char **argv) {
 	/* wait for the answer */
 	nrm_log_info("receiving reply\n");
 	msg = nrm_role_recv(client, NULL);
-	nrm_log_printmsg(LOG_DEBUG, msg);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_role_destroy(&client);
 	return 0;
 }
 
 static struct client_cmd commands[] = {
+	{ "add-slice", cmd_add_slice },
 	{ "list-slices", cmd_list_slices },
 	{ "run", cmd_run },
 	{ 0, 0 },
@@ -207,7 +231,7 @@ int main(int argc, char *argv[])
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-
+	
 	if (ask_help) {
 		print_help();
 		exit(EXIT_SUCCESS);
@@ -225,6 +249,9 @@ int main(int argc, char *argv[])
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmc");
 	nrm_log_setlevel(NRM_LOG_DEBUG);
+
+	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
+		      argc, argv[0]);
 
 	int err = 0;
 	for(int i = 0; commands[i].name != NULL; i++) {

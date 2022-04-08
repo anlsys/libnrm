@@ -58,10 +58,11 @@ int nrm_controller_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg
 	struct nrm_role_controller_broker_s *self =
 		(struct nrm_role_controller_broker_s *)arg;
 
-	nrm_log_debug("controller pipe recv\n");
+	nrm_log_debug("controller pipe handler triggered\n");
 	int msg_type;
 	nrm_uuid_t *uuid;
 	nrm_msg_t *msg = nrm_ctrlmsg_recv(socket, &msg_type, &uuid);
+	nrm_log_debug("received ctrlmsg type: %u\n", msg_type);
 	switch(msg_type) {
 		case NRM_CTRLMSG_TYPE_TERM:
 			nrm_log_info("received term request\n");

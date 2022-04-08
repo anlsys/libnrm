@@ -46,6 +46,40 @@ int nrm_msg_fill(nrm_msg_t *msg, int type)
 	return 0;
 }
 
+nrm_msg_slice_t *nrm_msg_slice_new(const char *name, nrm_uuid_t *uuid)
+{
+	nrm_msg_slice_t *ret = calloc(1, sizeof(nrm_msg_slice_t));
+	if (ret == NULL)
+		return ret;
+	nrm_msg_slice_init(ret);
+	ret->name = strdup(name);
+	if (uuid)
+		ret->uuid = (char *)nrm_uuid_to_char(uuid);
+	return ret;
+}
+
+nrm_msg_add_t *nrm_msg_add_new(int type)
+{
+	nrm_msg_add_t *ret = calloc(1, sizeof(nrm_msg_add_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_add_init(ret);
+	ret->type = type;
+	return ret;
+}
+
+int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->add = nrm_msg_add_new(NRM_MSG_LIST_TYPE_SLICE);
+	assert(msg->add);
+	msg->data_case = NRM__MESSAGE__DATA_ADD;
+	msg->add->data_case = NRM__ADD__DATA_SLICE;
+	msg->add->slice = nrm_msg_slice_new(name, uuid);
+	return 0;
+}
+
 static nrm_msg_list_t *nrm_msg_list_new(int type)
 {
 	nrm_msg_list_t *ret = calloc(1, sizeof(nrm_msg_list_t));
@@ -56,10 +90,9 @@ static nrm_msg_list_t *nrm_msg_list_new(int type)
 	return ret;
 }
 
-nrm_msg_slicelist_t *nrm_msg_new_slicelist(nrm_vector_t *slices)
+nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 {
 	void *p;
-	nrm_slice_t *s;
 	nrm_msg_slicelist_t *ret = calloc(1, sizeof(nrm_msg_slicelist_t));
 	if (ret == NULL)
 		return NULL;
@@ -69,16 +102,14 @@ nrm_msg_slicelist_t *nrm_msg_new_slicelist(nrm_vector_t *slices)
 		return ret;
 	}
 	nrm_vector_length(slices, &ret->n_slices);
+	nrm_log_debug("vector contains %zu\n", ret->n_slices);
 	ret->slices = calloc(ret->n_slices, sizeof(nrm_msg_slice_t *));
 	assert(ret->slices);
 	for (size_t i = 0; i < ret->n_slices; i++) {
 		nrm_vector_get(slices, i, &p);
-		s = (nrm_slice_t *)p;
-		ret->slices[i] = calloc(1, sizeof(nrm_msg_slice_t));
-		assert(ret->slices[i]);
-		nrm_msg_slice_init(ret->slices[i]);
-		ret->slices[i]->name = strdup(s->name);
-		ret->slices[i]->uuid = (char *)nrm_uuid_to_char(s->uuid);
+		nrm_slice_t *s = (nrm_slice_t *)p;
+		nrm_log_debug("packed slice %zu %s\n", i, s->name);
+		ret->slices[i] = nrm_msg_slice_new(s->name, s->uuid);
 	}
 	return ret;
 }
@@ -89,7 +120,9 @@ int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices)
 		return -NRM_EINVAL;
 	msg->list = nrm_msg_list_new(NRM_MSG_LIST_TYPE_SLICE);
 	assert(msg->list);
-	msg->list->slices = nrm_msg_new_slicelist(slices);
+	msg->data_case = NRM__MESSAGE__DATA_LIST;
+	msg->list->data_case = NRM__LIST__DATA_SLICES;
+	msg->list->slices = nrm_msg_slicelist_new(slices);
 	return 0;
 }
 
@@ -139,7 +172,7 @@ static int nrm_msg_pop_identity(zmsg_t *zm, nrm_uuid_t **uuid)
 
 static int nrm_msg_push_identity(zmsg_t *zm, nrm_uuid_t *uuid)
 {
-	zframe_t *frame = zframe_new(uuid->data, NRM_UUID_SIZE);
+	zframe_t *frame = zframe_from(nrm_uuid_to_char(uuid));
 	zmsg_append(zm, &frame);
 	return 0;	
 }
@@ -188,27 +221,108 @@ nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, nrm_uuid_t **uuid)
  * JSON Pretty-printing
  *******************************************************************************/
 
-struct nrm_msg_type_table_e {
+struct nrm_msg_type_table_s {
 	int type;
 	const char *s;
 };
 
-static const struct nrm_msg_type_table_e nrm_msg_type_table[] = {
+typedef struct nrm_msg_type_table_s nrm_msg_type_table_t;
+
+static const nrm_msg_type_table_t nrm_msg_type_table[] = {
 	{ NRM_MSG_TYPE_ACK, "ACK" },
 	{ NRM_MSG_TYPE_LIST, "LIST" },
+	{ NRM_MSG_TYPE_ADD, "ADD" },
+	{ 0, NULL },
 };
 
-const char *nrm_msg_type_t2s(int type)
+static const nrm_msg_type_table_t nrm_msg_target_table[] = {
+	{ NRM_MSG_LIST_TYPE_SLICE, "SLICE" },
+	{ 0, NULL },
+};
+
+const char *nrm_msg_type_t2s(int type, const nrm_msg_type_table_t *table)
 {
-	if (type < 0 || type > NRM_MSG_TYPE_MAX)
-		return NULL;
-	return nrm_msg_type_table[type].s;
+	if (type < 0)
+		return "UNKNOWN";
+	for (int i = 0; table[i].s != NULL; i++)
+		if (table[i].type == type)
+			return table[i].s;
+	return "UNKNOWN";
+}
+
+json_t *nrm_msg_slice_to_json(nrm_msg_slice_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:s, s:s?}", "name", msg->name, "uuid", msg->uuid);
+	return ret;
+}
+
+json_t *nrm_msg_slicelist_to_json(nrm_msg_slicelist_t *msg)
+{
+	json_t *ret;
+	ret = json_array();
+	for(size_t i = 0; i < msg->n_slices; i++) {
+		nrm_log_debug("json slice %zu\n", i);
+		json_array_append_new(ret,
+				      nrm_msg_slice_to_json(msg->slices[i]));
+	}
+	return ret;
+}
+
+json_t *nrm_msg_add_to_json(nrm_msg_add_t *msg)
+{
+	json_t *ret;
+	json_t *sub;
+	switch (msg->type) {
+	case NRM_MSG_LIST_TYPE_SLICE:
+		sub = nrm_msg_slice_to_json(msg->slice);
+		break;
+	default:
+		sub = NULL;
+		break;
+	}
+	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
+							  nrm_msg_target_table),
+			"data", sub);
+	return ret;
+}
+
+json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
+{
+	json_t *ret;
+	json_t *sub;
+	switch (msg->type) {
+	case NRM_MSG_LIST_TYPE_SLICE:
+		sub = nrm_msg_slicelist_to_json(msg->slices);
+		break;
+	default:
+		sub = NULL;
+		break;
+	}
+	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
+							  nrm_msg_target_table),
+			"data", sub);
+	return ret;
 }
 
 json_t *nrm_msg_to_json(nrm_msg_t *msg)
 {
 	json_t *ret;
-	ret = json_pack("{s:s}", "type", nrm_msg_type_t2s(msg->type));
+	json_t *sub;
+	switch (msg->type) {
+	case NRM_MSG_TYPE_ADD:
+		sub = nrm_msg_add_to_json(msg->add);
+		break;
+	case NRM_MSG_TYPE_LIST:
+		sub = nrm_msg_list_to_json(msg->list);
+		break;
+	default:
+		sub = NULL;
+		break;
+	}
+	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
+							  nrm_msg_type_table),
+			"data", sub);
 	return ret;
 }
 
@@ -216,8 +330,9 @@ int nrm_msg_fprintf(FILE *f, nrm_msg_t *msg)
 {
 	json_t *json;
 	json = nrm_msg_to_json(msg);
-	char *s = json_dumps(json, JSON_INDENT(4) | JSON_SORT_KEYS);
+	char *s = json_dumps(json, 0);
 	fprintf(f, "%s\n", s);
+	json_decref(json);
 	return 0;
 }
 
@@ -272,7 +387,11 @@ nrm_msg_t *nrm_ctrlmsg_recv(zsock_t *socket, int *type, nrm_uuid_t **from)
 	err = zsock_recv(socket, "spp", &s, &p, &u);
 	assert(err == 0);
 	*type = nrm_ctrlmsg_s2t(s);
-	if (from != NULL)
+	nrm_log_debug("received %s:%u\n",s,*type);
+	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
+	if (from != NULL) {
 		*from = (nrm_uuid_t *)u;
+		nrm_log_debug("from %s\n",nrm_uuid_to_char(*from));
+	}
 	return (nrm_msg_t *)p;
 }

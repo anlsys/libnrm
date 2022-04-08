@@ -32,6 +32,18 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	return ret;
 }
 
+nrm_msg_t *nrmd_daemon_add_slice(const char *name)
+{
+	nrm_slice_t *newslice = nrm_slice_create((char *)name);
+	newslice->uuid = nrm_uuid_create();
+	nrm_vector_push_back(my_daemon.state->slices, newslice);
+
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_slice(ret, (char *)newslice->name, newslice->uuid);
+	return ret;
+}
+
 int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)arg;
@@ -60,6 +72,12 @@ int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg
 	case NRM_MSG_TYPE_LIST:
 		nrm_log_info("building list of slices\n");
 		ret = nrmd_daemon_build_list_slices();
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		nrm_role_send(self, ret, uuid);
+		break;
+	case NRM_MSG_TYPE_ADD:
+		nrm_log_info("adding a slice\n");
+		ret = nrmd_daemon_add_slice(msg->add->slice->name);
 		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
 		nrm_role_send(self, ret, uuid);
 		break;
@@ -157,6 +175,7 @@ int main(int argc, char *argv[])
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmd");
+	nrm_log_setlevel(NRM_LOG_DEBUG);
 
 
 	/* init state */

@@ -22,7 +22,7 @@
 nrm_slice_t *nrm_slice_create(char *name)
 {
 	nrm_slice_t *ret = calloc(1, sizeof(nrm_slice_t));
-	ret->name = name;
+	ret->name = nrm_string_fromchar(name);
 	ret->uuid = NULL;
 	return ret;
 }
@@ -41,7 +41,7 @@ void nrm_slice_destroy(nrm_slice_t **slice)
 {
 	if (slice == NULL || *slice == NULL)
 		return;
-	free((char*)(*slice)->name);
+	nrm_string_decref(&(*slice)->name);
 	nrm_uuid_destroy(&(*slice)->uuid);
 	*slice = NULL;
 }

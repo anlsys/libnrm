@@ -99,7 +99,7 @@ void nrm_msg_destroy(nrm_msg_t **msg);
  ******************************************************************************/
 
 struct nrm_slice_s {
-	const char *name;
+	nrm_string_t name;
 	nrm_uuid_t *uuid;
 };
 

@@ -26,10 +26,9 @@ nrm_uuid_t *nrm_uuid_create()
 	ret = calloc(1, sizeof(nrm_uuid_t));
 	if (ret == NULL)
 		return NULL;
-
 	u = zuuid_new();
-	assert(zuuid_size(u) == 16);
-	memcpy(ret->data, zuuid_data(u), 16);
+	assert(u);
+	*ret = nrm_string_fromchar(zuuid_str(u));
 	zuuid_destroy(&u);
 	return ret;
 }
@@ -39,35 +38,34 @@ void nrm_uuid_destroy(nrm_uuid_t **uuid)
 	if (uuid == NULL || *uuid == NULL)
 		return;
 
+	nrm_string_decref(*uuid);
 	free(*uuid);
 	*uuid = NULL;
 }
 
 nrm_uuid_t *nrm_uuid_create_fromchar(char *s)
 {
-	 nrm_uuid_t *ret;
-	 ret = calloc(1, sizeof(nrm_uuid_t));
-	 if (ret == NULL)
-		 return NULL;
-	 assert(strnlen(s, 17) == 16);
-	 memcpy(ret->data, s, 16);
-	 return ret;
+	nrm_uuid_t *ret;
+	ret = calloc(1, sizeof(nrm_uuid_t));
+	if (ret == NULL)
+		return NULL;
+	*ret = nrm_string_fromchar(s);
+	return ret;
 }
 
 json_t *nrm_uuid_to_json(nrm_uuid_t *uuid)
 {
-	zuuid_t *u;
-	u = zuuid_new_from((const byte *)uuid->data);
-	json_t *ret = json_pack("s", zuuid_str(u));
-	zuuid_destroy(&u);
+	json_t *ret = json_pack("s", **uuid);
 	return ret;
 }
 
-const char *nrm_uuid_to_char(nrm_uuid_t *uuid)
+char *nrm_uuid_to_char(nrm_uuid_t *uuid)
 {
-	zuuid_t *u;
-	u = zuuid_new_from((const byte *)uuid->data);
-	const char *ret = zuuid_str(u);
-	zuuid_destroy(&u);
-	return ret;
+	return *uuid;
+}
+
+nrm_string_t *nrm_uuid_to_string(nrm_uuid_t *uuid)
+{
+	nrm_string_incref(uuid);
+	return uuid;
 }

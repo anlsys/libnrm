@@ -36,10 +36,8 @@ int nrm_net_rpc_client_init(zsock_t **socket)
 	zsock_set_unbounded(ret);
 	/* add an identity to the socket */
 	nrm_uuid_t *uuid = nrm_uuid_create();
-	nrm_string_t identity = nrm_string_frombuf(uuid->data, 16);
-	zsock_set_identity(ret, identity);
+	zsock_set_identity(ret, nrm_uuid_to_char(uuid));
 	nrm_uuid_destroy(&uuid);
-	nrm_string_decref(&identity);
 	*socket = ret;
 	return 0;
 }

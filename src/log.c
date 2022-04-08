@@ -57,7 +57,7 @@ void nrm_log_printf(int level, const char *file, unsigned int line,
 		    const char *format, ...)
 {
 	va_list ap;
-	if (level <= nrm_log_level)
+	if (level > nrm_log_level)
 		return;
 
 	if (nrm_log_level == NRM_LOG_DEBUG)
@@ -74,7 +74,11 @@ void nrm_log_printf(int level, const char *file, unsigned int line,
 
 void nrm_log_printmsg(int level, nrm_msg_t *msg)
 {
-	if (level <= nrm_log_level)
+	if (level > nrm_log_level)
 		return;
+	if (msg == NULL) {
+		fprintf(nrm_log_fd, "msg is NULL\n");
+		return;
+	}
 	nrm_msg_fprintf(nrm_log_fd, msg);
 }
