@@ -20,6 +20,7 @@ libnrm_la_SOURCES = \
 		 roles/role.c \
 		 roles/sensor.c \
 		 slices.c \
+		 sensor.c \
 		 state.c \
 		 utils/bitmaps.c \
 		 utils/error.c \

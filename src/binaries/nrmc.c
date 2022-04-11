@@ -149,6 +149,61 @@ int cmd_add_slice(int argc, char **argv) {
 	return 0;
 }
 
+int cmd_add_sensor(int argc, char **argv) {
+
+	if (argc < 2)
+		return EXIT_FAILURE;
+	
+	char *name = argv[1];
+	
+	nrm_log_info("creating client\n");
+
+	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
+							       pub_port,
+							       rpc_port);
+	nrm_log_info("sending request\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_sensor(msg, name, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_send(client, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_info("receiving reply\n");
+	msg = nrm_role_recv(client, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_destroy(&client);
+	return 0;
+}
+
+int cmd_list_sensors(int argc, char **argv) {
+
+
+	/* no options at this time */
+	(void)argc;
+	(void)argv;
+
+	nrm_log_info("creating client\n");
+
+	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
+							       pub_port,
+							       rpc_port);
+	nrm_log_info("sending request\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_sensors(msg, NULL);
+	nrm_role_send(client, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_info("receiving reply\n");
+	msg = nrm_role_recv(client, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_destroy(&client);
+	return 0;
+}
+
 int cmd_list_slices(int argc, char **argv) {
 
 
@@ -178,7 +233,9 @@ int cmd_list_slices(int argc, char **argv) {
 
 static struct client_cmd commands[] = {
 	{ "add-slice", cmd_add_slice },
+	{ "add-sensor", cmd_add_sensor },
 	{ "list-slices", cmd_list_slices },
+	{ "list-sensors", cmd_list_sensors },
 	{ "run", cmd_run },
 	{ 0, 0 },
 };

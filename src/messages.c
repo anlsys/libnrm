@@ -46,6 +46,18 @@ int nrm_msg_fill(nrm_msg_t *msg, int type)
 	return 0;
 }
 
+nrm_msg_sensor_t *nrm_msg_sensor_new(const char *name, nrm_uuid_t *uuid)
+{
+	nrm_msg_sensor_t *ret = calloc(1, sizeof(nrm_msg_sensor_t));
+	if (ret == NULL)
+		return ret;
+	nrm_msg_sensor_init(ret);
+	ret->name = strdup(name);
+	if (uuid)
+		ret->uuid = (char *)nrm_uuid_to_char(uuid);
+	return ret;
+}
+
 nrm_msg_slice_t *nrm_msg_slice_new(const char *name, nrm_uuid_t *uuid)
 {
 	nrm_msg_slice_t *ret = calloc(1, sizeof(nrm_msg_slice_t));
@@ -68,11 +80,23 @@ nrm_msg_add_t *nrm_msg_add_new(int type)
 	return ret;
 }
 
+int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->add = nrm_msg_add_new(NRM_MSG_TARGET_TYPE_SENSOR);
+	assert(msg->add);
+	msg->data_case = NRM__MESSAGE__DATA_ADD;
+	msg->add->data_case = NRM__ADD__DATA_SENSOR;
+	msg->add->sensor = nrm_msg_sensor_new(name, uuid);
+	return 0;
+}
+
 int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
-	msg->add = nrm_msg_add_new(NRM_MSG_LIST_TYPE_SLICE);
+	msg->add = nrm_msg_add_new(NRM_MSG_TARGET_TYPE_SLICE);
 	assert(msg->add);
 	msg->data_case = NRM__MESSAGE__DATA_ADD;
 	msg->add->data_case = NRM__ADD__DATA_SLICE;
@@ -87,6 +111,30 @@ static nrm_msg_list_t *nrm_msg_list_new(int type)
 		return NULL;
 	nrm_msg_list_init(ret);
 	ret->type = type;
+	return ret;
+}
+
+nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
+{
+	void *p;
+	nrm_msg_sensorlist_t *ret = calloc(1, sizeof(nrm_msg_sensorlist_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_sensorlist_init(ret);
+	if (sensors == NULL) {
+		ret->n_sensors = 0;
+		return ret;
+	}
+	nrm_vector_length(sensors, &ret->n_sensors);
+	nrm_log_debug("vector contains %zu\n", ret->n_sensors);
+	ret->sensors = calloc(ret->n_sensors, sizeof(nrm_msg_sensor_t *));
+	assert(ret->sensors);
+	for (size_t i = 0; i < ret->n_sensors; i++) {
+		nrm_vector_get(sensors, i, &p);
+		nrm_sensor_t *s = (nrm_sensor_t *)p;
+		nrm_log_debug("packed sensor %zu %s\n", i, s->name);
+		ret->sensors[i] = nrm_msg_sensor_new(s->name, s->uuid);
+	}
 	return ret;
 }
 
@@ -114,11 +162,23 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 	return ret;
 }
 
+int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->list = nrm_msg_list_new(NRM_MSG_TARGET_TYPE_SENSOR);
+	assert(msg->list);
+	msg->data_case = NRM__MESSAGE__DATA_LIST;
+	msg->list->data_case = NRM__LIST__DATA_SENSORS;
+	msg->list->sensors = nrm_msg_sensorlist_new(sensors);
+	return 0;
+}
+
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
-	msg->list = nrm_msg_list_new(NRM_MSG_LIST_TYPE_SLICE);
+	msg->list = nrm_msg_list_new(NRM_MSG_TARGET_TYPE_SLICE);
 	assert(msg->list);
 	msg->data_case = NRM__MESSAGE__DATA_LIST;
 	msg->list->data_case = NRM__LIST__DATA_SLICES;
@@ -236,7 +296,8 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
 };
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
-	{ NRM_MSG_LIST_TYPE_SLICE, "SLICE" },
+	{ NRM_MSG_TARGET_TYPE_SLICE, "SLICE" },
+	{ NRM_MSG_TARGET_TYPE_SENSOR, "SENSOR" },
 	{ 0, NULL },
 };
 
@@ -248,6 +309,24 @@ const char *nrm_msg_type_t2s(int type, const nrm_msg_type_table_t *table)
 		if (table[i].type == type)
 			return table[i].s;
 	return "UNKNOWN";
+}
+
+json_t *nrm_msg_sensor_to_json(nrm_msg_sensor_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:s, s:s?}", "name", msg->name, "uuid", msg->uuid);
+	return ret;
+}
+
+json_t *nrm_msg_sensorlist_to_json(nrm_msg_sensorlist_t *msg)
+{
+	json_t *ret;
+	ret = json_array();
+	for(size_t i = 0; i < msg->n_sensors; i++) {
+		json_array_append_new(ret,
+				      nrm_msg_sensor_to_json(msg->sensors[i]));
+	}
+	return ret;
 }
 
 json_t *nrm_msg_slice_to_json(nrm_msg_slice_t *msg)
@@ -262,7 +341,6 @@ json_t *nrm_msg_slicelist_to_json(nrm_msg_slicelist_t *msg)
 	json_t *ret;
 	ret = json_array();
 	for(size_t i = 0; i < msg->n_slices; i++) {
-		nrm_log_debug("json slice %zu\n", i);
 		json_array_append_new(ret,
 				      nrm_msg_slice_to_json(msg->slices[i]));
 	}
@@ -274,8 +352,11 @@ json_t *nrm_msg_add_to_json(nrm_msg_add_t *msg)
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
-	case NRM_MSG_LIST_TYPE_SLICE:
+	case NRM_MSG_TARGET_TYPE_SLICE:
 		sub = nrm_msg_slice_to_json(msg->slice);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		sub = nrm_msg_sensor_to_json(msg->sensor);
 		break;
 	default:
 		sub = NULL;
@@ -292,8 +373,11 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
-	case NRM_MSG_LIST_TYPE_SLICE:
+	case NRM_MSG_TARGET_TYPE_SLICE:
 		sub = nrm_msg_slicelist_to_json(msg->slices);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		sub = nrm_msg_sensor_to_json(msg->sensors);
 		break;
 	default:
 		sub = NULL;

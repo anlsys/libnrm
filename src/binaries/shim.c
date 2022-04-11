@@ -24,11 +24,31 @@ struct nrm_daemon_s {
 
 struct nrm_daemon_s my_daemon;
 
+nrm_msg_t *nrmd_daemon_build_list_sensors()
+{
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_sensors(ret, my_daemon.state->sensors);
+	return ret;
+}
+
 nrm_msg_t *nrmd_daemon_build_list_slices()
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
 	nrm_msg_set_list_slices(ret, my_daemon.state->slices);
+	return ret;
+}
+
+nrm_msg_t *nrmd_daemon_add_sensor(const char *name)
+{
+	nrm_sensor_t *newsensor = nrm_sensor_create((char *)name);
+	newsensor->uuid = nrm_uuid_create();
+	nrm_vector_push_back(my_daemon.state->sensors, newsensor);
+
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_sensor(ret, (char *)newsensor->name, newsensor->uuid);
 	return ret;
 }
 
@@ -41,6 +61,42 @@ nrm_msg_t *nrmd_daemon_add_slice(const char *name)
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
 	nrm_msg_set_add_slice(ret, (char *)newslice->name, newslice->uuid);
+	return ret;
+}
+
+nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
+{
+	nrm_msg_t *ret;
+	switch(msg->type) {
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_log_info("adding a slice\n");
+		ret = nrmd_daemon_add_slice(msg->slice->name);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_log_info("adding a sensor\n");
+		ret = nrmd_daemon_add_sensor(msg->sensor->name);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	}
+	return ret;
+}
+
+nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
+{
+	nrm_msg_t *ret;
+	switch(msg->type) {
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_log_info("building list of slices\n");
+		ret = nrmd_daemon_build_list_slices();
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_log_info("building list of sensors\n");
+		ret = nrmd_daemon_build_list_sensors();
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	}
 	return ret;
 }
 
@@ -70,15 +126,11 @@ int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	switch(msg->type) {
 	case NRM_MSG_TYPE_LIST:
-		nrm_log_info("building list of slices\n");
-		ret = nrmd_daemon_build_list_slices();
-		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		ret = nrmd_handle_list_request(msg->list);
 		nrm_role_send(self, ret, uuid);
 		break;
 	case NRM_MSG_TYPE_ADD:
-		nrm_log_info("adding a slice\n");
-		ret = nrmd_daemon_add_slice(msg->add->slice->name);
-		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		ret = nrmd_handle_add_request(msg->add);
 		nrm_role_send(self, ret, uuid);
 		break;
 	default:

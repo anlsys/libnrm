@@ -108,8 +108,22 @@ typedef struct nrm_slice_s nrm_slice_t;
 nrm_slice_t *nrm_slice_create(char *name);
 
 void nrm_slice_destroy(nrm_slice_t **);
-
 void nrm_slice_fprintf(FILE *out, nrm_slice_t *);
+
+/*******************************************************************************
+ * Sensor: an emitter of events
+ ******************************************************************************/
+
+struct nrm_sensor_s {
+	nrm_string_t name;
+	nrm_uuid_t *uuid;
+};
+
+typedef struct nrm_sensor_s nrm_sensor_t;
+
+nrm_sensor_t *nrm_sensor_create(char *name);
+
+void nrm_sensor_destroy(nrm_sensor_t **);
 
 /*******************************************************************************
  * State: the full state of a controller 
@@ -117,6 +131,7 @@ void nrm_slice_fprintf(FILE *out, nrm_slice_t *);
 
 struct nrm_state_s {
 	nrm_vector_t *slices;
+	nrm_vector_t *sensors;
 };
 
 typedef struct nrm_state_s nrm_state_t;

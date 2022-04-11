@@ -31,26 +31,33 @@ extern "C" {
 #define NRM_MSG_TYPE_ADD (NRM__MSGTYPE__ADD)
 #define NRM_MSG_TYPE_MAX (3)
 
-#define NRM_MSG_LIST_TYPE_SLICE (NRM__LISTTYPE__SLICE)
+#define NRM_MSG_TARGET_TYPE_SLICE (NRM__TARGETTYPE__SLICE)
+#define NRM_MSG_TARGET_TYPE_SENSOR (NRM__TARGETTYPE__SENSOR)
 
 
+typedef Nrm__Sensor nrm_msg_sensor_t;
 typedef Nrm__Slice nrm_msg_slice_t;
+typedef Nrm__SensorList nrm_msg_sensorlist_t;
 typedef Nrm__SliceList nrm_msg_slicelist_t;
 typedef Nrm__Add nrm_msg_add_t;
 typedef Nrm__List nrm_msg_list_t;
 typedef Nrm__Message nrm_msg_t;
 
-#define nrm_msg_slice_init(msg)     nrm__slice__init(msg)
-#define nrm_msg_slicelist_init(msg) nrm__slice_list__init(msg)
-#define nrm_msg_add_init(msg)       nrm__add__init(msg)
-#define nrm_msg_list_init(msg)      nrm__list__init(msg)
-#define nrm_msg_init(msg)           nrm__message__init(msg)
+#define nrm_msg_sensor_init(msg)     nrm__sensor__init(msg)
+#define nrm_msg_slice_init(msg)      nrm__slice__init(msg)
+#define nrm_msg_sensorlist_init(msg) nrm__sensor_list__init(msg)
+#define nrm_msg_slicelist_init(msg)  nrm__slice_list__init(msg)
+#define nrm_msg_add_init(msg)        nrm__add__init(msg)
+#define nrm_msg_list_init(msg)       nrm__list__init(msg)
+#define nrm_msg_init(msg)            nrm__message__init(msg)
 
 nrm_msg_t *nrm_msg_create(void);
 void nrm_msg_destroy(nrm_msg_t **msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
+int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
 int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
+int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
 
 /*******************************************************************************

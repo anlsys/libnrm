@@ -1,8 +1,9 @@
 syntax = "proto3";
 package nrm;
 	
-enum LISTTYPE {
+enum TARGETTYPE {
 	SLICE = 0;
+	SENSOR = 1;
 }
 
 enum MSGTYPE {
@@ -11,9 +12,18 @@ enum MSGTYPE {
 	ADD = 2;
 }
 
+message Sensor {
+	string name = 1;
+	string uuid = 2;
+}
+
 message Slice {
 	string name = 1;
 	string uuid = 2;
+}
+
+message SensorList {
+	repeated Sensor sensors = 1;
 }
 
 message SliceList {
@@ -21,16 +31,18 @@ message SliceList {
 }
 
 message Add {
-	LISTTYPE type = 1;
+	TARGETTYPE type = 1;
 	oneof data {
 		Slice slice = 2;
+		Sensor sensor = 3;
 	}
 }
 
 message List {
-	LISTTYPE type = 1;
+	TARGETTYPE type = 1;
 	oneof data {
 		SliceList slices = 2;
+		SensorList sensors = 3;
 	}
 }
 
