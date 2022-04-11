@@ -1,13 +1,25 @@
-AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src @LIBZMQ_CFLAGS@ @LIBCZMQ_CFLAGS@ @JANSSON_CFLAGS@ @LIBPROTOC_CFLAGS@
-AM_LDFLAGS = @LIBZMQ_LIBS@ @LIBCZMQ_LIBS@ @JANSSON_LIBS@ @LIBPROTOC_LIBS@
+AM_CPPFLAGS = \
+	      -I$(top_srcdir)/include \
+	      -I$(top_srcdir)/src \
+	      @LIBZMQ_CFLAGS@ \
+	      @LIBCZMQ_CFLAGS@ \
+	      @JANSSON_CFLAGS@ \
+	      @LIBPROTOC_CFLAGS@
+
+AM_LDFLAGS = @LIBZMQ_LIBS@ \
+	     @LIBCZMQ_LIBS@ \
+	     @JANSSON_LIBS@ \
+	     @LIBPROTOC_LIBS@
 
 # valgrind support
 @VALGRIND_CHECK_RULES@
 
 lib_LTLIBRARIES = libnrm.la
 
-%.pb-c.c %.pc-c-h: %.proto
-	$(PROTOCC) --c_out=$(top_srcdir)/src $^
+SUFFIXES = .proto .pb-c.c .pb-c.h
+
+%.pb-c.c %.pb-c.h: %.proto
+	$(AM_V_GEN)$(PROTOCC) --c_out=$(abs_srcdir) $^
 
 libnrm_la_SOURCES = \
 		 net.c \
@@ -29,6 +41,7 @@ libnrm_la_SOURCES = \
 		 utils/timers.c \
 		 utils/uuids.c \
 		 utils/vectors.c
+
 nodist_libnrm_la_SOURCES = \
 			   msg.pb-c.c \
 			   msg.pb-c.h
@@ -45,4 +58,4 @@ endif
 
 dist_noinst_DATA = msg.proto
 BUILT_SOURCES = msg.pb-c.h
-MOSTLYCLEANFILES = msg.pb-c.c msg.pb-c.h
+CLEANFILES = msg.pb-c.c msg.pb-c.h
