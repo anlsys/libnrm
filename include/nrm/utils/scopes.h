@@ -41,7 +41,11 @@ int nrm_scope_add_atomic(nrm_scope_t *, unsigned int type, unsigned int num);
  **/
 size_t nrm_scope_length(const nrm_scope_t *, unsigned int type);
 
-int nrm_scope_delete(nrm_scope_t *);
+int nrm_scope_destroy(nrm_scope_t *);
+
+nrm_scope_t *nrm_scope_dup(nrm_scope_t *);
+
+int nrm_scope_cmp(nrm_scope_t *, nrm_scope_t *);
 
 int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *);
 

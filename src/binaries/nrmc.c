@@ -231,11 +231,61 @@ int cmd_list_slices(int argc, char **argv) {
 	return 0;
 }
 
+int cmd_send_event(int argc, char **argv) {
+
+
+	/* no options at this time */
+	if (argc < 2)
+		return EXIT_FAILURE;
+
+	char *sensor_name = argv[1];
+
+	nrm_log_info("creating client\n");
+
+	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
+							       pub_port,
+							       rpc_port);
+	nrm_log_info("finding the sensor\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_sensors(msg, NULL);
+	nrm_role_send(client, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_info("receiving list of sensors\n");
+	msg = nrm_role_recv(client, NULL);
+
+	nrm_uuid_t *sensor_uuid = NULL;
+	for (size_t i = 0; i < msg->list->sensors->n_sensors; i++) {
+		if (!strcmp(sensor_name, msg->list->sensors->sensors[i]->name)) {
+			sensor_uuid =
+				nrm_uuid_create_fromchar(msg->list->sensors->sensors[i]->uuid);
+			break;
+		}
+	}
+	if (sensor_uuid == NULL)
+		return EXIT_FAILURE;
+
+	nrm_log_info("sending event\n");
+	nrm_scope_t *scope = nrm_scope_create();
+	nrm_scope_threadprivate(scope);
+	nrm_scope_add(scope, NRM_SCOPE_TYPE_GPU, rand() % 32);
+
+	msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
+	nrm_msg_set_event(msg, sensor_uuid, scope, rand());
+	nrm_role_send(client, msg, NULL);
+
+	nrm_role_destroy(&client);
+	return 0;
+}
+
 static struct client_cmd commands[] = {
 	{ "add-slice", cmd_add_slice },
 	{ "add-sensor", cmd_add_sensor },
 	{ "list-slices", cmd_list_slices },
 	{ "list-sensors", cmd_list_sensors },
+	{ "send-event", cmd_send_event },
 	{ "run", cmd_run },
 	{ 0, 0 },
 };

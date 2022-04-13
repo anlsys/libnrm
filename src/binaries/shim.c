@@ -20,9 +20,11 @@
 
 struct nrm_daemon_s {
 	nrm_state_t *state;
+	nrm_eventbase_t *events;
 };
 
 struct nrm_daemon_s my_daemon;
+
 
 nrm_msg_t *nrmd_daemon_build_list_sensors()
 {
@@ -100,6 +102,16 @@ nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 	return ret;
 }
 
+int nrmd_handle_event_request(nrm_msg_event_t *msg)
+{
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
+	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->scope);
+	nrm_time_t time = nrm_time_fromns(msg->time);
+	nrm_eventbase_push_event(my_daemon.events, uuid, scope, time,
+				 msg->value);
+	return 0;
+}
+
 int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)arg;
@@ -132,6 +144,9 @@ int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg
 	case NRM_MSG_TYPE_ADD:
 		ret = nrmd_handle_add_request(msg->add);
 		nrm_role_send(self, ret, uuid);
+		break;
+	case NRM_MSG_TYPE_EVENT:
+		nrmd_handle_event_request(msg->event);
 		break;
 	default:
 		nrm_log_error("message type not handled\n");
@@ -232,6 +247,7 @@ int main(int argc, char *argv[])
 
 	/* init state */
 	my_daemon.state = nrm_state_create();
+	my_daemon.events = nrm_eventbase_create(10, 5);
 
 
 	nrm_role_t *monitor = nrm_role_monitor_create_fromenv();

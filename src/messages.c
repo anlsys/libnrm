@@ -18,7 +18,7 @@
 #include "internal/messages.h"
 
 /*******************************************************************************
- * Protobuf Management
+ * Protobuf Management: Creating Messages
  *******************************************************************************/
 
 nrm_msg_t *nrm_msg_create(void)
@@ -54,7 +54,7 @@ nrm_msg_sensor_t *nrm_msg_sensor_new(const char *name, nrm_uuid_t *uuid)
 	nrm_msg_sensor_init(ret);
 	ret->name = strdup(name);
 	if (uuid)
-		ret->uuid = (char *)nrm_uuid_to_char(uuid);
+		ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
 	return ret;
 }
 
@@ -66,7 +66,7 @@ nrm_msg_slice_t *nrm_msg_slice_new(const char *name, nrm_uuid_t *uuid)
 	nrm_msg_slice_init(ret);
 	ret->name = strdup(name);
 	if (uuid)
-		ret->uuid = (char *)nrm_uuid_to_char(uuid);
+		ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
 	return ret;
 }
 
@@ -78,6 +78,42 @@ nrm_msg_add_t *nrm_msg_add_new(int type)
 	nrm_msg_add_init(ret);
 	ret->type = type;
 	return ret;
+}
+
+nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
+{
+	nrm_msg_scope_t *ret = calloc(1, sizeof(nrm_msg_scope_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_scope_init(ret);
+	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_CPU], &ret->n_cpus, &ret->cpus);
+	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], &ret->n_numas, &ret->numas);
+	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_GPU], &ret->n_gpus, &ret->gpus);
+	return ret;
+}
+
+nrm_msg_event_t *nrm_msg_event_new(nrm_uuid_t *uuid)
+{
+	nrm_msg_event_t *ret = calloc(1, sizeof(nrm_msg_event_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_event_init(ret);
+	ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	return ret;
+}
+
+int nrm_msg_set_event(nrm_msg_t *msg, nrm_uuid_t *uuid, nrm_scope_t *scope,
+		      double value)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->event = nrm_msg_event_new(uuid);
+	assert(msg->event);
+	msg->data_case = NRM__MESSAGE__DATA_EVENT;
+	msg->event->value = value;
+	msg->event->scope = nrm_msg_scope_new(scope);
+	assert(msg->event->scope);
+	return 0;
 }
 
 int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
@@ -186,6 +222,28 @@ int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices)
 	return 0;
 }
 
+/*******************************************************************************
+ * Protobuf Management: Parsing Messages
+ *******************************************************************************/
+
+nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg)
+{
+	if (msg == NULL)
+		return NULL;
+	nrm_scope_t *ret = nrm_scope_create();
+	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_CPU], msg->n_cpus,
+			     msg->cpus);
+	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_NUMA], msg->n_numas,
+			     msg->numas);
+	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_GPU], msg->n_gpus,
+			     msg->gpus);
+	return ret;
+}
+
+/*******************************************************************************
+ * Protobuf Management: ZMQ Management
+ *******************************************************************************/
+
 static int nrm_msg_pop_packed_frames(zmsg_t *zm, nrm_msg_t **msg)
 {
 	/* empty frame delimiter */
@@ -292,6 +350,7 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
 	{ NRM_MSG_TYPE_ACK, "ACK" },
 	{ NRM_MSG_TYPE_LIST, "LIST" },
 	{ NRM_MSG_TYPE_ADD, "ADD" },
+	{ NRM_MSG_TYPE_EVENT, "EVENT" },
 	{ 0, NULL },
 };
 
@@ -377,7 +436,7 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 		sub = nrm_msg_slicelist_to_json(msg->slices);
 		break;
 	case NRM_MSG_TARGET_TYPE_SENSOR:
-		sub = nrm_msg_sensor_to_json(msg->sensors);
+		sub = nrm_msg_sensorlist_to_json(msg->sensors);
 		break;
 	default:
 		sub = NULL;
@@ -386,6 +445,37 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
 							  nrm_msg_target_table),
 			"data", sub);
+	return ret;
+}
+
+json_t *nrm_msg_bitmap_to_json(size_t nitems, int32_t *items)
+{
+	json_t *ret;
+	ret = json_array();
+	for (size_t i = 0; i < nitems; i++)
+		json_array_append_new(ret, json_integer(items[i]));
+	return ret;
+}
+
+json_t *nrm_msg_scope_to_json(nrm_msg_scope_t *msg)
+{
+	json_t *ret;
+	json_t *cpus, *gpus, *numas;
+	cpus = nrm_msg_bitmap_to_json(msg->n_cpus, msg->cpus);
+	numas = nrm_msg_bitmap_to_json(msg->n_numas, msg->numas);
+	gpus = nrm_msg_bitmap_to_json(msg->n_gpus, msg->gpus);
+	ret = json_pack("{s:o, s:o, s:o}", "cpu", cpus, "numa", numas, "gpu",
+			gpus);
+	return ret;
+}
+
+json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
+{
+	json_t *ret;
+	json_t *sub;
+	sub = nrm_msg_scope_to_json(msg->scope);
+	ret = json_pack("{s:s, s:o?, s:f}", "uuid", msg->uuid, "scope", sub,
+			"value", msg->value);
 	return ret;
 }
 
@@ -399,6 +489,9 @@ json_t *nrm_msg_to_json(nrm_msg_t *msg)
 		break;
 	case NRM_MSG_TYPE_LIST:
 		sub = nrm_msg_list_to_json(msg->list);
+		break;
+	case NRM_MSG_TYPE_EVENT:
+		sub = nrm_msg_event_to_json(msg->event);
 		break;
 	default:
 		sub = NULL;

@@ -58,4 +58,10 @@ int nrm_bitmap_nset(const struct nrm_bitmap *bitmap);
  **/
 char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap);
 
+/**
+ * Fill an array with the list of ints that are set in the bitmap
+ */
+int nrm_bitmap_to_array(const struct nrm_bitmap *bitmap,
+			size_t *nitems, int32_t **items);
+
 #endif

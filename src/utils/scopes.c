@@ -19,10 +19,6 @@
 
 #include "internal/nrmi.h"
 
-struct nrm_scope {
-	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
-};
-
 nrm_scope_t *nrm_scope_create()
 {
 	return calloc(1, sizeof(nrm_scope_t));
@@ -43,9 +39,25 @@ size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type)
 	return nrm_bitmap_nset(&s->maps[type]);
 }
 
-int nrm_scope_delete(nrm_scope_t *s)
+int nrm_scope_destroy(nrm_scope_t *s)
 {
 	free(s);
+	return 0;
+}
+
+nrm_scope_t *nrm_scope_dup(nrm_scope_t *s)
+{
+	nrm_scope_t *ret = nrm_scope_create();
+	for (size_t i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
+		nrm_bitmap_copy(&ret->maps[i], &s->maps[i]);
+	return ret;
+}
+
+int nrm_scope_cmp(nrm_scope_t *one, nrm_scope_t *two)
+{
+	for (size_t i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
+		if(!nrm_bitmap_cmp(one->maps[i], two->maps[i]))
+			return 1;
 	return 0;
 }
 

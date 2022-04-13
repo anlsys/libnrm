@@ -10,6 +10,20 @@ enum MSGTYPE {
 	ACK = 0;
 	LIST = 1;
 	ADD = 2;
+	EVENT = 3;
+}
+
+message Scope {
+	repeated int32 cpus = 1;
+	repeated int32 numas = 2;
+	repeated int32 gpus = 3;
+}
+
+message Event {
+	string uuid = 1;
+	int64 time = 2;
+	Scope scope = 3;
+	double value = 4;
 }
 
 message Sensor {
@@ -51,5 +65,6 @@ message Message {
 	oneof data {
 		List list = 2;
 		Add add = 3;
+		Event event = 4;
 	}
 }

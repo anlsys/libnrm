@@ -79,6 +79,10 @@ int nrm_net_bind_2(zsock_t *socket, const char *uri, int port);
  * Utils functions
  ******************************************************************************/
 
+struct nrm_scope {
+	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
+};
+
 void nrm_log_printmsg(int level, nrm_msg_t *msg);
 
 json_t *nrm_time_to_json(nrm_time_t *);

@@ -4,6 +4,7 @@ include_nrm_utilsdir=$(includedir)/nrm/utils
 include_nrm_utils_HEADERS = \
 			    nrm/utils/alloc.h \
 			    nrm/utils/bitmaps.h \
+			    nrm/utils/ringbuffer.h \
 			    nrm/utils/scopes.h \
 			    nrm/utils/strings.h \
 			    nrm/utils/timers.h \

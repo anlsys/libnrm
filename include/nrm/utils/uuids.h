@@ -24,4 +24,6 @@ nrm_uuid_t *nrm_uuid_create_fromchar(char *s);
 
 char *nrm_uuid_to_char(nrm_uuid_t *uuid);
 
+nrm_string_t nrm_uuid_to_string(nrm_uuid_t *uuid);
+
 #endif

@@ -64,8 +64,8 @@ char *nrm_uuid_to_char(nrm_uuid_t *uuid)
 	return *uuid;
 }
 
-nrm_string_t *nrm_uuid_to_string(nrm_uuid_t *uuid)
+nrm_string_t nrm_uuid_to_string(nrm_uuid_t *uuid)
 {
 	nrm_string_incref(uuid);
-	return uuid;
+	return *uuid;
 }

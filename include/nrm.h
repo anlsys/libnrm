@@ -28,6 +28,7 @@ extern "C" {
 #include "nrm/utils/alloc.h"
 #include "nrm/utils/bitmaps.h"
 #include "nrm/utils/error.h"
+#include "nrm/utils/ringbuffer.h"
 #include "nrm/utils/scopes.h"
 #include "nrm/utils/strings.h"
 #include "nrm/utils/timers.h"
@@ -137,6 +138,21 @@ struct nrm_state_s {
 typedef struct nrm_state_s nrm_state_t;
 
 nrm_state_t *nrm_state_create(void);
+
+/*******************************************************************************
+ * EventBase: a timeseries in-memory database
+ ******************************************************************************/
+
+struct nrm_eventbase_s;
+
+typedef struct nrm_eventbase_s nrm_eventbase_t;
+
+nrm_eventbase_t *nrm_eventbase_create(size_t maxevents, size_t maxperiods);
+
+int nrm_eventbase_push_event(nrm_eventbase_t *, nrm_uuid_t *, nrm_scope_t *,
+			     nrm_time_t, double);
+
+void nrm_eventbase_destroy(nrm_eventbase_t **);
 
 /*******************************************************************************
  * NRM Role API
