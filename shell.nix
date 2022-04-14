@@ -17,5 +17,5 @@ mkShell {
   ];
 
   CFLAGS =
-    "-std=c99 -Wall -Wextra -Werror";
+    "-std=c99 -pedantic -Wall -Wextra -Werror -g -O0";
 }

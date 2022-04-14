@@ -53,8 +53,20 @@ struct nrm_sensor2scope_s {
 	UT_hash_handle hh;
 };
 
-int nrm_eventbase_new_period(nrm_time_t time)
+int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 {
+	nrm_event_t period;
+	period.time = time;
+	period.value = 0;
+	size_t len;
+	nrm_ringbuffer_length(s->events, &len);
+	for (size_t i = 0; i < len; i++) {
+		nrm_event_t *f;
+		nrm_ringbuffer_get(s->events, i, (void **)&f);
+		period.value += f->value;
+	}
+	nrm_ringbuffer_clear(s->events);
+	nrm_ringbuffer_push_back(s->past, &period);
 	return 0;
 }
 
@@ -164,6 +176,7 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	if (eventbase == NULL || *eventbase == NULL)
 		return;
 	nrm_eventbase_t *s = *eventbase;
+	(void)s;
 	/* TODO: iterate over the hash and destroy sub structures. */
 	*eventbase = NULL;
 }

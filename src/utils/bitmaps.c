@@ -177,6 +177,6 @@ int nrm_bitmap_to_array(const struct nrm_bitmap *map, size_t *nitems, int32_t **
 int nrm_bitmap_from_array(struct nrm_bitmap *map, size_t nitems, int32_t *items)
 {
 	for (size_t i = 0; i < nitems; i++)
-		nrm_bitmap_set(map, i);
+		nrm_bitmap_set(map, items[i]);
 	return 0;
 }

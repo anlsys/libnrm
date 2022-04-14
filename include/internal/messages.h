@@ -60,7 +60,7 @@ nrm_msg_t *nrm_msg_create(void);
 void nrm_msg_destroy(nrm_msg_t **msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
-int nrm_msg_set_event(nrm_msg_t *msg, nrm_uuid_t *uuid, nrm_scope_t *scope, double value);
+int nrm_msg_set_event(nrm_msg_t *msg, nrm_time_t time, nrm_uuid_t *uuid, nrm_scope_t *scope, double value);
 int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
 int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);

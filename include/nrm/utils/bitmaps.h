@@ -59,9 +59,25 @@ int nrm_bitmap_nset(const struct nrm_bitmap *bitmap);
 char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap);
 
 /**
+ * Copy a bitmap into another. 
+ */
+int nrm_bitmap_copy(struct nrm_bitmap *dest, struct nrm_bitmap *src);
+
+/**
+ * Compare two bitmaps. Note that this return 0 on equality, like strcmp 
+ */
+int nrm_bitmap_cmp(struct nrm_bitmap *one, struct nrm_bitmap *two);
+
+/**
  * Fill an array with the list of ints that are set in the bitmap
  */
 int nrm_bitmap_to_array(const struct nrm_bitmap *bitmap,
 			size_t *nitems, int32_t **items);
+
+/**
+ * Fill a bitmap with the list of ints that are in an array
+ */
+int nrm_bitmap_from_array(struct nrm_bitmap *bitmap,
+			  size_t nitems, int32_t *items);
 
 #endif

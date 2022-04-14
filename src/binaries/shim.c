@@ -68,7 +68,7 @@ nrm_msg_t *nrmd_daemon_add_slice(const char *name)
 
 nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
 {
-	nrm_msg_t *ret;
+	nrm_msg_t *ret = NULL;
 	switch(msg->type) {
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("adding a slice\n");
@@ -80,13 +80,16 @@ nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
 		ret = nrmd_daemon_add_sensor(msg->sensor->name);
 		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
 		break;
+	default:
+		nrm_log_error("wrong add request type %u\n", msg->type);
+		break;
 	}
 	return ret;
 }
 
 nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 {
-	nrm_msg_t *ret;
+	nrm_msg_t *ret = NULL;
 	switch(msg->type) {
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("building list of slices\n");
@@ -97,6 +100,9 @@ nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 		nrm_log_info("building list of sensors\n");
 		ret = nrmd_daemon_build_list_sensors();
 		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	default:
+		nrm_log_error("wrong list request type %u\n", msg->type);
 		break;
 	}
 	return ret;

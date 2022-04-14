@@ -102,7 +102,7 @@ nrm_msg_event_t *nrm_msg_event_new(nrm_uuid_t *uuid)
 	return ret;
 }
 
-int nrm_msg_set_event(nrm_msg_t *msg, nrm_uuid_t *uuid, nrm_scope_t *scope,
+int nrm_msg_set_event(nrm_msg_t *msg, nrm_time_t time, nrm_uuid_t *uuid, nrm_scope_t *scope,
 		      double value)
 {
 	if (msg == NULL)
@@ -110,6 +110,7 @@ int nrm_msg_set_event(nrm_msg_t *msg, nrm_uuid_t *uuid, nrm_scope_t *scope,
 	msg->event = nrm_msg_event_new(uuid);
 	assert(msg->event);
 	msg->data_case = NRM__MESSAGE__DATA_EVENT;
+	msg->event->time = nrm_time_tons(&time);
 	msg->event->value = value;
 	msg->event->scope = nrm_msg_scope_new(scope);
 	assert(msg->event->scope);
@@ -474,7 +475,8 @@ json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
 	json_t *ret;
 	json_t *sub;
 	sub = nrm_msg_scope_to_json(msg->scope);
-	ret = json_pack("{s:s, s:o?, s:f}", "uuid", msg->uuid, "scope", sub,
+	ret = json_pack("{s:s, s:I, s:o?, s:f}", "uuid", msg->uuid, 
+			"time", msg->time , "scope", sub,
 			"value", msg->value);
 	return ret;
 }

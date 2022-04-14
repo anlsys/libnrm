@@ -269,11 +269,12 @@ int cmd_send_event(int argc, char **argv) {
 	nrm_log_info("sending event\n");
 	nrm_scope_t *scope = nrm_scope_create();
 	nrm_scope_threadprivate(scope);
-	nrm_scope_add(scope, NRM_SCOPE_TYPE_GPU, rand() % 32);
+	nrm_time_t time;
+	nrm_time_gettime(&time);
 
 	msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
-	nrm_msg_set_event(msg, sensor_uuid, scope, rand());
+	nrm_msg_set_event(msg, time, sensor_uuid, scope, rand());
 	nrm_role_send(client, msg, NULL);
 
 	nrm_role_destroy(&client);
