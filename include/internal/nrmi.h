@@ -80,21 +80,22 @@ int nrm_net_bind_2(zsock_t *socket, const char *uri, int port);
  ******************************************************************************/
 
 struct nrm_scope {
+	nrm_uuid_t *uuid;
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
 };
 
 void nrm_log_printmsg(int level, nrm_msg_t *msg);
 
-json_t *nrm_time_to_json(nrm_time_t *);
+int nrm_bitmap_from_json(nrm_bitmap_t *, json_t *);
+int nrm_scope_from_json(nrm_scope_t *, json_t *);
 int nrm_time_from_json(nrm_time_t *, json_t *);
 
-json_t *nrm_scope_to_json(nrm_scope_t *);
-
 json_t *nrm_bitmap_to_json(nrm_bitmap_t *);
-
 json_t *nrm_uuid_to_json(nrm_uuid_t *);
-
+json_t *nrm_scope_to_json(nrm_scope_t *);
 json_t *nrm_slice_to_json(nrm_slice_t *);
+json_t *nrm_time_to_json(nrm_time_t *);
+
 
 #ifdef __cplusplus
 }

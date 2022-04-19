@@ -133,6 +133,7 @@ void nrm_sensor_destroy(nrm_sensor_t **);
 struct nrm_state_s {
 	nrm_vector_t *slices;
 	nrm_vector_t *sensors;
+	nrm_vector_t *scopes;
 };
 
 typedef struct nrm_state_s nrm_state_t;

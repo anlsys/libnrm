@@ -24,6 +24,7 @@ nrm_state_t *nrm_state_create()
 	nrm_state_t *ret = calloc(1, sizeof(nrm_state_t));
 	nrm_vector_create(&ret->slices, sizeof(nrm_slice_t));
 	nrm_vector_create(&ret->sensors, sizeof(nrm_sensor_t));
+	nrm_vector_create(&ret->scopes, sizeof(nrm_scope_t));
 	return ret;
 }
 
@@ -34,5 +35,6 @@ void nrm_state_destroy(nrm_state_t **state)
 	nrm_state_t *s = *state;
 	nrm_vector_destroy(&s->slices);
 	nrm_vector_destroy(&s->sensors);
+	nrm_vector_destroy(&s->scopes);
 	*state = NULL;
 }

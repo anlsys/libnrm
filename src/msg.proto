@@ -4,6 +4,7 @@ package nrm;
 enum TARGETTYPE {
 	SLICE = 0;
 	SENSOR = 1;
+	SCOPE = 2;
 }
 
 enum MSGTYPE {
@@ -14,9 +15,10 @@ enum MSGTYPE {
 }
 
 message Scope {
-	repeated int32 cpus = 1;
-	repeated int32 numas = 2;
-	repeated int32 gpus = 3;
+	string uuid = 1;
+	repeated int32 cpus = 2;
+	repeated int32 numas = 3;
+	repeated int32 gpus = 4;
 }
 
 message Event {
@@ -36,6 +38,10 @@ message Slice {
 	string uuid = 2;
 }
 
+message ScopeList {
+	repeated Scope scopes = 1;
+}
+
 message SensorList {
 	repeated Sensor sensors = 1;
 }
@@ -49,6 +55,7 @@ message Add {
 	oneof data {
 		Slice slice = 2;
 		Sensor sensor = 3;
+		Scope scope = 4;
 	}
 }
 
@@ -57,6 +64,7 @@ message List {
 	oneof data {
 		SliceList slices = 2;
 		SensorList sensors = 3;
+		ScopeList scopes = 4;
 	}
 }
 

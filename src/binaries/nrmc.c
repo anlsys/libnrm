@@ -121,6 +121,43 @@ int cmd_run(int argc, char **argv) {
 	return 0;
 }
 
+int cmd_add_scope(int argc, char **argv) {
+
+	/* no matter the arguments, only one extra parameter */
+	if(argc != 2)
+		return EXIT_FAILURE;
+
+	int err;
+	nrm_scope_t *scope;
+	json_t *param;
+	json_error_t json_error;
+	param = json_loads(argv[1], 0, &json_error);
+	scope = nrm_scope_create();
+	err = nrm_scope_from_json(scope, param);
+	if (err)
+		return EXIT_FAILURE;
+
+	nrm_log_info("creating client\n");
+
+	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
+							       pub_port,
+							       rpc_port);
+	nrm_log_info("sending request\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_scope(msg, scope);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_send(client, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_info("receiving reply\n");
+	msg = nrm_role_recv(client, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_destroy(&client);
+	return 0;
+}
+
 int cmd_add_slice(int argc, char **argv) {
 
 	if (argc < 2)
@@ -167,6 +204,33 @@ int cmd_add_sensor(int argc, char **argv) {
 	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
 	nrm_msg_set_add_sensor(msg, name, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_send(client, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_info("receiving reply\n");
+	msg = nrm_role_recv(client, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_role_destroy(&client);
+	return 0;
+}
+
+int cmd_list_scopes(int argc, char **argv) {
+
+
+	/* no options at this time */
+	(void)argc;
+	(void)argv;
+
+	nrm_log_info("creating client\n");
+
+	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
+							       pub_port,
+							       rpc_port);
+	nrm_log_info("sending request\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_scopes(msg, NULL);
 	nrm_role_send(client, msg, NULL);
 
 	/* wait for the answer */
@@ -282,8 +346,10 @@ int cmd_send_event(int argc, char **argv) {
 }
 
 static struct client_cmd commands[] = {
+	{ "add-scope", cmd_add_scope },
 	{ "add-slice", cmd_add_slice },
 	{ "add-sensor", cmd_add_sensor },
+	{ "list-scopes", cmd_list_scopes },
 	{ "list-slices", cmd_list_slices },
 	{ "list-sensors", cmd_list_sensors },
 	{ "send-event", cmd_send_event },

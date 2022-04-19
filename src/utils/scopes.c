@@ -93,6 +93,28 @@ json_t *nrm_scope_to_json(nrm_scope_t *scope)
 			 "cpu", cpu, "numa", numa, "gpu", gpu);
 }
 
+int nrm_scope_from_json(nrm_scope_t *scope, json_t *json)
+{
+	json_t *cpu = NULL, *numa = NULL, *gpu = NULL;
+	char *uuid = NULL;
+	json_error_t error;
+	int err;
+	err = json_unpack_ex(json, &error, 0, "{s?:s, s?:o, s?:o, s?:o}", "uuid", &uuid,
+		    "cpu", &cpu, "numa", &numa, "gpu", &gpu);
+	if (err) {
+		nrm_log_error("error unpacking json: %s, %s, %d, %d, %d\n",
+			      error.text, error.source, error.line, error.column,
+			      error.position);
+		return -NRM_EINVAL;
+	}
+	if (uuid)
+		scope->uuid = nrm_uuid_create_fromchar(uuid);
+	nrm_bitmap_from_json(&scope->maps[0], cpu);
+	nrm_bitmap_from_json(&scope->maps[1], numa);
+	nrm_bitmap_from_json(&scope->maps[2], gpu);
+	return 0;
+}
+
 /* UTIL FUNCTIONS: helpful when users want to build out scopes that are
  * meaningful to an OpenMP application.
  */

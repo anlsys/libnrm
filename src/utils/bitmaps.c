@@ -180,3 +180,18 @@ int nrm_bitmap_from_array(struct nrm_bitmap *map, size_t nitems, int32_t *items)
 		nrm_bitmap_set(map, items[i]);
 	return 0;
 }
+
+int nrm_bitmap_from_json(struct nrm_bitmap *bitmap, json_t *json)
+{
+	if (!json_is_array(json))
+	    return -NRM_EINVAL;
+
+	size_t index;
+	json_t *value;
+	json_array_foreach(json, index, value) {
+		json_int_t i = json_integer_value(value);
+		nrm_bitmap_set(bitmap, i);
+	}
+	return 0;
+}
+

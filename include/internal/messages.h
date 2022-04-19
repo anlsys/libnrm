@@ -25,15 +25,19 @@ extern "C" {
 
 #include "msg.pb-c.h"
 
-/* convert protobuf-c enums to more nice ones */
+/* convert protobuf-c enum values to more nice ones */
+typedef enum _Nrm__MSGTYPE nrm_msg_msgtype_e;
 #define NRM_MSG_TYPE_ACK (NRM__MSGTYPE__ACK)
 #define NRM_MSG_TYPE_LIST (NRM__MSGTYPE__LIST)
 #define NRM_MSG_TYPE_ADD (NRM__MSGTYPE__ADD)
 #define NRM_MSG_TYPE_EVENT (NRM__MSGTYPE__EVENT)
 #define NRM_MSG_TYPE_MAX (4)
 
+typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_SLICE (NRM__TARGETTYPE__SLICE)
 #define NRM_MSG_TARGET_TYPE_SENSOR (NRM__TARGETTYPE__SENSOR)
+#define NRM_MSG_TARGET_TYPE_SCOPE (NRM__TARGETTYPE__SCOPE)
+#define NRM_MSG_TARGET_TYPE_MAX (3)
 
 
 typedef Nrm__Add nrm_msg_add_t;
@@ -41,6 +45,7 @@ typedef Nrm__Event nrm_msg_event_t;
 typedef Nrm__List nrm_msg_list_t;
 typedef Nrm__Message nrm_msg_t;
 typedef Nrm__Scope nrm_msg_scope_t;
+typedef Nrm__ScopeList nrm_msg_scopelist_t;
 typedef Nrm__Sensor nrm_msg_sensor_t;
 typedef Nrm__SensorList nrm_msg_sensorlist_t;
 typedef Nrm__Slice nrm_msg_slice_t;
@@ -51,6 +56,7 @@ typedef Nrm__SliceList nrm_msg_slicelist_t;
 #define nrm_msg_init(msg)            nrm__message__init(msg)
 #define nrm_msg_list_init(msg)       nrm__list__init(msg)
 #define nrm_msg_scope_init(msg)      nrm__scope__init(msg)
+#define nrm_msg_scopelist_init(msg)  nrm__scope_list__init(msg)
 #define nrm_msg_sensor_init(msg)     nrm__sensor__init(msg)
 #define nrm_msg_sensorlist_init(msg) nrm__sensor_list__init(msg)
 #define nrm_msg_slice_init(msg)      nrm__slice__init(msg)
@@ -61,8 +67,10 @@ void nrm_msg_destroy(nrm_msg_t **msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
 int nrm_msg_set_event(nrm_msg_t *msg, nrm_time_t time, nrm_uuid_t *uuid, nrm_scope_t *scope, double value);
+int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope);
 int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
 int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
+int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes);
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
 

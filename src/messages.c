@@ -86,6 +86,8 @@ nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_scope_init(ret);
+	if (scope->uuid)
+		ret->uuid = strdup((char *)nrm_uuid_to_char(scope->uuid));
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_CPU], &ret->n_cpus, &ret->cpus);
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], &ret->n_numas, &ret->numas);
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_GPU], &ret->n_gpus, &ret->gpus);
@@ -114,6 +116,18 @@ int nrm_msg_set_event(nrm_msg_t *msg, nrm_time_t time, nrm_uuid_t *uuid, nrm_sco
 	msg->event->value = value;
 	msg->event->scope = nrm_msg_scope_new(scope);
 	assert(msg->event->scope);
+	return 0;
+}
+
+int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->add = nrm_msg_add_new(NRM_MSG_TARGET_TYPE_SCOPE);
+	assert(msg->add);
+	msg->data_case = NRM__MESSAGE__DATA_ADD;
+	msg->add->data_case = NRM__ADD__DATA_SCOPE;
+	msg->add->scope = nrm_msg_scope_new(scope);
 	return 0;
 }
 
@@ -148,6 +162,29 @@ static nrm_msg_list_t *nrm_msg_list_new(int type)
 		return NULL;
 	nrm_msg_list_init(ret);
 	ret->type = type;
+	return ret;
+}
+
+nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
+{
+	void *p;
+	nrm_msg_scopelist_t *ret = calloc(1, sizeof(nrm_msg_scopelist_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_scopelist_init(ret);
+	if (scopes == NULL) {
+		ret->n_scopes = 0;
+		return ret;
+	}
+	nrm_vector_length(scopes, &ret->n_scopes);
+	nrm_log_debug("vector contains %zu\n", ret->n_scopes);
+	ret->scopes = calloc(ret->n_scopes, sizeof(nrm_msg_scope_t *));
+	assert(ret->scopes);
+	for (size_t i = 0; i < ret->n_scopes; i++) {
+		nrm_vector_get(scopes, i, &p);
+		nrm_scope_t *s = (nrm_scope_t *)p;
+		ret->scopes[i] = nrm_msg_scope_new(s);
+	}
 	return ret;
 }
 
@@ -197,6 +234,18 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 		ret->slices[i] = nrm_msg_slice_new(s->name, s->uuid);
 	}
 	return ret;
+}
+
+int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->list = nrm_msg_list_new(NRM_MSG_TARGET_TYPE_SCOPE);
+	assert(msg->list);
+	msg->data_case = NRM__MESSAGE__DATA_LIST;
+	msg->list->data_case = NRM__LIST__DATA_SCOPES;
+	msg->list->scopes = nrm_msg_scopelist_new(scopes);
+	return 0;
 }
 
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors)
@@ -358,6 +407,7 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
 	{ NRM_MSG_TARGET_TYPE_SLICE, "SLICE" },
 	{ NRM_MSG_TARGET_TYPE_SENSOR, "SENSOR" },
+	{ NRM_MSG_TARGET_TYPE_SCOPE, "SCOPE" },
 	{ 0, NULL },
 };
 
@@ -369,6 +419,38 @@ const char *nrm_msg_type_t2s(int type, const nrm_msg_type_table_t *table)
 		if (table[i].type == type)
 			return table[i].s;
 	return "UNKNOWN";
+}
+
+json_t *nrm_msg_bitmap_to_json(size_t nitems, int32_t *items)
+{
+	json_t *ret;
+	ret = json_array();
+	for (size_t i = 0; i < nitems; i++)
+		json_array_append_new(ret, json_integer(items[i]));
+	return ret;
+}
+
+json_t *nrm_msg_scope_to_json(nrm_msg_scope_t *msg)
+{
+	json_t *ret;
+	json_t *cpus, *gpus, *numas;
+	cpus = nrm_msg_bitmap_to_json(msg->n_cpus, msg->cpus);
+	numas = nrm_msg_bitmap_to_json(msg->n_numas, msg->numas);
+	gpus = nrm_msg_bitmap_to_json(msg->n_gpus, msg->gpus);
+	ret = json_pack("{s:s?, s:o, s:o, s:o}", "uuid", msg->uuid, "cpu", cpus, "numa", numas, "gpu",
+			gpus);
+	return ret;
+}
+
+json_t *nrm_msg_scopelist_to_json(nrm_msg_scopelist_t *msg)
+{
+	json_t *ret;
+	ret = json_array();
+	for(size_t i = 0; i < msg->n_scopes; i++) {
+		json_array_append_new(ret,
+				      nrm_msg_scope_to_json(msg->scopes[i]));
+	}
+	return ret;
 }
 
 json_t *nrm_msg_sensor_to_json(nrm_msg_sensor_t *msg)
@@ -418,6 +500,9 @@ json_t *nrm_msg_add_to_json(nrm_msg_add_t *msg)
 	case NRM_MSG_TARGET_TYPE_SENSOR:
 		sub = nrm_msg_sensor_to_json(msg->sensor);
 		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		sub = nrm_msg_scope_to_json(msg->scope);
+		break;
 	default:
 		sub = NULL;
 		break;
@@ -439,6 +524,9 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 	case NRM_MSG_TARGET_TYPE_SENSOR:
 		sub = nrm_msg_sensorlist_to_json(msg->sensors);
 		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		sub = nrm_msg_scopelist_to_json(msg->scopes);
+		break;
 	default:
 		sub = NULL;
 		break;
@@ -446,27 +534,6 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
 							  nrm_msg_target_table),
 			"data", sub);
-	return ret;
-}
-
-json_t *nrm_msg_bitmap_to_json(size_t nitems, int32_t *items)
-{
-	json_t *ret;
-	ret = json_array();
-	for (size_t i = 0; i < nitems; i++)
-		json_array_append_new(ret, json_integer(items[i]));
-	return ret;
-}
-
-json_t *nrm_msg_scope_to_json(nrm_msg_scope_t *msg)
-{
-	json_t *ret;
-	json_t *cpus, *gpus, *numas;
-	cpus = nrm_msg_bitmap_to_json(msg->n_cpus, msg->cpus);
-	numas = nrm_msg_bitmap_to_json(msg->n_numas, msg->numas);
-	gpus = nrm_msg_bitmap_to_json(msg->n_gpus, msg->gpus);
-	ret = json_pack("{s:o, s:o, s:o}", "cpu", cpus, "numa", numas, "gpu",
-			gpus);
 	return ret;
 }
 

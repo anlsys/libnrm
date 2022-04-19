@@ -25,6 +25,13 @@ struct nrm_daemon_s {
 
 struct nrm_daemon_s my_daemon;
 
+nrm_msg_t *nrmd_daemon_build_list_scopes()
+{
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_sensors(ret, my_daemon.state->scopes);
+	return ret;
+}
 
 nrm_msg_t *nrmd_daemon_build_list_sensors()
 {
@@ -39,6 +46,18 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
 	nrm_msg_set_list_slices(ret, my_daemon.state->slices);
+	return ret;
+}
+
+nrm_msg_t *nrmd_daemon_add_scope(nrm_msg_scope_t *scope)
+{
+	nrm_scope_t *newscope = nrm_scope_create_frommsg(scope);
+	newscope->uuid = nrm_uuid_create();
+	nrm_vector_push_back(my_daemon.state->scopes, newscope);
+
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_scope(ret, newscope);
 	return ret;
 }
 
@@ -80,6 +99,11 @@ nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
 		ret = nrmd_daemon_add_sensor(msg->sensor->name);
 		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
 		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_log_info("adding a scope\n");
+		ret = nrmd_daemon_add_scope(msg->scope);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
 	default:
 		nrm_log_error("wrong add request type %u\n", msg->type);
 		break;
@@ -99,6 +123,11 @@ nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 	case NRM_MSG_TARGET_TYPE_SENSOR:
 		nrm_log_info("building list of sensors\n");
 		ret = nrmd_daemon_build_list_sensors();
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_log_info("building list of scopes\n");
+		ret = nrmd_daemon_build_list_scopes();
 		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
 		break;
 	default:
