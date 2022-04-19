@@ -61,15 +61,14 @@ struct client_cmd {
 
 int cmd_run(int argc, char **argv) {
 
+	int err;
 	char *manifest_name = NULL;
-	char *slice_name = NULL;
 	static struct option cmd_run_long_options[] = {
 		{ "manifest", required_argument, NULL, 'm' },
-		{ "slice", required_argument, NULL, 's' },
 		{ 0, 0, 0, 0},
 	};
 
-	static const char *cmd_run_short_options = ":m:s:";
+	static const char *cmd_run_short_options = ":m:";
 
 
 	int c;
@@ -86,9 +85,6 @@ int cmd_run(int argc, char **argv) {
 		case 'm':
 			manifest_name = optarg;
 			break;
-		case 's':
-			slice_name = optarg;
-			break;
 		case '?':
 			return EXIT_FAILURE;
 		default:
@@ -101,24 +97,12 @@ int cmd_run(int argc, char **argv) {
 
 	/* ensure we have something here, otherwise there's no command to launch
 	 */
-	if (argc < 0)
+	if (argc < 1)
 		return EXIT_FAILURE;
-
-	fprintf(stderr, "%s, %s, %d, %s\n", manifest_name, slice_name,
-		argc, argv[0]);
-
-	/* create a client, send the request for a new slice, wait for an answer
-	 */
-	/*
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri, pub_port,
-							rpc_port);
-	nrm_role_client_send_new_slice(slice_name);
-	nrm_role_client_recv_new_slice(&slice_uuid);
-
+	
+	nrm_log_info("exec: argc: %u, argv[0]: %s\n", argc, argv[0]);
 	err = execvp(argv[0], &argv[0]);
 	return err;
-	*/
-	return 0;
 }
 
 int cmd_add_scope(int argc, char **argv) {
