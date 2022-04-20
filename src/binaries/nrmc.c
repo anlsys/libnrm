@@ -23,6 +23,7 @@ static int ask_version = 0;
 static char *upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
 static int pub_port = NRM_DEFAULT_UPSTREAM_PUB_PORT;
 static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
+static nrm_client_t *nrmclient;
 
 static struct option long_options[] = {
 	{ "help", no_argument, &ask_help, 1 },
@@ -120,12 +121,13 @@ int cmd_add_scope(int argc, char **argv) {
 	err = nrm_scope_from_json(scope, param);
 	if (err)
 		return EXIT_FAILURE;
-
+	
 	nrm_log_info("creating client\n");
 
 	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
 							       pub_port,
 							       rpc_port);
+
 	nrm_log_info("sending request\n");
 	/* craft the message we want to send */
 	nrm_msg_t *msg = nrm_msg_create();
@@ -232,23 +234,28 @@ int cmd_list_sensors(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 
-	nrm_log_info("creating client\n");
+	int err;
+	nrm_vector_t *sensors;
 
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
-							       pub_port,
-							       rpc_port);
-	nrm_log_info("sending request\n");
-	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_sensors(msg, NULL);
-	nrm_role_send(client, msg, NULL);
+	err = nrm_client_list_sensors(nrmclient, &sensors);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
 
-	/* wait for the answer */
-	nrm_log_info("receiving reply\n");
-	msg = nrm_role_recv(client, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_destroy(&client);
+	size_t len;
+	nrm_vector_length(sensors, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_sensor_t *s;
+		void *p;
+		nrm_vector_get(sensors, i, &p);
+		s = (nrm_sensor_t *)p;
+		json_t *json = nrm_sensor_to_json(s);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
 	return 0;
 }
 
@@ -259,23 +266,28 @@ int cmd_list_slices(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 
-	nrm_log_info("creating client\n");
+	int err;
+	nrm_vector_t *slices;
 
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
-							       pub_port,
-							       rpc_port);
-	nrm_log_info("sending request\n");
-	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_slices(msg, NULL);
-	nrm_role_send(client, msg, NULL);
+	err = nrm_client_list_slices(nrmclient, &slices);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
 
-	/* wait for the answer */
-	nrm_log_info("receiving reply\n");
-	msg = nrm_role_recv(client, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_destroy(&client);
+	size_t len;
+	nrm_vector_length(slices, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_slice_t *s;
+		void *p;
+		nrm_vector_get(slices, i, &p);
+		s = (nrm_slice_t *)p;
+		json_t *json = nrm_slice_to_json(s);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
 	return 0;
 }
 
@@ -410,6 +422,9 @@ int main(int argc, char *argv[])
 
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 		      argc, argv[0]);
+	
+	nrm_log_info("creating client\n");
+	nrm_client_create(&nrmclient, upstream_uri, pub_port, rpc_port);
 
 	int err = 0;
 	for(int i = 0; commands[i].name != NULL; i++) {
@@ -421,6 +436,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "wrong command: %s\n", argv[0]);
 	err = EXIT_FAILURE;
 end:	
+	nrm_client_destroy(&nrmclient);
 	nrm_finalize();
 	return err;
 }

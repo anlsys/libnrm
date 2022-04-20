@@ -22,6 +22,7 @@ SUFFIXES = .proto .pb-c.c .pb-c.h
 	$(AM_V_GEN)$(PROTOCC) --c_out=$(abs_srcdir) $^
 
 libnrm_la_SOURCES = \
+		 client.c \
 		 eventbase.c \
 		 net.c \
 		 nrm.c \

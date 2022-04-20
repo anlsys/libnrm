@@ -290,6 +290,26 @@ nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg)
 	return ret;
 }
 
+nrm_sensor_t *nrm_sensor_create_frommsg(nrm_msg_sensor_t *msg)
+{
+	if (msg == NULL)
+		return NULL;
+	nrm_sensor_t *ret = nrm_sensor_create(msg->name);
+	if (msg->uuid)
+		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	return ret;
+}
+
+nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg)
+{
+	if (msg == NULL)
+		return NULL;
+	nrm_slice_t *ret = nrm_slice_create(msg->name);
+	if (msg->uuid)
+		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	return ret;
+}
+
 /*******************************************************************************
  * Protobuf Management: ZMQ Management
  *******************************************************************************/

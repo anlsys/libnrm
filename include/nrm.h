@@ -156,6 +156,22 @@ int nrm_eventbase_push_event(nrm_eventbase_t *, nrm_uuid_t *, nrm_scope_t *,
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 
 /*******************************************************************************
+ * NRM Client object
+ * Used by any program intending to communicate with a NRM daemon. Initiate most
+ * RPCs, retrieve information about the state of the daemon, can register new
+ * elements, send events, listen to state changes.
+ ******************************************************************************/
+
+typedef struct nrm_client_s nrm_client_t;
+
+int nrm_client_create(nrm_client_t **client, const char *uri, int pub_port,
+		      int rpc_port);
+
+int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
+
+void nrm_client_destroy(nrm_client_t **client);
+
+/*******************************************************************************
  * NRM Role API
  * A "role" is a set of features of NRM that a client of this library is using.
  * A typical role is a sensor, or an actuator, or something monitoring sensor

@@ -55,8 +55,9 @@ nrm_uuid_t *nrm_uuid_create_fromchar(char *s)
 
 json_t *nrm_uuid_to_json(nrm_uuid_t *uuid)
 {
-	json_t *ret = json_pack("s", **uuid);
-	return ret;
+	if (uuid == NULL)
+		return NULL;
+	return json_string(*uuid);
 }
 
 char *nrm_uuid_to_char(nrm_uuid_t *uuid)
