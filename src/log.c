@@ -77,7 +77,7 @@ void nrm_log_printmsg(int level, nrm_msg_t *msg)
 	if (level > nrm_log_level)
 		return;
 	if (msg == NULL) {
-		fprintf(nrm_log_fd, "msg is NULL\n");
+		fprintf(nrm_log_fd, "NULL\n");
 		return;
 	}
 	nrm_msg_fprintf(nrm_log_fd, msg);

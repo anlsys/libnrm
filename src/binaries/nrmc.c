@@ -121,26 +121,14 @@ int cmd_add_scope(int argc, char **argv) {
 	err = nrm_scope_from_json(scope, param);
 	if (err)
 		return EXIT_FAILURE;
-	
-	nrm_log_info("creating client\n");
 
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
-							       pub_port,
-							       rpc_port);
-
-	nrm_log_info("sending request\n");
-	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
-	nrm_msg_set_add_scope(msg, scope);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_send(client, msg, NULL);
-
-	/* wait for the answer */
-	nrm_log_info("receiving reply\n");
-	msg = nrm_role_recv(client, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_destroy(&client);
+	err = nrm_client_add_scope(nrmclient, scope);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+	json_t *json = nrm_scope_to_json(scope);
+	json_dumpf(json, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -149,26 +137,17 @@ int cmd_add_slice(int argc, char **argv) {
 	if (argc < 2)
 		return EXIT_FAILURE;
 	
+	int err;
 	char *name = argv[1];
-	
-	nrm_log_info("creating client\n");
+	nrm_slice_t *slice = nrm_slice_create(name);
 
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
-							       pub_port,
-							       rpc_port);
-	nrm_log_info("sending request\n");
-	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
-	nrm_msg_set_add_slice(msg, name, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_send(client, msg, NULL);
-
-	/* wait for the answer */
-	nrm_log_info("receiving reply\n");
-	msg = nrm_role_recv(client, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_destroy(&client);
+	err = nrm_client_add_slice(nrmclient, slice);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+	json_t *json = nrm_slice_to_json(slice);
+	json_dumpf(json, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -176,27 +155,18 @@ int cmd_add_sensor(int argc, char **argv) {
 
 	if (argc < 2)
 		return EXIT_FAILURE;
-	
+
+	int err;
 	char *name = argv[1];
-	
-	nrm_log_info("creating client\n");
+	nrm_sensor_t *sensor = nrm_sensor_create(name);
 
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
-							       pub_port,
-							       rpc_port);
-	nrm_log_info("sending request\n");
-	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
-	nrm_msg_set_add_sensor(msg, name, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_send(client, msg, NULL);
-
-	/* wait for the answer */
-	nrm_log_info("receiving reply\n");
-	msg = nrm_role_recv(client, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_destroy(&client);
+	err = nrm_client_add_sensor(nrmclient, sensor);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+	json_t *json = nrm_sensor_to_json(sensor);
+	json_dumpf(json, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -207,23 +177,28 @@ int cmd_list_scopes(int argc, char **argv) {
 	(void)argc;
 	(void)argv;
 
-	nrm_log_info("creating client\n");
+	int err;
+	nrm_vector_t *scopes;
 
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
-							       pub_port,
-							       rpc_port);
-	nrm_log_info("sending request\n");
-	/* craft the message we want to send */
-	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_scopes(msg, NULL);
-	nrm_role_send(client, msg, NULL);
+	err = nrm_client_list_scopes(nrmclient, &scopes);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
 
-	/* wait for the answer */
-	nrm_log_info("receiving reply\n");
-	msg = nrm_role_recv(client, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_role_destroy(&client);
+	size_t len;
+	nrm_vector_length(scopes, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_scope_t *s;
+		void *p;
+		nrm_vector_get(scopes, i, &p);
+		s = (nrm_scope_t *)p;
+		json_t *json = nrm_scope_to_json(s);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
 	return 0;
 }
 

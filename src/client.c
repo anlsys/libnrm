@@ -38,6 +38,121 @@ int nrm_client_create(nrm_client_t **client, const char *uri, int pub_port,
 	return 0;
 }
 
+int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
+{
+	if (client == NULL || scope == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_scope(msg, scope);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply:\t");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ADD);
+	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SCOPE);
+	scope = nrm_scope_create_frommsg(msg->add->scope);
+	return 0;
+}
+
+int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
+{
+	if (client == NULL || slice == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_slice(msg, slice->name, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply:\t");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ADD);
+	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SLICE);
+	slice = nrm_slice_create_frommsg(msg->add->slice);
+	return 0;
+}
+
+int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
+{
+	if (client == NULL || sensor == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_sensor(msg, sensor->name, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply:\t");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ADD);
+	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SENSOR);
+	sensor = nrm_sensor_create_frommsg(msg->add->sensor);
+	return 0;
+}
+
+int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
+{
+	if (client == NULL || scopes == NULL)
+		return -NRM_EINVAL;
+
+	int err;
+	/* craft the message we want to send */
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_scopes(msg, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	nrm_vector_t *ret;
+	err = nrm_vector_create(&ret, sizeof(nrm_scope_t));
+	if (err)
+		return err;
+
+	assert(msg->type == NRM_MSG_TYPE_LIST);
+	assert(msg->list->type == NRM_MSG_TARGET_TYPE_SCOPE);
+	for (size_t i = 0; i < msg->list->scopes->n_scopes; i++) {
+		nrm_scope_t *s =
+			nrm_scope_create_frommsg(msg->list->scopes->scopes[i]);
+		nrm_vector_push_back(ret, s);
+	}
+	*scopes = ret;
+	return 0;
+}
+
 int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 {
 	if (client == NULL || sensors == NULL)

@@ -29,7 +29,7 @@ nrm_msg_t *nrmd_daemon_build_list_scopes()
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_sensors(ret, my_daemon.state->scopes);
+	nrm_msg_set_list_scopes(ret, my_daemon.state->scopes);
 	return ret;
 }
 

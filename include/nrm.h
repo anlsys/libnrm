@@ -167,6 +167,11 @@ typedef struct nrm_client_s nrm_client_t;
 int nrm_client_create(nrm_client_t **client, const char *uri, int pub_port,
 		      int rpc_port);
 
+int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope);
+int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
+int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
+int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes);
+int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
 int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
 
 void nrm_client_destroy(nrm_client_t **client);

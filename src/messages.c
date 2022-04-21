@@ -653,7 +653,7 @@ nrm_msg_t *nrm_ctrlmsg_recv(zsock_t *socket, int *type, nrm_uuid_t **from)
 	err = zsock_recv(socket, "spp", &s, &p, &u);
 	assert(err == 0);
 	*type = nrm_ctrlmsg_s2t(s);
-	nrm_log_debug("received %s:%u\n",s,*type);
+	nrm_log_debug("received %s:%u:\t",s,*type);
 	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
 	if (from != NULL) {
 		*from = (nrm_uuid_t *)u;
