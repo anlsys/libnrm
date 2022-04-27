@@ -12,16 +12,18 @@
 
 #include "nrm.h"
 
-#include "internal/nrmi.h"
 #include "internal/messages.h"
+#include "internal/nrmi.h"
 #include "internal/roles.h"
 
 struct nrm_client_s {
 	nrm_role_t *role;
 };
 
-int nrm_client_create(nrm_client_t **client, const char *uri, int pub_port,
-		      int rpc_port)
+int nrm_client_create(nrm_client_t **client,
+                      const char *uri,
+                      int pub_port,
+                      int rpc_port)
 {
 	if (client == NULL || uri == NULL)
 		return -NRM_EINVAL;
@@ -116,8 +118,11 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	return 0;
 }
 
-int nrm_client_find(const nrm_client_t *client, int type, char *name, nrm_uuid_t
-		    *uuid, nrm_vector_t **results)
+int nrm_client_find(const nrm_client_t *client,
+                    int type,
+                    char *name,
+                    nrm_uuid_t *uuid,
+                    nrm_vector_t **results)
 {
 	if (client == NULL || type < 0 || type >= NRM_MSG_TARGET_TYPE_MAX)
 		return -NRM_EINVAL;
@@ -161,37 +166,43 @@ int nrm_client_find(const nrm_client_t *client, int type, char *name, nrm_uuid_t
 			return err;
 
 		for (size_t i = 0; i < msg->list->scopes->n_scopes; i++) {
-			if (uuid != NULL && strcmp(*uuid, msg->list->scopes->scopes[i]->uuid))
+			if (uuid != NULL &&
+			    strcmp(*uuid, msg->list->scopes->scopes[i]->uuid))
 				continue;
-			nrm_scope_t *s = nrm_scope_create_frommsg(msg->list->scopes->scopes[i]);
+			nrm_scope_t *s = nrm_scope_create_frommsg(
+			        msg->list->scopes->scopes[i]);
 			nrm_vector_push_back(ret, s);
 		}
-	}
-	else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
+	} else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
 		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t));
 		if (err)
 			return err;
 
 		for (size_t i = 0; i < msg->list->sensors->n_sensors; i++) {
-			if (uuid != NULL && strcmp(*uuid, msg->list->sensors->sensors[i]->uuid))
+			if (uuid != NULL &&
+			    strcmp(*uuid, msg->list->sensors->sensors[i]->uuid))
 				continue;
-			if (name != NULL && strcmp(name, msg->list->sensors->sensors[i]->name))
+			if (name != NULL &&
+			    strcmp(name, msg->list->sensors->sensors[i]->name))
 				continue;
-			nrm_sensor_t *s = nrm_sensor_create_frommsg(msg->list->sensors->sensors[i]);
+			nrm_sensor_t *s = nrm_sensor_create_frommsg(
+			        msg->list->sensors->sensors[i]);
 			nrm_vector_push_back(ret, s);
 		}
-	}
-	else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
+	} else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
 		err = nrm_vector_create(&ret, sizeof(nrm_slice_t));
 		if (err)
 			return err;
 
 		for (size_t i = 0; i < msg->list->slices->n_slices; i++) {
-			if (uuid != NULL && strcmp(*uuid, msg->list->slices->slices[i]->uuid))
+			if (uuid != NULL &&
+			    strcmp(*uuid, msg->list->slices->slices[i]->uuid))
 				continue;
-			if (name != NULL && strcmp(name, msg->list->slices->slices[i]->name))
+			if (name != NULL &&
+			    strcmp(name, msg->list->slices->slices[i]->name))
 				continue;
-			nrm_slice_t *s = nrm_slice_create_frommsg(msg->list->slices->slices[i]);
+			nrm_slice_t *s = nrm_slice_create_frommsg(
+			        msg->list->slices->slices[i]);
 			nrm_vector_push_back(ret, s);
 		}
 	}
@@ -229,7 +240,7 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 	assert(msg->list->type == NRM_MSG_TARGET_TYPE_SCOPE);
 	for (size_t i = 0; i < msg->list->scopes->n_scopes; i++) {
 		nrm_scope_t *s =
-			nrm_scope_create_frommsg(msg->list->scopes->scopes[i]);
+		        nrm_scope_create_frommsg(msg->list->scopes->scopes[i]);
 		nrm_vector_push_back(ret, s);
 	}
 	*scopes = ret;
@@ -265,8 +276,8 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 	assert(msg->type == NRM_MSG_TYPE_LIST);
 	assert(msg->list->type == NRM_MSG_TARGET_TYPE_SENSOR);
 	for (size_t i = 0; i < msg->list->sensors->n_sensors; i++) {
-		nrm_sensor_t *s =
-			nrm_sensor_create_frommsg(msg->list->sensors->sensors[i]);
+		nrm_sensor_t *s = nrm_sensor_create_frommsg(
+		        msg->list->sensors->sensors[i]);
 		nrm_vector_push_back(ret, s);
 	}
 	*sensors = ret;
@@ -303,7 +314,7 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	assert(msg->list->type == NRM_MSG_TARGET_TYPE_SLICE);
 	for (size_t i = 0; i < msg->list->slices->n_slices; i++) {
 		nrm_slice_t *s =
-			nrm_slice_create_frommsg(msg->list->slices->slices[i]);
+		        nrm_slice_create_frommsg(msg->list->slices->slices[i]);
 		nrm_vector_push_back(ret, s);
 	}
 	*slices = ret;
@@ -336,7 +347,11 @@ int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid)
 	return 0;
 }
 
-int nrm_client_send_event(const nrm_client_t *client, nrm_time_t time, nrm_sensor_t *sensor, nrm_scope_t *scope, double value)
+int nrm_client_send_event(const nrm_client_t *client,
+                          nrm_time_t time,
+                          nrm_sensor_t *sensor,
+                          nrm_scope_t *scope,
+                          double value)
 {
 	if (client == NULL || sensor == NULL || scope == NULL)
 		return -NRM_EINVAL;
@@ -348,7 +363,7 @@ int nrm_client_send_event(const nrm_client_t *client, nrm_time_t time, nrm_senso
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	nrm_role_send(client->role, msg, NULL);
-	
+
 	return 0;
 }
 

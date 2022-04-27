@@ -52,11 +52,11 @@ nodist_libnrm_la_SOURCES = \
 libnrm_la_LIBADD = $(LTLIBOBJS)
 
 if BUILD_BINARIES
-nrmd_shim_SOURCES = binaries/shim.c
-nrmd_shim_LDADD = libnrm.la
+nrmd_SOURCES = binaries/nrmd.c
+nrmd_LDADD = libnrm.la
 nrmc_SOURCES = binaries/nrmc.c
 nrmc_LDADD = libnrm.la
-bin_PROGRAMS = nrmd-shim nrmc
+bin_PROGRAMS = nrmd nrmc
 endif
 
 dist_noinst_DATA = msg.proto

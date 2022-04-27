@@ -10,13 +10,13 @@
 
 #include "config.h"
 
+#include <getopt.h>
+
 #include "nrm.h"
 
-#include "internal/nrmi.h"
 #include "internal/messages.h"
+#include "internal/nrmi.h"
 #include "internal/roles.h"
-
-#include <getopt.h>
 
 struct nrm_daemon_s {
 	nrm_state_t *state;
@@ -145,7 +145,7 @@ nrm_msg_t *nrmd_daemon_add_slice(const char *name)
 nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
 {
 	nrm_msg_t *ret = NULL;
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("adding a slice\n");
 		ret = nrmd_daemon_add_slice(msg->slice->name);
@@ -171,7 +171,7 @@ nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
 nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 {
 	nrm_msg_t *ret = NULL;
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("building list of slices\n");
 		ret = nrmd_daemon_build_list_slices();
@@ -197,7 +197,7 @@ nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 nrm_msg_t *nrmd_handle_remove_request(nrm_msg_remove_t *msg)
 {
 	nrm_msg_t *ret = NULL;
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("removing a slice\n");
 		ret = nrmd_daemon_remove_slice(msg);
@@ -226,7 +226,7 @@ int nrmd_handle_event_request(nrm_msg_event_t *msg)
 	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->scope);
 	nrm_time_t time = nrm_time_fromns(msg->time);
 	nrm_eventbase_push_event(my_daemon.events, uuid, scope, time,
-				 msg->value);
+	                         msg->value);
 	return 0;
 }
 
@@ -243,7 +243,9 @@ int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
 	return 0;
 }
 
-int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
+int nrmd_shim_controller_read_callback(zloop_t *loop,
+                                       zsock_t *socket,
+                                       void *arg)
 {
 	(void)loop;
 	(void)socket;
@@ -254,7 +256,7 @@ int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg
 	nrm_log_debug("receiving\n");
 	msg = nrm_role_recv(self, &uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_MSG_TYPE_LIST:
 		ret = nrmd_handle_list_request(msg->list);
 		nrm_role_send(self, ret, uuid);
@@ -282,20 +284,17 @@ static int ask_help = 0;
 static int ask_version = 0;
 
 static struct option long_options[] = {
-	{ "help", no_argument, &ask_help, 1 },
-	{ "version", no_argument, &ask_version, 1},
-	{ 0, 0, 0, 0},
+        {"help", no_argument, &ask_help, 1},
+        {"version", no_argument, &ask_version, 1},
+        {0, 0, 0, 0},
 };
 
 static const char *short_options = ":hV";
 
-static const char *help[] = {
-	"Usage: nrmd-shim [options]\n\n",
-	"Allowed options:\n",
-	"--help, -h    : print this help message\n",
-	"--version, -V : print program version\n",
-	NULL
-};
+static const char *help[] = {"Usage: nrmd-shim [options]\n\n",
+                             "Allowed options:\n",
+                             "--help, -h    : print this help message\n",
+                             "--version, -V : print program version\n", NULL};
 
 void print_help()
 {
@@ -305,7 +304,7 @@ void print_help()
 
 void print_version()
 {
-	fprintf(stdout,"nrmd-shim: version %s\n", nrm_version_string);
+	fprintf(stdout, "nrmd-shim: version %s\n", nrm_version_string);
 }
 
 int main(int argc, char *argv[])
@@ -313,12 +312,12 @@ int main(int argc, char *argv[])
 	int c;
 	int option_index = 0;
 
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, short_options, long_options,
-				&option_index);
+		                &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'h':
@@ -328,11 +327,11 @@ int main(int argc, char *argv[])
 			ask_version = 1;
 			break;
 		case '?':
-			fprintf(stderr,"nrmd-shim: invalid options: %s\n",
-				argv[optind-1]);
+			fprintf(stderr, "nrmd-shim: invalid options: %s\n",
+			        argv[optind - 1]);
 			exit(EXIT_FAILURE);
 		default:
-			fprintf(stderr,"nrmd_shim: this should not happen\n");
+			fprintf(stderr, "nrmd_shim: this should not happen\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -350,7 +349,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if(argc == 0) {
+	if (argc == 0) {
 		print_help();
 		exit(EXIT_FAILURE);
 	}
@@ -366,31 +365,27 @@ int main(int argc, char *argv[])
 	nrm_log_init(stderr, "nrmd");
 	nrm_log_setlevel(NRM_LOG_DEBUG);
 
-
 	/* init state */
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(10, 5);
 
-
 	nrm_role_t *monitor = nrm_role_monitor_create_fromenv();
 	assert(monitor != NULL);
 
-	nrm_role_t *controller =
-		nrm_role_controller_create_fromparams(NRM_DEFAULT_UPSTREAM_URI,
-						      NRM_DEFAULT_UPSTREAM_PUB_PORT,
-						      NRM_DEFAULT_UPSTREAM_RPC_PORT);
+	nrm_role_t *controller = nrm_role_controller_create_fromparams(
+	        NRM_DEFAULT_UPSTREAM_URI, NRM_DEFAULT_UPSTREAM_PUB_PORT,
+	        NRM_DEFAULT_UPSTREAM_RPC_PORT);
 	assert(controller != NULL);
 
 	zloop_t *loop = zloop_new();
 	assert(loop != NULL);
 
-	nrm_role_monitor_register_recvcallback(monitor, loop,
-					       nrmd_shim_monitor_read_callback,
-					       NULL);
-	nrm_role_controller_register_recvcallback(controller, loop,
-					nrmd_shim_controller_read_callback,
-					controller);
-	zloop_start(loop);	
+	nrm_role_monitor_register_recvcallback(
+	        monitor, loop, nrmd_shim_monitor_read_callback, NULL);
+	nrm_role_controller_register_recvcallback(
+	        controller, loop, nrmd_shim_controller_read_callback,
+	        controller);
+	zloop_start(loop);
 
 	return 0;
 }

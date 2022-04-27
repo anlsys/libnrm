@@ -23,7 +23,7 @@ static int ask_version = 0;
 static char *upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
 static int pub_port = NRM_DEFAULT_UPSTREAM_PUB_PORT;
 static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
-static nrm_client_t *nrmclient;
+static nrm_client_t *client;
 
 static struct option long_options[] = {
 	{ "help", no_argument, &ask_help, 1 },
@@ -122,7 +122,7 @@ int cmd_add_scope(int argc, char **argv) {
 	if (err)
 		return EXIT_FAILURE;
 
-	err = nrm_client_add_scope(nrmclient, scope);
+	err = nrm_client_add_scope(client, scope);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -141,7 +141,7 @@ int cmd_add_slice(int argc, char **argv) {
 	char *name = argv[1];
 	nrm_slice_t *slice = nrm_slice_create(name);
 
-	err = nrm_client_add_slice(nrmclient, slice);
+	err = nrm_client_add_slice(client, slice);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -160,7 +160,7 @@ int cmd_add_sensor(int argc, char **argv) {
 	char *name = argv[1];
 	nrm_sensor_t *sensor = nrm_sensor_create(name);
 
-	err = nrm_client_add_sensor(nrmclient, sensor);
+	err = nrm_client_add_sensor(client, sensor);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -215,7 +215,7 @@ int cmd_find_scope(int argc, char **argv) {
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SCOPE, name,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name,
 			      uuid, &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -283,7 +283,7 @@ int cmd_find_sensor(int argc, char **argv) {
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, name,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
 			      uuid, &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -351,7 +351,7 @@ int cmd_find_slice(int argc, char **argv) {
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SLICE, name,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name,
 			      uuid, &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -384,7 +384,7 @@ int cmd_list_scopes(int argc, char **argv) {
 	int err;
 	nrm_vector_t *scopes;
 
-	err = nrm_client_list_scopes(nrmclient, &scopes);
+	err = nrm_client_list_scopes(client, &scopes);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -416,7 +416,7 @@ int cmd_list_sensors(int argc, char **argv) {
 	int err;
 	nrm_vector_t *sensors;
 
-	err = nrm_client_list_sensors(nrmclient, &sensors);
+	err = nrm_client_list_sensors(client, &sensors);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -448,7 +448,7 @@ int cmd_list_slices(int argc, char **argv) {
 	int err;
 	nrm_vector_t *slices;
 
-	err = nrm_client_list_slices(nrmclient, &slices);
+	err = nrm_client_list_slices(client, &slices);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -520,7 +520,7 @@ int cmd_remove_scope(int argc, char **argv)
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SCOPE, name,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name,
 			      uuid, &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -539,7 +539,7 @@ int cmd_remove_scope(int argc, char **argv)
 		nrm_vector_get(results, i, &p);
 		s = (nrm_scope_t *)p;
 		json_t *json = nrm_scope_to_json(s);
-		nrm_client_remove(nrmclient, NRM_MSG_TARGET_TYPE_SCOPE, s->uuid);
+		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SCOPE, s->uuid);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS); 
@@ -596,7 +596,7 @@ int cmd_remove_sensor(int argc, char **argv)
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, name,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
 			      uuid, &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -615,7 +615,7 @@ int cmd_remove_sensor(int argc, char **argv)
 		nrm_vector_get(results, i, &p);
 		s = (nrm_sensor_t *)p;
 		json_t *json = nrm_sensor_to_json(s);
-		nrm_client_remove(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, s->uuid);
+		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SENSOR, s->uuid);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS); 
@@ -672,7 +672,7 @@ int cmd_remove_slice(int argc, char **argv)
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SLICE, name,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name,
 			      uuid, &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -691,7 +691,7 @@ int cmd_remove_slice(int argc, char **argv)
 		nrm_vector_get(results, i, &p);
 		s = (nrm_slice_t *)p;
 		json_t *json = nrm_slice_to_json(s);
-		nrm_client_remove(nrmclient, NRM_MSG_TARGET_TYPE_SLICE, s->uuid);
+		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SLICE, s->uuid);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS); 
@@ -709,7 +709,7 @@ int cmd_send_event(int argc, char **argv)
 	/* find sensor */
 	int err;
 	nrm_vector_t *results;
-	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, name,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
 			      NULL, &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -730,7 +730,7 @@ int cmd_send_event(int argc, char **argv)
 	nrm_scope_threadprivate(scope);
 	nrm_time_t time;
 	nrm_time_gettime(&time);
-	nrm_client_send_event(nrmclient, time, s, scope, rand());
+	nrm_client_send_event(client, time, s, scope, rand());
 
 	return 0;
 }
@@ -824,7 +824,7 @@ int main(int argc, char *argv[])
 		      argc, argv[0]);
 	
 	nrm_log_info("creating client\n");
-	nrm_client_create(&nrmclient, upstream_uri, pub_port, rpc_port);
+	nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
 
 	int err = 0;
 	for(int i = 0; commands[i].name != NULL; i++) {
@@ -836,7 +836,7 @@ int main(int argc, char *argv[])
 	fprintf(stderr, "wrong command: %s\n", argv[0]);
 	err = EXIT_FAILURE;
 end:	
-	nrm_client_destroy(&nrmclient);
+	nrm_client_destroy(&client);
 	nrm_finalize();
 	return err;
 }
