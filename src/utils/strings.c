@@ -80,3 +80,13 @@ void nrm_string_decref(nrm_string_t *s)
 	if (r->rc == 0)
 		free(r);
 }
+
+int nrm_string_cmp(nrm_string_t one, nrm_string_t two)
+{
+	if (one == NULL && two == NULL)
+		return 0;
+	if (one == NULL || two == NULL)
+		return 1;
+	nrm_realstring_t *r1 = NRM_STRING_C2S(one);
+	return strncmp(one, two, r1->slen);
+}

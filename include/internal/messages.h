@@ -30,8 +30,9 @@ typedef enum _Nrm__MSGTYPE nrm_msg_msgtype_e;
 #define NRM_MSG_TYPE_ACK (NRM__MSGTYPE__ACK)
 #define NRM_MSG_TYPE_LIST (NRM__MSGTYPE__LIST)
 #define NRM_MSG_TYPE_ADD (NRM__MSGTYPE__ADD)
+#define NRM_MSG_TYPE_REMOVE (NRM__MSGTYPE__REMOVE)
 #define NRM_MSG_TYPE_EVENT (NRM__MSGTYPE__EVENT)
-#define NRM_MSG_TYPE_MAX (4)
+#define NRM_MSG_TYPE_MAX (5)
 
 typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_SLICE (NRM__TARGETTYPE__SLICE)
@@ -44,6 +45,7 @@ typedef Nrm__Add nrm_msg_add_t;
 typedef Nrm__Event nrm_msg_event_t;
 typedef Nrm__List nrm_msg_list_t;
 typedef Nrm__Message nrm_msg_t;
+typedef Nrm__Remove nrm_msg_remove_t;
 typedef Nrm__Scope nrm_msg_scope_t;
 typedef Nrm__ScopeList nrm_msg_scopelist_t;
 typedef Nrm__Sensor nrm_msg_sensor_t;
@@ -55,6 +57,7 @@ typedef Nrm__SliceList nrm_msg_slicelist_t;
 #define nrm_msg_event_init(msg)      nrm__event__init(msg)
 #define nrm_msg_init(msg)            nrm__message__init(msg)
 #define nrm_msg_list_init(msg)       nrm__list__init(msg)
+#define nrm_msg_remove_init(msg)     nrm__remove__init(msg)
 #define nrm_msg_scope_init(msg)      nrm__scope__init(msg)
 #define nrm_msg_scopelist_init(msg)  nrm__scope_list__init(msg)
 #define nrm_msg_sensor_init(msg)     nrm__sensor__init(msg)
@@ -73,6 +76,7 @@ int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
 int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes);
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
+int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid);
 
 nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg);
 nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg);

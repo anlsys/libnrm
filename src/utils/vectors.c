@@ -163,14 +163,15 @@ int nrm_vector_pop_back(nrm_vector_t *vector, void *out)
 
 int nrm_vector_take(nrm_vector_t *vector, const size_t position, void *out)
 {
-	if (vector == NULL || out == NULL)
+	if (vector == NULL)
 		return -NRM_EINVAL;
 
 	void *elt = utarray_eltptr(vector->array, position);
 	if (elt == NULL)
 		return -NRM_EDOM;
 
-	memcpy(out, elt, vector->icd.sz);
+	if (out)
+		memcpy(out, elt, vector->icd.sz);
 
 	utarray_erase(vector->array, position, 1);
 	return NRM_SUCCESS;

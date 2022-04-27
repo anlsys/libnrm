@@ -272,6 +272,27 @@ int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices)
 	return 0;
 }
 
+nrm_msg_remove_t *nrm_msg_remove_new(int type, nrm_uuid_t *uuid)
+{
+	nrm_msg_remove_t *ret = calloc(1, sizeof(nrm_msg_remove_t));
+	if (ret == NULL)
+		return ret;
+	nrm_msg_remove_init(ret);
+	ret->type = type;
+	ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	return ret;
+}
+
+int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->remove = nrm_msg_remove_new(type, uuid);
+	assert(msg->remove);
+	msg->data_case = NRM__MESSAGE__DATA_REMOVE;
+	return 0;
+}
+
 /*******************************************************************************
  * Protobuf Management: Parsing Messages
  *******************************************************************************/
@@ -420,6 +441,7 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
 	{ NRM_MSG_TYPE_ACK, "ACK" },
 	{ NRM_MSG_TYPE_LIST, "LIST" },
 	{ NRM_MSG_TYPE_ADD, "ADD" },
+	{ NRM_MSG_TYPE_REMOVE, "REMOVE" },
 	{ NRM_MSG_TYPE_EVENT, "EVENT" },
 	{ 0, NULL },
 };
@@ -557,6 +579,14 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 	return ret;
 }
 
+json_t *nrm_msg_remove_to_json(nrm_msg_remove_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:s, s:s?}", "type", nrm_msg_type_t2s(msg->type, nrm_msg_target_table), 
+			"uuid", msg->uuid);
+	return ret;
+}
+
 json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
 {
 	json_t *ret;
@@ -581,6 +611,9 @@ json_t *nrm_msg_to_json(nrm_msg_t *msg)
 		break;
 	case NRM_MSG_TYPE_EVENT:
 		sub = nrm_msg_event_to_json(msg->event);
+		break;
+	case NRM_MSG_TYPE_REMOVE:
+		sub = nrm_msg_remove_to_json(msg->remove);
 		break;
 	default:
 		sub = NULL;

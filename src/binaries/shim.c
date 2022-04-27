@@ -25,6 +25,64 @@ struct nrm_daemon_s {
 
 struct nrm_daemon_s my_daemon;
 
+nrm_msg_t *nrmd_daemon_remove_scope(nrm_msg_remove_t *msg)
+{
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
+	size_t len;
+	nrm_vector_length(my_daemon.state->scopes, &len);
+	for (size_t i = 0; i < len; i++) {
+		nrm_scope_t *s;
+		void *p;
+		nrm_vector_get(my_daemon.state->scopes, i, &p);
+		s = (nrm_scope_t *)p;
+		if (!nrm_uuid_cmp(s->uuid, uuid))
+			nrm_vector_take(my_daemon.state->scopes, i, NULL);
+	}
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	return ret;
+}
+
+nrm_msg_t *nrmd_daemon_remove_sensor(nrm_msg_remove_t *msg)
+{
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
+	size_t len;
+	nrm_vector_length(my_daemon.state->sensors, &len);
+	for (size_t i = 0; i < len; i++) {
+		nrm_sensor_t *s;
+		void *p;
+		nrm_vector_get(my_daemon.state->sensors, i, &p);
+		s = (nrm_sensor_t *)p;
+		if (!nrm_uuid_cmp(s->uuid, uuid))
+			nrm_vector_take(my_daemon.state->sensors, i, NULL);
+	}
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	return ret;
+}
+
+nrm_msg_t *nrmd_daemon_remove_slice(nrm_msg_remove_t *msg)
+{
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
+	size_t len;
+	nrm_vector_length(my_daemon.state->slices, &len);
+	for (size_t i = 0; i < len; i++) {
+		nrm_slice_t *s;
+		void *p;
+		nrm_vector_get(my_daemon.state->slices, i, &p);
+		s = (nrm_slice_t *)p;
+		nrm_log_debug("comparing %s and %s\n", *uuid, *s->uuid);
+		if (!nrm_uuid_cmp(s->uuid, uuid)) {
+			nrm_log_debug("removing %s\n", *uuid);
+			nrm_vector_take(my_daemon.state->slices, i, NULL);
+			break;
+		}
+	}
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	return ret;
+}
+
 nrm_msg_t *nrmd_daemon_build_list_scopes()
 {
 	nrm_msg_t *ret = nrm_msg_create();
@@ -48,7 +106,6 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	nrm_msg_set_list_slices(ret, my_daemon.state->slices);
 	return ret;
 }
-
 nrm_msg_t *nrmd_daemon_add_scope(nrm_msg_scope_t *scope)
 {
 	nrm_scope_t *newscope = nrm_scope_create_frommsg(scope);
@@ -137,6 +194,32 @@ nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 	return ret;
 }
 
+nrm_msg_t *nrmd_handle_remove_request(nrm_msg_remove_t *msg)
+{
+	nrm_msg_t *ret = NULL;
+	switch(msg->type) {
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_log_info("removing a slice\n");
+		ret = nrmd_daemon_remove_slice(msg);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_log_info("removing a sensor\n");
+		ret = nrmd_daemon_remove_sensor(msg);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_log_info("removing a scope\n");
+		ret = nrmd_daemon_remove_scope(msg);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	default:
+		nrm_log_error("wrong list request type %u\n", msg->type);
+		break;
+	}
+	return ret;
+}
+
 int nrmd_handle_event_request(nrm_msg_event_t *msg)
 {
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
@@ -182,6 +265,10 @@ int nrmd_shim_controller_read_callback(zloop_t *loop, zsock_t *socket, void *arg
 		break;
 	case NRM_MSG_TYPE_EVENT:
 		nrmd_handle_event_request(msg->event);
+		break;
+	case NRM_MSG_TYPE_REMOVE:
+		ret = nrmd_handle_remove_request(msg->remove);
+		nrm_role_send(self, ret, uuid);
 		break;
 	default:
 		nrm_log_error("message type not handled\n");

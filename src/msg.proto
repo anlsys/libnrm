@@ -11,7 +11,8 @@ enum MSGTYPE {
 	ACK = 0;
 	LIST = 1;
 	ADD = 2;
-	EVENT = 3;
+	REMOVE = 3;
+	EVENT = 4;
 }
 
 message Scope {
@@ -50,6 +51,11 @@ message SliceList {
 	repeated Slice slices = 1;
 }
 
+message Remove {
+	TARGETTYPE type = 1;
+	string uuid = 2;
+}
+
 message Add {
 	TARGETTYPE type = 1;
 	oneof data {
@@ -73,6 +79,7 @@ message Message {
 	oneof data {
 		List list = 2;
 		Add add = 3;
-		Event event = 4;
+		Remove remove = 4;
+		Event event = 5;
 	}
 }

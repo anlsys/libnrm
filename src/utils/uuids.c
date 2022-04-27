@@ -62,11 +62,20 @@ json_t *nrm_uuid_to_json(nrm_uuid_t *uuid)
 
 char *nrm_uuid_to_char(nrm_uuid_t *uuid)
 {
+	if (uuid == NULL)
+		return NULL;
 	return *uuid;
 }
 
 nrm_string_t nrm_uuid_to_string(nrm_uuid_t *uuid)
 {
+	if (uuid == NULL)
+		return NULL;
 	nrm_string_incref(uuid);
 	return *uuid;
+}
+
+int nrm_uuid_cmp(const nrm_uuid_t one, const nrm_uuid_t two)
+{
+	return nrm_string_cmp(one, two);
 }

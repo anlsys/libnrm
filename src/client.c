@@ -116,6 +116,89 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	return 0;
 }
 
+int nrm_client_find(const nrm_client_t *client, int type, char *name, nrm_uuid_t
+		    *uuid, nrm_vector_t **results)
+{
+	if (client == NULL || type < 0 || type >= NRM_MSG_TARGET_TYPE_MAX)
+		return -NRM_EINVAL;
+
+	/* we need one of those */
+	if (name == NULL && uuid == NULL)
+		return -NRM_EINVAL;
+
+	/* that doesn't really make sense, does it ? */
+	if (name && uuid)
+		return -NRM_EINVAL;
+
+	int err;
+	/* craft the message we want to send */
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
+	if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
+		nrm_msg_set_list_scopes(msg, NULL);
+	} else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
+		nrm_msg_set_list_sensors(msg, NULL);
+	} else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
+		nrm_msg_set_list_slices(msg, NULL);
+	}
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	assert(msg->type == NRM_MSG_TYPE_LIST);
+	assert(msg->list->type == type);
+
+	nrm_vector_t *ret;
+	if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
+		err = nrm_vector_create(&ret, sizeof(nrm_scope_t));
+		if (err)
+			return err;
+
+		for (size_t i = 0; i < msg->list->scopes->n_scopes; i++) {
+			if (uuid != NULL && strcmp(*uuid, msg->list->scopes->scopes[i]->uuid))
+				continue;
+			nrm_scope_t *s = nrm_scope_create_frommsg(msg->list->scopes->scopes[i]);
+			nrm_vector_push_back(ret, s);
+		}
+	}
+	else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
+		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t));
+		if (err)
+			return err;
+
+		for (size_t i = 0; i < msg->list->sensors->n_sensors; i++) {
+			if (uuid != NULL && strcmp(*uuid, msg->list->sensors->sensors[i]->uuid))
+				continue;
+			if (name != NULL && strcmp(name, msg->list->sensors->sensors[i]->name))
+				continue;
+			nrm_sensor_t *s = nrm_sensor_create_frommsg(msg->list->sensors->sensors[i]);
+			nrm_vector_push_back(ret, s);
+		}
+	}
+	else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
+		err = nrm_vector_create(&ret, sizeof(nrm_slice_t));
+		if (err)
+			return err;
+
+		for (size_t i = 0; i < msg->list->slices->n_slices; i++) {
+			if (uuid != NULL && strcmp(*uuid, msg->list->slices->slices[i]->uuid))
+				continue;
+			if (name != NULL && strcmp(name, msg->list->slices->slices[i]->name))
+				continue;
+			nrm_slice_t *s = nrm_slice_create_frommsg(msg->list->slices->slices[i]);
+			nrm_vector_push_back(ret, s);
+		}
+	}
+	*results = ret;
+	return 0;
+}
+
 int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 {
 	if (client == NULL || scopes == NULL)
@@ -224,6 +307,34 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 		nrm_vector_push_back(ret, s);
 	}
 	*slices = ret;
+	return 0;
+}
+
+int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid)
+{
+	if (client == NULL || uuid == NULL)
+		return -NRM_EINVAL;
+	if (type < 0 || type > NRM_MSG_TARGET_TYPE_MAX)
+		return -NRM_EINVAL;
+
+	int err;
+
+	/* craft the message we want to send */
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_REMOVE);
+	nrm_msg_set_remove(msg, type, uuid);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
 	return 0;
 }
 

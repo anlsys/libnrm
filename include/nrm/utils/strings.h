@@ -20,4 +20,6 @@ void nrm_string_incref(nrm_string_t *s);
 
 void nrm_string_decref(nrm_string_t *s);
 
+int nrm_string_cmp(const nrm_string_t, const nrm_string_t);
+
 #endif

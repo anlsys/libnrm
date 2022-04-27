@@ -170,6 +170,210 @@ int cmd_add_sensor(int argc, char **argv) {
 	return 0;
 }
 
+int cmd_find_scope(int argc, char **argv) {
+
+	int err;
+	static int ask_uuid = 0;
+	static struct option cmd_run_long_options[] = {
+		{ "uuid", no_argument, &ask_uuid, 1},
+		{ 0, 0, 0, 0},
+	};
+
+	static const char *cmd_run_short_options = ":u";
+
+	int c;
+	int option_index = 0;
+	while(1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+				cmd_run_long_options,
+				&option_index);
+		if (c == -1)
+			break;
+		switch(c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+	
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SCOPE, name,
+			      uuid, &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_scope_t *s;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		s = (nrm_scope_t *)p;
+		json_t *json = nrm_scope_to_json(s);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	return 0;
+}
+
+int cmd_find_sensor(int argc, char **argv) {
+
+	int err;
+	static int ask_uuid = 0;
+	static struct option cmd_run_long_options[] = {
+		{ "uuid", no_argument, &ask_uuid, 1},
+		{ 0, 0, 0, 0},
+	};
+
+	static const char *cmd_run_short_options = ":u";
+
+	int c;
+	int option_index = 0;
+	while(1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+				cmd_run_long_options,
+				&option_index);
+		if (c == -1)
+			break;
+		switch(c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+	
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, name,
+			      uuid, &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_sensor_t *s;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		s = (nrm_sensor_t *)p;
+		json_t *json = nrm_sensor_to_json(s);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	return 0;
+}
+
+int cmd_find_slice(int argc, char **argv) {
+
+	int err;
+	static int ask_uuid = 0;
+	static struct option cmd_run_long_options[] = {
+		{ "uuid", no_argument, &ask_uuid, 1},
+		{ 0, 0, 0, 0},
+	};
+
+	static const char *cmd_run_short_options = ":u";
+
+	int c;
+	int option_index = 0;
+	while(1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+				cmd_run_long_options,
+				&option_index);
+		if (c == -1)
+			break;
+		switch(c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+	
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SLICE, name,
+			      uuid, &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_slice_t *s;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		s = (nrm_slice_t *)p;
+		json_t *json = nrm_slice_to_json(s);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	return 0;
+}
+
 int cmd_list_scopes(int argc, char **argv) {
 
 
@@ -266,9 +470,236 @@ int cmd_list_slices(int argc, char **argv) {
 	return 0;
 }
 
-int cmd_send_event(int argc, char **argv) {
+int cmd_remove_scope(int argc, char **argv)
+{
+	int err;
+	static int ask_uuid = 0;
+	static int ask_all = 0;
+	static struct option cmd_run_long_options[] = {
+		{ "uuid", no_argument, &ask_uuid, 1},
+		{ "all", no_argument, &ask_uuid, 1},
+		{ 0, 0, 0, 0},
+	};
 
+	static const char *cmd_run_short_options = ":ua";
 
+	int c;
+	int option_index = 0;
+	while(1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+				cmd_run_long_options,
+				&option_index);
+		if (c == -1)
+			break;
+		switch(c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case 'a':
+			ask_all = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+	
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SCOPE, name,
+			      uuid, &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+	/* either remove all, or just one (if we found one) */
+	len = ask_all ? len : len > 0 ? 1 : 0;
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_scope_t *s;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		s = (nrm_scope_t *)p;
+		json_t *json = nrm_scope_to_json(s);
+		nrm_client_remove(nrmclient, NRM_MSG_TARGET_TYPE_SCOPE, s->uuid);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	return 0;
+}
+
+int cmd_remove_sensor(int argc, char **argv)
+{
+	int err;
+	static int ask_uuid = 0;
+	static int ask_all = 0;
+	static struct option cmd_run_long_options[] = {
+		{ "uuid", no_argument, &ask_uuid, 1},
+		{ "all", no_argument, &ask_uuid, 1},
+		{ 0, 0, 0, 0},
+	};
+
+	static const char *cmd_run_short_options = ":ua";
+
+	int c;
+	int option_index = 0;
+	while(1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+				cmd_run_long_options,
+				&option_index);
+		if (c == -1)
+			break;
+		switch(c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case 'a':
+			ask_all = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+	
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, name,
+			      uuid, &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+	/* either remove all, or just one (if we found one) */
+	len = ask_all ? len : len > 0 ? 1 : 0;
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_sensor_t *s;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		s = (nrm_sensor_t *)p;
+		json_t *json = nrm_sensor_to_json(s);
+		nrm_client_remove(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, s->uuid);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	return 0;
+}
+
+int cmd_remove_slice(int argc, char **argv)
+{
+	int err;
+	static int ask_uuid = 0;
+	static int ask_all = 0;
+	static struct option cmd_run_long_options[] = {
+		{ "uuid", no_argument, &ask_uuid, 1},
+		{ "all", no_argument, &ask_uuid, 1},
+		{ 0, 0, 0, 0},
+	};
+
+	static const char *cmd_run_short_options = ":ua";
+
+	int c;
+	int option_index = 0;
+	while(1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+				cmd_run_long_options,
+				&option_index);
+		if (c == -1)
+			break;
+		switch(c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case 'a':
+			ask_all = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+	
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SLICE, name,
+			      uuid, &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+	/* either remove all, or just one (if we found one) */
+	len = ask_all ? len : len > 0 ? 1 : 0;
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_slice_t *s;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		s = (nrm_slice_t *)p;
+		json_t *json = nrm_slice_to_json(s);
+		nrm_client_remove(nrmclient, NRM_MSG_TARGET_TYPE_SLICE, s->uuid);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	return 0;
+}
+
+int cmd_send_event(int argc, char **argv)
+{
 	/* no options at this time */
 	if (argc < 2)
 		return EXIT_FAILURE;
@@ -320,10 +751,16 @@ static struct client_cmd commands[] = {
 	{ "add-scope", cmd_add_scope },
 	{ "add-slice", cmd_add_slice },
 	{ "add-sensor", cmd_add_sensor },
+	{ "find-scope", cmd_find_scope },
+	{ "find-slice", cmd_find_slice },
+	{ "find-sensor", cmd_find_sensor },
 	{ "list-scopes", cmd_list_scopes },
 	{ "list-slices", cmd_list_slices },
 	{ "list-sensors", cmd_list_sensors },
 	{ "send-event", cmd_send_event },
+	{ "remove-scope", cmd_remove_scope },
+	{ "remove-slice", cmd_remove_slice },
+	{ "remove-sensor", cmd_remove_sensor },
 	{ "run", cmd_run },
 	{ 0, 0 },
 };

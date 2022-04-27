@@ -26,4 +26,6 @@ char *nrm_uuid_to_char(nrm_uuid_t *uuid);
 
 nrm_string_t nrm_uuid_to_string(nrm_uuid_t *uuid);
 
+int nrm_uuid_cmp(const nrm_uuid_t, const nrm_uuid_t );
+
 #endif
