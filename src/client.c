@@ -317,8 +317,6 @@ int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid)
 	if (type < 0 || type > NRM_MSG_TARGET_TYPE_MAX)
 		return -NRM_EINVAL;
 
-	int err;
-
 	/* craft the message we want to send */
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
@@ -335,6 +333,22 @@ int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	return 0;
+}
+
+int nrm_client_send_event(const nrm_client_t *client, nrm_time_t time, nrm_sensor_t *sensor, nrm_scope_t *scope, double value)
+{
+	if (client == NULL || sensor == NULL || scope == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
+	nrm_msg_set_event(msg, time, sensor->uuid, scope, value);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+	
 	return 0;
 }
 

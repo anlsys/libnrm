@@ -704,46 +704,34 @@ int cmd_send_event(int argc, char **argv)
 	if (argc < 2)
 		return EXIT_FAILURE;
 
-	char *sensor_name = argv[1];
+	char *name = argv[1];
 
-	nrm_log_info("creating client\n");
-
-	nrm_role_t *client = nrm_role_client_create_fromparams(upstream_uri,
-							       pub_port,
-							       rpc_port);
-	nrm_log_info("finding the sensor\n");
-	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_sensors(msg, NULL);
-	nrm_role_send(client, msg, NULL);
-
-	/* wait for the answer */
-	nrm_log_info("receiving list of sensors\n");
-	msg = nrm_role_recv(client, NULL);
-
-	nrm_uuid_t *sensor_uuid = NULL;
-	for (size_t i = 0; i < msg->list->sensors->n_sensors; i++) {
-		if (!strcmp(sensor_name, msg->list->sensors->sensors[i]->name)) {
-			sensor_uuid =
-				nrm_uuid_create_fromchar(msg->list->sensors->sensors[i]->uuid);
-			break;
-		}
-	}
-	if (sensor_uuid == NULL)
+	/* find sensor */
+	int err;
+	nrm_vector_t *results;
+	err = nrm_client_find(nrmclient, NRM_MSG_TARGET_TYPE_SENSOR, name,
+			      NULL, &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+
+	assert(len == 1);
+	nrm_sensor_t *s;
+	void *p;
+	nrm_vector_get(results, 0, &p);
+	s = (nrm_sensor_t *)p;
 
 	nrm_log_info("sending event\n");
 	nrm_scope_t *scope = nrm_scope_create();
 	nrm_scope_threadprivate(scope);
 	nrm_time_t time;
 	nrm_time_gettime(&time);
+	nrm_client_send_event(nrmclient, time, s, scope, rand());
 
-	msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
-	nrm_msg_set_event(msg, time, sensor_uuid, scope, rand());
-	nrm_role_send(client, msg, NULL);
-
-	nrm_role_destroy(&client);
 	return 0;
 }
 

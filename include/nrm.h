@@ -174,6 +174,8 @@ int nrm_client_find(const nrm_client_t *client, int type, char *name, nrm_uuid_t
 int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes);
 int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
 int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
+int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid);
+int nrm_client_send_event(const nrm_client_t *client, nrm_time_t time, nrm_sensor_t *sensor, nrm_scope_t *scope, double value);
 
 void nrm_client_destroy(nrm_client_t **client);
 
