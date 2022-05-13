@@ -15,22 +15,13 @@
 
 import os
 import sys
-import requests
 sys.path.append(os.path.abspath('../examples'))
+sys.path.append(os.path.abspath('../src'))
 
-nrmh = "https://raw.githubusercontent.com/anlsys/libnrm/master/src/nrm.h"
-with open("nrm.h", "wb") as f:
-    f.write(requests.get(nrmh).content)
 
-# import os
-# import sys
-# import subprocess
-
-# read_the_docs = os.environ.get('READTHEDOCS', None) == 'True'
-# if read_the_docs:
-    # subprocess.call('doxygen', shell=True)
-    # # Readthedocs doxygen version is too old to copy images when building xml
-    # subprocess.call('cp img/*png build-doxygen/xml/', shell=True)
+read_the_docs = os.environ.get('READTHEDOCS', None) == 'True'
+if read_the_docs:
+    subprocess.call('doxygen', shell=True)
 
 # -- Project information -----------------------------------------------------
 
@@ -79,7 +70,7 @@ master_doc = 'index'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'C'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.

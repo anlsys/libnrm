@@ -29,6 +29,13 @@ Using libnrm in your C / C++ application
 ========================================
 .. highlight:: C
 
+0. Hello doxygen?
+-----------------
+
+.. doxygenfunction:: nrm_ctxt_create
+
+.. doxygenfunction:: nrm_init
+
 1. Include NRM and create a context
 -----------------------------------
 

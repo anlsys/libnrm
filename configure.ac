@@ -28,6 +28,26 @@ AM_PROG_AR
 # getcpu is somewhat new, and might be missing from the system libc
 AC_REPLACE_FUNCS(getcpu)
 
+# check doxygen + sphinx for documentation build
+
+AC_ARG_ENABLE(docs,
+[AS_HELP_STRING([--enable-docs],
+		[Generate full html documentation (default is no).])],
+[docs=true],[docs=false])
+
+if test "x$docs" = "xtrue"; then
+	AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [no])
+	if test "x$DOXYGEN" = "xno"; then
+		AC_MSG_ERROR([Doxygen not found])
+	fi
+
+	AC_CHECK_PROG([SPHINXBUILD], [sphinx-build], [sphinx-build], [no])
+	if test "x$SPHINXBUILD" = "xno"; then
+		AC_MSG_ERROR([Sphinx not found])
+	fi
+fi
+AM_CONDITIONAL([BUILD_DOCS],[ test "x$docs" = "xtrue" ])
+
 # dependencies
 PKG_CHECK_MODULES([LIBZMQ],[libzmq])
 
