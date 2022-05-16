@@ -15,6 +15,8 @@
 
 import os
 import sys
+import subprocess
+
 sys.path.append(os.path.abspath('../examples'))
 sys.path.append(os.path.abspath('../src'))
 
@@ -44,14 +46,14 @@ needs_sphinx = '2.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.intersphinx"]
+extensions = ["sphinx.ext.intersphinx", "breathe"]
 intersphinx_mapping = {
     'nrm-python': ('https://nrm.readthedocs.io/projects/nrm-python/en/master/', None),
     'nrm-core': ('https://nrm.readthedocs.io/projects/nrm-core/en/master/', None)
 }
 
-# breathe_projects = {"nrm": os.getcwd()+'/buildxml'}
-# breathe_default_projecte = "nrm"
+breathe_projects = {"nrm": "build-doxygen/xml"}
+breathe_default_project = "nrm"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
