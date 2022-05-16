@@ -230,19 +230,6 @@ int nrmd_handle_event_request(nrm_msg_event_t *msg)
 	return 0;
 }
 
-int nrmd_shim_monitor_read_callback(zloop_t *loop, zsock_t *socket, void *arg)
-{
-	(void)arg;
-	(void)loop;
-	nrm_msg_t *msg;
-	int msg_type;
-
-	msg = nrm_ctrlmsg_recv(socket, &msg_type, NULL);
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	nrm_msg_destroy(&msg);
-	return 0;
-}
-
 int nrmd_shim_controller_read_callback(zloop_t *loop,
                                        zsock_t *socket,
                                        void *arg)
@@ -277,6 +264,33 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 		break;
 	}
 	nrm_msg_destroy(&msg);
+	return 0;
+}
+
+int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
+{
+	(void)loop;
+	nrm_log_info("global timer wakeup\n");
+	nrm_role_t *self = (nrm_role_t *)arg;
+	(void)self;
+
+	nrm_string_t topic = nrm_string_fromchar("DAEMON");
+
+	/* create an event */
+	nrm_time_t now;
+	nrm_time_gettime(&now);
+	nrm_scope_t *scope = nrm_scope_create();
+	nrm_scope_threadprivate(scope);
+	nrm_sensor_t *sensor = nrm_sensor_create("daemon.tick");
+	sensor->uuid = nrm_uuid_create();
+
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
+	nrm_msg_set_event(msg, now, sensor->uuid, scope, 1.0);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending event\n");
+	nrm_role_pub(self, topic, msg);
 	return 0;
 }
 
@@ -369,9 +383,6 @@ int main(int argc, char *argv[])
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(10, 5);
 
-	nrm_role_t *monitor = nrm_role_monitor_create_fromenv();
-	assert(monitor != NULL);
-
 	nrm_role_t *controller = nrm_role_controller_create_fromparams(
 	        NRM_DEFAULT_UPSTREAM_URI, NRM_DEFAULT_UPSTREAM_PUB_PORT,
 	        NRM_DEFAULT_UPSTREAM_RPC_PORT);
@@ -380,11 +391,12 @@ int main(int argc, char *argv[])
 	zloop_t *loop = zloop_new();
 	assert(loop != NULL);
 
-	nrm_role_monitor_register_recvcallback(
-	        monitor, loop, nrmd_shim_monitor_read_callback, NULL);
 	nrm_role_controller_register_recvcallback(
 	        controller, loop, nrmd_shim_controller_read_callback,
 	        controller);
+
+	/* add a periodic wake up to generate metrics */
+	zloop_timer(loop, 1000, 0, nrmd_timer_callback, controller);
 	zloop_start(loop);
 
 	return 0;

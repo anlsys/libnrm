@@ -75,6 +75,12 @@ int nrm_net_sub_init(zsock_t **socket)
 	return 0;
 }
 
+int nrm_net_sub_set_topic(zsock_t *socket, const char *topic)
+{
+	zsock_set_subscribe(socket, topic);
+	return 0;
+}
+
 int nrm_net_pub_init(zsock_t **socket)
 {
 	if(!nrm_transmit)

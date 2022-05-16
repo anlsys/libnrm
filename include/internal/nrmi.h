@@ -69,6 +69,7 @@ extern int nrm_transmit;
 int nrm_net_rpc_client_init(zsock_t **socket);
 int nrm_net_rpc_server_init(zsock_t **socket);
 int nrm_net_sub_init(zsock_t **socket);
+int nrm_net_sub_set_topic(zsock_t *socket, const char *topic);
 int nrm_net_pub_init(zsock_t **socket);
 int nrm_net_connect_and_wait(zsock_t *socket, const char *uri);
 int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port);

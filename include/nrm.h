@@ -164,6 +164,9 @@ void nrm_eventbase_destroy(nrm_eventbase_t **);
 
 typedef struct nrm_client_s nrm_client_t;
 
+typedef int (nrm_client_event_listener_fn)(nrm_uuid_t *uuid, nrm_time_t time,
+					   nrm_scope_t *scope, double value);
+
 int nrm_client_create(nrm_client_t **client, const char *uri, int pub_port,
 		      int rpc_port);
 
@@ -176,6 +179,8 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
 int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
 int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid);
 int nrm_client_send_event(const nrm_client_t *client, nrm_time_t time, nrm_sensor_t *sensor, nrm_scope_t *scope, double value);
+int nrm_client_set_event_listener(nrm_client_t *client, nrm_client_event_listener_fn fn);
+int nrm_client_start_event_listener(const nrm_client_t *client, nrm_string_t topic);
 
 void nrm_client_destroy(nrm_client_t **client);
 
@@ -189,6 +194,7 @@ void nrm_client_destroy(nrm_client_t **client);
  ******************************************************************************/
 
 typedef struct nrm_role_s nrm_role_t;
+typedef int (nrm_role_sub_callback_fn) (nrm_msg_t *msg, void *arg);
 
 nrm_role_t *nrm_role_monitor_create_fromenv();
 
@@ -197,8 +203,10 @@ nrm_role_t *nrm_role_sensor_create_fromenv(const char *sensor_name);
 nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int);
 
 int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg, nrm_uuid_t *to);
-
 nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from);
+int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg);
+int nrm_role_register_sub_cb(const nrm_role_t *role, nrm_role_sub_callback_fn *fn, void *arg);
+int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
 
 void nrm_role_destroy(nrm_role_t **);
 

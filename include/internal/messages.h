@@ -44,7 +44,6 @@ typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 typedef Nrm__Add nrm_msg_add_t;
 typedef Nrm__Event nrm_msg_event_t;
 typedef Nrm__List nrm_msg_list_t;
-typedef Nrm__Message nrm_msg_t;
 typedef Nrm__Remove nrm_msg_remove_t;
 typedef Nrm__Scope nrm_msg_scope_t;
 typedef Nrm__ScopeList nrm_msg_scopelist_t;
@@ -97,6 +96,8 @@ int nrm_msg_sendto(zsock_t *socket, nrm_msg_t *msg, nrm_uuid_t *to);
 nrm_msg_t *nrm_msg_recv(zsock_t *socket);
 nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, nrm_uuid_t **from);
 
+int nrm_msg_pub(zsock_t *socket, nrm_string_t topic, nrm_msg_t *msg);
+nrm_msg_t *nrm_msg_sub(zsock_t *socket, nrm_string_t *topic);
 /*******************************************************************************
  * Control Messages: mostly needed to exchange through shared memory between
  * various nrm layers (e.g. brokers and user-facing APIs)
@@ -123,19 +124,18 @@ enum nrm_ctrlmsg_type_e {
 	NRM_CTRLMSG_TYPE_MAX,
 };
 
-struct nrm_ctrlmsg_s {
-	int type;
-	struct nrm_msg_s *msg; /* almost always, a control message deals with
-				  sending or receiving a real message */
-	nrm_uuid_t *uuid; /* need to keep track of where those messages come
-			     from */
-};
+int nrm_ctrlmsg__send(zsock_t *socket, int type, void *, void *);
+int nrm_ctrlmsg__recv(zsock_t *socket, int *type, void **, void **);
 
-typedef struct nrm_ctrlmsg_s nrm_ctrlmsg_t;
+int nrm_ctrlmsg_sendmsg(zsock_t *socket, int type, nrm_msg_t *msg, nrm_uuid_t *to);
+nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from);
+int nrm_ctrlmsg_pub(zsock_t *socket, int type, nrm_string_t topic, nrm_msg_t *msg);
+int nrm_ctrlmsg_sub(zsock_t *socket, int type, nrm_string_t topic);
 
-int nrm_ctrlmsg_send(zsock_t *socket, int type, nrm_msg_t *msg, nrm_uuid_t *to);
-
-nrm_msg_t *nrm_ctrlmsg_recv(zsock_t *socket, int *type, nrm_uuid_t **from);
+#define NRM_CTRLMSG_2SEND(p,q,m) do { m = (nrm_msg_t *)p; } while(0)
+#define NRM_CTRLMSG_2SENDTO(p,q,m,t) do { m = (nrm_msg_t *)p; t = (nrm_uuid_t *)q; } while(0)
+#define NRM_CTRLMSG_2SUB(p,q,s) do { s = (nrm_string_t)p; } while(0)
+#define NRM_CTRLMSG_2PUB(p,q,s,m) do { s = (nrm_string_t)p; m = (nrm_msg_t *)q; } while(0)
 
 #ifdef __cplusplus
 }

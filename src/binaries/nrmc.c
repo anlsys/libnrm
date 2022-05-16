@@ -374,9 +374,33 @@ int cmd_find_slice(int argc, char **argv) {
 	return 0;
 }
 
-int cmd_list_scopes(int argc, char **argv) {
+int client_listen_callback(nrm_uuid_t uuid, nrm_time_t time, nrm_scope_t scope,
+			   double value)
+{
+	nrm_log_debug("event\n");
+}
 
+int cmd_listen(int argc, char **argv)
+{
+	/* no options at this time */
+	if (argc < 1)
+		return EXIT_FAILURE;
 
+	nrm_string_t topic = nrm_string_fromchar(argv[0]);
+	nrm_log_debug("listening to topic: %s\n", topic);
+
+	nrm_client_set_event_listener(client, client_listen_callback);
+	nrm_client_start_event_listener(client, topic);
+
+	/* don't want to push a message queue into the user API, so do it this
+	 * way. The callback will take care of printing events.
+	 */
+	while(1);
+	return 0;
+}
+
+int cmd_list_scopes(int argc, char **argv)
+{
 	/* no options at this time */
 	(void)argc;
 	(void)argv;
@@ -742,6 +766,7 @@ static struct client_cmd commands[] = {
 	{ "find-scope", cmd_find_scope },
 	{ "find-slice", cmd_find_slice },
 	{ "find-sensor", cmd_find_sensor },
+	{ "listen", cmd_listen },
 	{ "list-scopes", cmd_list_scopes },
 	{ "list-slices", cmd_list_slices },
 	{ "list-sensors", cmd_list_sensors },

@@ -18,6 +18,7 @@
 
 struct nrm_client_s {
 	nrm_role_t *role;
+	nrm_client_event_listener_fn *user_fn;
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -35,6 +36,7 @@ int nrm_client_create(nrm_client_t **client,
 	ret->role = nrm_role_client_create_fromparams(uri, pub_port, rpc_port);
 	if (ret->role == NULL)
 		return -NRM_EINVAL;
+	ret->user_fn = NULL;
 
 	*client = ret;
 	return 0;
@@ -207,6 +209,34 @@ int nrm_client_find(const nrm_client_t *client,
 		}
 	}
 	*results = ret;
+	return 0;
+}
+
+int nrm_client__sub_callback(nrm_msg_t *msg, void *arg)
+{
+	nrm_client_t *self = (nrm_client_t *)arg;
+	if (self->user_fn == NULL)
+		return 0;
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->event->uuid);
+	nrm_time_t time = nrm_time_fromns(msg->event->time);
+	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->event->scope);
+	self->user_fn(uuid, time, scope, msg->event->value);
+	return 0;
+}
+
+int nrm_client_set_event_listener(nrm_client_t *client, nrm_client_event_listener_fn *fn)
+{
+	if (client == NULL || fn == NULL)
+		return -NRM_EINVAL;
+	client->user_fn = fn;
+}
+
+int nrm_client_start_event_listener(const nrm_client_t *client, nrm_string_t topic)
+{
+	if (client == NULL)
+		return -NRM_EINVAL;
+	nrm_role_register_sub_cb(client->role, nrm_client__sub_callback, client);
+	nrm_role_sub(client->role, topic);
 	return 0;
 }
 

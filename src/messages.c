@@ -386,6 +386,21 @@ static int nrm_msg_push_identity(zmsg_t *zm, nrm_uuid_t *uuid)
 	return 0;	
 }
 
+static int nrm_msg_push_topic(zmsg_t *zm, char *topic)
+{
+	zframe_t *frame = zframe_from(topic);
+	zmsg_append(zm, &frame);
+	return 0;
+}
+
+static int nrm_msg_pop_topic(zmsg_t *zm, nrm_string_t *topic)
+{
+	zframe_t *frame = zmsg_pop(zm);
+	*topic = nrm_string_fromchar((char *)zframe_data(frame));
+	zframe_destroy(&frame);
+	return 0;
+}
+
 int nrm_msg_send(zsock_t *socket, nrm_msg_t *msg)
 {
 	zmsg_t *zm = zmsg_new();
@@ -421,6 +436,27 @@ nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, nrm_uuid_t **uuid)
 	assert(zm);
 	nrm_msg_pop_identity(zm, uuid);
 	nrm_msg_t *msg = NULL;
+	nrm_msg_pop_packed_frames(zm, &msg);
+	zmsg_destroy(&zm);
+	return msg;
+}
+
+int nrm_msg_pub(zsock_t *socket, nrm_string_t topic, nrm_msg_t *msg)
+{
+	zmsg_t *zm = zmsg_new();
+	if (zm == NULL)
+		return -NRM_ENOMEM;
+	nrm_msg_push_topic(zm, topic);
+	nrm_msg_push_packed_frames(zm, msg);
+	return zmsg_send(&zm, socket);
+}
+
+nrm_msg_t *nrm_msg_sub(zsock_t *socket, nrm_string_t *topic)
+{
+	zmsg_t *zm = zmsg_recv(socket);
+	assert(zm);
+	nrm_msg_t *msg = NULL;
+	nrm_msg_pop_topic(zm, topic);
 	nrm_msg_pop_packed_frames(zm, &msg);
 	zmsg_destroy(&zm);
 	return msg;
@@ -668,28 +704,61 @@ int nrm_ctrlmsg_s2t(const char *string)
 	return -1;
 }
 
-int nrm_ctrlmsg_send(zsock_t *socket, int type, nrm_msg_t *msg, nrm_uuid_t *to)
+int nrm_ctrlmsg__send(zsock_t *socket, int type, void *p1, void *p2)
 {
 	int err;
 	/* control messages are basically a control string and a pointer */
 	const char *typestring = nrm_ctrlmsg_t2s(type);
 	assert(typestring != NULL);
-	err = zsock_send(socket, "spp", typestring, (void *)msg, (void *)to);
+	err = zsock_send(socket, "spp", typestring, p1, p2);
 	assert(err == 0);
 	return err;
 }
 
-nrm_msg_t *nrm_ctrlmsg_recv(zsock_t *socket, int *type, nrm_uuid_t **from)
+int nrm_ctrlmsg__recv(zsock_t *socket, int *type, void **p1, void **p2)
 {
 	int err;
-	char *s; void *p,*u;
-	err = zsock_recv(socket, "spp", &s, &p, &u);
+	char *s; void *p, *q;
+	err = zsock_recv(socket, "spp", &s, &p, &q);
 	assert(err == 0);
 	*type = nrm_ctrlmsg_s2t(s);
-	nrm_log_debug("received %s:%u:\t",s,*type);
+	nrm_log_debug("received %s:%u\n",s,*type);
+	if (p1 != NULL) {
+		*p1 = p;
+	}
+	if (p2 != NULL) {
+		*p2 = q;
+	}
+	return err;
+}
+
+int nrm_ctrlmsg_sendmsg(zsock_t *socket, int type, nrm_msg_t *msg, nrm_uuid_t *to)
+{
+	assert(type == NRM_CTRLMSG_TYPE_SEND);
+	return nrm_ctrlmsg__send(socket, type, (void*)msg, (void*)to);
+}
+
+int nrm_ctrlmsg_pub(zsock_t *socket, int type, nrm_string_t topic, nrm_msg_t *msg)
+{
+	assert(type == NRM_CTRLMSG_TYPE_PUB);
+	return nrm_ctrlmsg__send(socket, type, (void*)topic, (void*)msg);
+}
+
+int nrm_ctrlmsg_sub(zsock_t *socket, int type, nrm_string_t topic)
+{
+	assert(type == NRM_CTRLMSG_TYPE_SUB);
+	return nrm_ctrlmsg__send(socket, type, (void*)topic, NULL);
+}
+
+nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from)
+{
+	int err;
+	void *p, *q;
+	err = nrm_ctrlmsg__recv(socket, type, &p, &q);
+	assert(type == NRM_CTRLMSG_TYPE_RECV);
 	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
 	if (from != NULL) {
-		*from = (nrm_uuid_t *)u;
+		*from = (nrm_uuid_t *)q;
 		nrm_log_debug("from %s\n",nrm_uuid_to_char(*from));
 	}
 	return (nrm_msg_t *)p;

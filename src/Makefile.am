@@ -30,9 +30,7 @@ libnrm_la_SOURCES = \
 		 log.c \
 		 roles/client.c \
 		 roles/controller.c \
-		 roles/monitor.c \
 		 roles/role.c \
-		 roles/sensor.c \
 		 slices.c \
 		 sensor.c \
 		 state.c \
