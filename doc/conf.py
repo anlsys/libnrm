@@ -23,12 +23,12 @@ sys.path.append(os.path.abspath('../src'))
 
 read_the_docs = os.environ.get('READTHEDOCS', None) == 'True'
 if read_the_docs:
-    subprocess.call('doxygen', shell=True)
+    subprocess.call('doxygen nrm.doxy', shell=True)
 
 # -- Project information -----------------------------------------------------
 
 project = u'NRM'
-copyright = u'2021, Argonne National Laboratory'
+copyright = u'2022, Argonne National Laboratory'
 author = u'Argo team, Argonne National Laboratory'
 
 # The short X.Y version
