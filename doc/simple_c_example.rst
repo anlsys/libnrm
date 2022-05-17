@@ -102,5 +102,3 @@ to periodically report a measurement that corresponds to a set of logical CPUs o
 
      return 0;
    }
-
-See ``nrm.h`` below for more NRM user API information.
