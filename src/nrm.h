@@ -119,6 +119,9 @@ char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap);
  **/
 typedef struct nrm_scope nrm_scope_t;
 
+/**
+ * Initialize a scope, corresponding to a type of measurement to report back to NRM
+ **/
 nrm_scope_t *nrm_scope_create(void);
 
 #define NRM_SCOPE_TYPE_CPU 0
@@ -127,27 +130,63 @@ nrm_scope_t *nrm_scope_create(void);
 #define NRM_SCOPE_TYPE_MAX 3
 
 /**
- * Add an int to the list
+ * Register a resource type and logical index to a scope
+ *
+ * @param s: An NRM scope
+ * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or ``NRM_SCOPE_TYPE_GPU``
+ * @param num: A resource logical index (e.g. a logical CPU index)
  */
-int nrm_scope_add(nrm_scope_t *, unsigned int type, unsigned int num);
+int nrm_scope_add(nrm_scope_t *s, unsigned int type, unsigned int num);
 
-int nrm_scope_add_atomic(nrm_scope_t *, unsigned int type, unsigned int num);
+/**
+ * Register a resource type and logical, atomic index to a scope
+ *
+ * @param s: An NRM scope
+ * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or ``NRM_SCOPE_TYPE_GPU``
+ * @param num: A resource logical index (e.g. a logical CPU index)
+ */
+int nrm_scope_add_atomic(nrm_scope_t *s, unsigned int type, unsigned int num);
 
 /**
  * Size of the list (number of elements)
+ *
+ * @param s: An NRM scope
+ * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or ``NRM_SCOPE_TYPE_GPU``
  **/
-size_t nrm_scope_length(const nrm_scope_t *, unsigned int type);
+size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type);
 
-int nrm_scope_delete(nrm_scope_t *);
+/**
+ * Deletes a scope
+ *
+ * @param s: An NRM scope
+ **/
+int nrm_scope_delete(nrm_scope_t *s);
 
-int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *);
+/**
+ * Print the scope's corresponding resource bitmaps
+ * @param buf: Buffer into which output string is written
+ * @param bufsize: num characters to write into buffer
+ * @param s: An NRM scope
+ **/
+int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s);
 
 /*******************************************************************************
  * Scope Utils
  ******************************************************************************/
 
-int nrm_scope_threadshared(nrm_scope_t *);
-int nrm_scope_threadprivate(nrm_scope_t *);
+/**
+ * Map scope to the union of all resources in use by ALL threads.
+ *
+ * @param s: An NRM scope
+ **/
+int nrm_scope_threadshared(nrm_scope_t *s);
+
+/**
+ * Maps scope to the resources in use by this thread only.
+ *
+ * @param s: An NRM scope
+ **/
+int nrm_scope_threadprivate(nrm_scope_t *s);
 
 /*******************************************************************************
  * Downstream API
@@ -155,20 +194,26 @@ int nrm_scope_threadprivate(nrm_scope_t *);
 
 struct nrm_context;
 
+/**
+ * Returns an nrm_context structure
+ */
 struct nrm_context *nrm_ctxt_create(void);
 
 /**
- * deletes a nrm_context structure
+ * Deletes an nrm_context structure
  *
- * @param ctxt: pointer to a nrm_context structure.
+ * @param ctxt: pointer to an nrm_context structure.
  *
  */
-int nrm_ctxt_delete(struct nrm_context *);
+int nrm_ctxt_delete(struct nrm_context *ctxt);
 
 /**
  * Initializes a context for libnrm
  *
- * @param ctxt: pointer to a nrm_context structure.
+ * @param ctxt: pointer to an nrm_context structure.
+ * @param name: App-specific context name
+ * @param rank: MPI rank index
+ * @param thread: thread index
  *
  */
 int nrm_init(struct nrm_context *ctxt, const char *name, int rank, int thread);
@@ -176,7 +221,7 @@ int nrm_init(struct nrm_context *ctxt, const char *name, int rank, int thread);
 /**
  * Ends libnrm's operation.
  *
- * @param ctxt: pointer to a nrm_context structure.
+ * @param ctxt: pointer to an nrm_context structure.
  *
  */
 int nrm_fini(struct nrm_context *ctxt);
@@ -188,6 +233,7 @@ int nrm_fini(struct nrm_context *ctxt);
  *
  * @param progress: cumulative value that represents the application progress
  * since the last progress report.
+ * @param scope: an NRM scope associated with the measurement
  */
 int nrm_send_progress(struct nrm_context *ctxt,
                       unsigned long progress,
