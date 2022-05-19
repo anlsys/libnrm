@@ -58,12 +58,13 @@ CC="$PTHREAD_CC"
 # check for libtool
 LT_INIT
 AC_SEARCH_LIBS([dlsym], [dl dld], [], [
-  AC_MSG_ERROR([unable to find the dlsym() function])
+	AC_MSG_ERROR([unable to find the dlsym() function])
 ])
 
 AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile
+		 doc/Makefile
 		 libnrm.pc
 		 libnrmf.pc])
 AC_OUTPUT
