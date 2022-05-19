@@ -120,7 +120,8 @@ char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap);
 typedef struct nrm_scope nrm_scope_t;
 
 /**
- * Initialize a scope, corresponding to a type of measurement to report back to NRM
+ * Initialize a scope, corresponding to a type of measurement to report back to
+ *NRM
  **/
 nrm_scope_t *nrm_scope_create(void);
 
@@ -133,7 +134,8 @@ nrm_scope_t *nrm_scope_create(void);
  * Register a resource type and logical index to a scope
  *
  * @param s: An NRM scope
- * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or ``NRM_SCOPE_TYPE_GPU``
+ * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or
+ * ``NRM_SCOPE_TYPE_GPU``
  * @param num: A resource logical index (e.g. a logical CPU index)
  */
 int nrm_scope_add(nrm_scope_t *s, unsigned int type, unsigned int num);
@@ -142,7 +144,8 @@ int nrm_scope_add(nrm_scope_t *s, unsigned int type, unsigned int num);
  * Register a resource type and logical, atomic index to a scope
  *
  * @param s: An NRM scope
- * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or ``NRM_SCOPE_TYPE_GPU``
+ * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or
+ * ``NRM_SCOPE_TYPE_GPU``
  * @param num: A resource logical index (e.g. a logical CPU index)
  */
 int nrm_scope_add_atomic(nrm_scope_t *s, unsigned int type, unsigned int num);
@@ -151,7 +154,8 @@ int nrm_scope_add_atomic(nrm_scope_t *s, unsigned int type, unsigned int num);
  * Size of the list (number of elements)
  *
  * @param s: An NRM scope
- * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or ``NRM_SCOPE_TYPE_GPU``
+ * @param type: One of ``NRM_SCOPE_TYPE_CPU``, ``NRM_SCOPE_TYPE_NUMA``, or
+ *``NRM_SCOPE_TYPE_GPU``
  **/
 size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type);
 
