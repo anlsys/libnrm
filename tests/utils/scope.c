@@ -8,12 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-#include "nrm.h"
-#include "internal/nrmi.h"
-#include "internal/messages.h"
-
 #include <check.h>
 #include <stdlib.h>
+
+#include "nrm.h"
+
+#include "internal/messages.h"
+#include "internal/nrmi.h"
 
 START_TEST(test_from_json)
 {
@@ -56,4 +57,3 @@ int main(void)
 	nrm_finalize();
 	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

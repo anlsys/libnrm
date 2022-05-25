@@ -655,7 +655,7 @@ typedef unsigned char uint8_t;
 				_thh = (_thh->next ?                                           \
 				                HH_FROM_ELMT((head)->hh.tbl,                   \
 				                             _thh->next) :                     \
-				                NULL);                                         \
+                                                NULL);                                         \
 			}                                                                      \
 			if (_count != (head)->hh.tbl->num_items) {                             \
 				HASH_OOPS(                                                     \
@@ -1002,7 +1002,7 @@ typedef unsigned char uint8_t;
 			        ((((tbl)->num_items &                                    \
 			           (((tbl)->num_buckets * 2U) - 1U)) != 0U) ?            \
 			                 1U :                                            \
-			                 0U);                                            \
+                                         0U);                                            \
 			(tbl)->nonideal_items = 0;                                       \
 			for (_he_bkt_i = 0; _he_bkt_i < (tbl)->num_buckets;              \
 			     _he_bkt_i++) {                                              \
@@ -1045,7 +1045,7 @@ typedef unsigned char uint8_t;
 			        ((tbl)->nonideal_items >                                 \
 			         ((tbl)->num_items >> 1)) ?                              \
 			                ((tbl)->ineff_expands + 1U) :                    \
-			                0U;                                              \
+                                        0U;                                              \
 			if ((tbl)->ineff_expands > 1U) {                                 \
 				(tbl)->noexpand = 1;                                     \
 				uthash_noexpand_fyi(tbl);                                \
@@ -1087,7 +1087,7 @@ typedef unsigned char uint8_t;
 						                         (head)->hh                     \
 						                                 .tbl,                  \
 						                         _hs_q->next) :                 \
-						                 NULL);                                 \
+                                                                 NULL);                                 \
 						if (_hs_q == NULL) {                                    \
 							break;                                          \
 						}                                                       \
@@ -1104,7 +1104,7 @@ typedef unsigned char uint8_t;
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_q->next) :         \
-							                 NULL);                         \
+                                                                         NULL);                         \
 							_hs_qsize--;                                    \
 						} else if ((_hs_qsize ==                                \
 						            0U) ||                                      \
@@ -1117,7 +1117,7 @@ typedef unsigned char uint8_t;
 								                         (head)->hh     \
 								                                 .tbl,  \
 								                         _hs_p->next) : \
-								                 NULL);                 \
+                                                                                 NULL);                 \
 							}                                               \
 							_hs_psize--;                                    \
 						} else if (                                             \
@@ -1140,7 +1140,7 @@ typedef unsigned char uint8_t;
 								                         (head)->hh     \
 								                                 .tbl,  \
 								                         _hs_p->next) : \
-								                 NULL);                 \
+                                                                                 NULL);                 \
 							}                                               \
 							_hs_psize--;                                    \
 						} else {                                                \
@@ -1151,7 +1151,7 @@ typedef unsigned char uint8_t;
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_q->next) :         \
-							                 NULL);                         \
+                                                                         NULL);                         \
 							_hs_qsize--;                                    \
 						}                                                       \
 						if (_hs_tail != NULL) {                                 \
@@ -1162,7 +1162,7 @@ typedef unsigned char uint8_t;
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_e) :               \
-							                 NULL);                         \
+                                                                         NULL);                         \
 						} else {                                                \
 							_hs_list = _hs_e;                               \
 						}                                                       \
@@ -1174,7 +1174,7 @@ typedef unsigned char uint8_t;
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_tail) :            \
-							                 NULL);                         \
+                                                                         NULL);                         \
 						}                                                       \
 						_hs_tail = _hs_e;                                       \
 					}                                                               \
@@ -1311,7 +1311,7 @@ typedef unsigned char uint8_t;
 	                   ((head)->hh.tbl->num_buckets *                      \
 	                    sizeof(UT_hash_bucket)) +                          \
 	                   sizeof(UT_hash_table) + (HASH_BLOOM_BYTELEN))) :    \
-	         0U)
+                 0U)
 
 #ifdef NO_DECLTYPE
 #define HASH_ITER(hh, head, el, tmp)                                           \

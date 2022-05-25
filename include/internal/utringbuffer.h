@@ -119,7 +119,7 @@ typedef struct {
 #define utringbuffer_eltptr(a, j)                                              \
 	(((j) < utringbuffer_len(a)) ?                                         \
 	         _utringbuffer_internalptr(a, _utringbuffer_real_idx(a, j)) :  \
-	         NULL)
+                 NULL)
 
 #define _utringbuffer_fake_idx(a, j)                                           \
 	((a)->f ? ((j) + (a)->n - (a)->i) % (a)->n : (j))
@@ -131,13 +131,13 @@ typedef struct {
 #define utringbuffer_front(a) utringbuffer_eltptr(a, 0)
 #define utringbuffer_next(a, e)                                                \
 	((e) == NULL ? utringbuffer_front(a) :                                 \
-	               utringbuffer_eltptr(a, utringbuffer_eltidx(a, e) + 1))
+                       utringbuffer_eltptr(a, utringbuffer_eltidx(a, e) + 1))
 #define utringbuffer_prev(a, e)                                                \
 	((e) == NULL ? utringbuffer_back(a) :                                  \
-	               utringbuffer_eltptr(a, utringbuffer_eltidx(a, e) - 1))
+                       utringbuffer_eltptr(a, utringbuffer_eltidx(a, e) - 1))
 #define utringbuffer_back(a)                                                   \
 	(utringbuffer_empty(a) ?                                               \
 	         NULL :                                                        \
-	         utringbuffer_eltptr(a, utringbuffer_len(a) - 1))
+                 utringbuffer_eltptr(a, utringbuffer_len(a) - 1))
 
 #endif /* UTRINGBUFFER_H */
