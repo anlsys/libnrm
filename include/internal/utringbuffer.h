@@ -118,7 +118,7 @@ typedef struct {
 #define _utringbuffer_internalptr(a, j) ((void *)((a)->d + ((a)->icd.sz * (j))))
 #define utringbuffer_eltptr(a, j)                                              \
 	(((j) < utringbuffer_len(a)) ?                                         \
-	         _utringbuffer_internalptr(a, _utringbuffer_real_idx(a, j)) :  \
+                 _utringbuffer_internalptr(a, _utringbuffer_real_idx(a, j)) :  \
                  NULL)
 
 #define _utringbuffer_fake_idx(a, j)                                           \
@@ -137,7 +137,7 @@ typedef struct {
                        utringbuffer_eltptr(a, utringbuffer_eltidx(a, e) - 1))
 #define utringbuffer_back(a)                                                   \
 	(utringbuffer_empty(a) ?                                               \
-	         NULL :                                                        \
+                 NULL :                                                        \
                  utringbuffer_eltptr(a, utringbuffer_len(a) - 1))
 
 #endif /* UTRINGBUFFER_H */

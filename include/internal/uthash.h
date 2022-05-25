@@ -653,7 +653,7 @@ typedef unsigned char uint8_t;
 				_prev = (char *)ELMT_FROM_HH((head)->hh.tbl,                   \
 				                             _thh);                            \
 				_thh = (_thh->next ?                                           \
-				                HH_FROM_ELMT((head)->hh.tbl,                   \
+                                                HH_FROM_ELMT((head)->hh.tbl,                   \
 				                             _thh->next) :                     \
                                                 NULL);                                         \
 			}                                                                      \
@@ -1001,7 +1001,7 @@ typedef unsigned char uint8_t;
 			         ((tbl)->log2_num_buckets + 1U)) +                       \
 			        ((((tbl)->num_items &                                    \
 			           (((tbl)->num_buckets * 2U) - 1U)) != 0U) ?            \
-			                 1U :                                            \
+                                         1U :                                            \
                                          0U);                                            \
 			(tbl)->nonideal_items = 0;                                       \
 			for (_he_bkt_i = 0; _he_bkt_i < (tbl)->num_buckets;              \
@@ -1044,7 +1044,7 @@ typedef unsigned char uint8_t;
 			(tbl)->ineff_expands =                                           \
 			        ((tbl)->nonideal_items >                                 \
 			         ((tbl)->num_items >> 1)) ?                              \
-			                ((tbl)->ineff_expands + 1U) :                    \
+                                        ((tbl)->ineff_expands + 1U) :                    \
                                         0U;                                              \
 			if ((tbl)->ineff_expands > 1U) {                                 \
 				(tbl)->noexpand = 1;                                     \
@@ -1083,7 +1083,7 @@ typedef unsigned char uint8_t;
 						_hs_psize++;                                            \
 						_hs_q = ((_hs_q->next !=                                \
 						          NULL) ?                                       \
-						                 HH_FROM_ELMT(                          \
+                                                                 HH_FROM_ELMT(                          \
 						                         (head)->hh                     \
 						                                 .tbl,                  \
 						                         _hs_q->next) :                 \
@@ -1100,7 +1100,7 @@ typedef unsigned char uint8_t;
 							_hs_e = _hs_q;                                  \
 							_hs_q = ((_hs_q->next !=                        \
 							          NULL) ?                               \
-							                 HH_FROM_ELMT(                  \
+                                                                         HH_FROM_ELMT(                  \
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_q->next) :         \
@@ -1113,7 +1113,7 @@ typedef unsigned char uint8_t;
 							if (_hs_p != NULL) {                            \
 								_hs_p = ((_hs_p->next !=                \
 								          NULL) ?                       \
-								                 HH_FROM_ELMT(          \
+                                                                                 HH_FROM_ELMT(          \
 								                         (head)->hh     \
 								                                 .tbl,  \
 								                         _hs_p->next) : \
@@ -1136,7 +1136,7 @@ typedef unsigned char uint8_t;
 							if (_hs_p != NULL) {                            \
 								_hs_p = ((_hs_p->next !=                \
 								          NULL) ?                       \
-								                 HH_FROM_ELMT(          \
+                                                                                 HH_FROM_ELMT(          \
 								                         (head)->hh     \
 								                                 .tbl,  \
 								                         _hs_p->next) : \
@@ -1147,7 +1147,7 @@ typedef unsigned char uint8_t;
 							_hs_e = _hs_q;                                  \
 							_hs_q = ((_hs_q->next !=                        \
 							          NULL) ?                               \
-							                 HH_FROM_ELMT(                  \
+                                                                         HH_FROM_ELMT(                  \
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_q->next) :         \
@@ -1158,7 +1158,7 @@ typedef unsigned char uint8_t;
 							_hs_tail->next =                                \
 							        ((_hs_e !=                              \
 							          NULL) ?                               \
-							                 ELMT_FROM_HH(                  \
+                                                                         ELMT_FROM_HH(                  \
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_e) :               \
@@ -1170,7 +1170,7 @@ typedef unsigned char uint8_t;
 							_hs_e->prev =                                   \
 							        ((_hs_tail !=                           \
 							          NULL) ?                               \
-							                 ELMT_FROM_HH(                  \
+                                                                         ELMT_FROM_HH(                  \
 							                         (head)->hh             \
 							                                 .tbl,          \
 							                         _hs_tail) :            \
@@ -1306,7 +1306,7 @@ typedef unsigned char uint8_t;
 
 #define HASH_OVERHEAD(hh, head)                                                \
 	(((head) != NULL) ?                                                    \
-	         ((size_t)(((head)->hh.tbl->num_items *                        \
+                 ((size_t)(((head)->hh.tbl->num_items *                        \
 	                    sizeof(UT_hash_handle)) +                          \
 	                   ((head)->hh.tbl->num_buckets *                      \
 	                    sizeof(UT_hash_bucket)) +                          \
