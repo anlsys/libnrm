@@ -136,8 +136,9 @@ typedef unsigned char uint8_t;
 
 /* initial number of buckets */
 #define HASH_INITIAL_NUM_BUCKETS 32U /* initial number of buckets        */
-#define HASH_INITIAL_NUM_BUCKETS_LOG2 5U /* lg2 of initial number of buckets   \
-	                                  */
+#define HASH_INITIAL_NUM_BUCKETS_LOG2                                          \
+	5U /* lg2 of initial number of buckets                                 \
+	    */
 #define HASH_BKT_CAPACITY_THRESH 10U /* expand when bucket count reaches */
 
 /* calculate the element whose hash handle address is hhp */
