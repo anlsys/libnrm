@@ -16,14 +16,14 @@
 
 /* RPC setup gets unbounded messages in both directions because:
  * - messages are going in both directions
- * - the downstream API uses rpc sockets to simulate a 1-1 pubsub without loss of
- *   messages, resulting in massive amount of messages going from the client to
+ * - the downstream API uses rpc sockets to simulate a 1-1 pubsub without loss
+ * of messages, resulting in massive amount of messages going from the client to
  *   the server without any message in the other direction.
  */
 
 int nrm_net_rpc_client_init(zsock_t **socket)
 {
-	if(!nrm_transmit)
+	if (!nrm_transmit)
 		return 0;
 
 	zsock_t *ret;
@@ -61,7 +61,7 @@ int nrm_net_rpc_server_init(zsock_t **socket)
 
 int nrm_net_sub_init(zsock_t **socket)
 {
-	if(!nrm_transmit)
+	if (!nrm_transmit)
 		return 0;
 
 	zsock_t *ret = zsock_new(ZMQ_SUB);
@@ -83,7 +83,7 @@ int nrm_net_sub_set_topic(zsock_t *socket, const char *topic)
 
 int nrm_net_pub_init(zsock_t **socket)
 {
-	if(!nrm_transmit)
+	if (!nrm_transmit)
 		return 0;
 
 	zsock_t *ret = zsock_new(ZMQ_PUB);
@@ -125,14 +125,14 @@ int nrm_net_connect_and_wait(zsock_t *socket, const char *uri)
 	assert(err == 0);
 
 	int connected = 0;
-	while(!connected) {
+	while (!connected) {
 		/* read first frame for event number */
 		zmsg_t *msg = zmsg_recv(monitor);
 		assert(msg != NULL);
 
 		char *event = zmsg_popstr(msg);
 
-		if(!strcmp(event, "CONNECTED"))
+		if (!strcmp(event, "CONNECTED"))
 			connected = 1;
 		free(event);
 		zmsg_destroy(&msg);
@@ -172,14 +172,14 @@ int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port)
 	assert(err == 0);
 
 	int connected = 0;
-	while(!connected) {
+	while (!connected) {
 		/* read first frame for event number */
 		zmsg_t *msg = zmsg_recv(monitor);
 		assert(msg != NULL);
 
 		char *event = zmsg_popstr(msg);
 
-		if(!strcmp(event, "CONNECTED"))
+		if (!strcmp(event, "CONNECTED"))
 			connected = 1;
 		free(event);
 		zmsg_destroy(&msg);

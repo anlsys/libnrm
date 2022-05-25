@@ -72,7 +72,6 @@
 #define PLUS_1_36 37
 #define PLUS_1(N) CONCATENATE(PLUS_1_, N)
 
-
 // Field name in struct: __f1 for N = 1
 #define NRM_FIELD(N) CONCATENATE(__f, N)
 #define NRM_FIELD_DECL(type, N) type NRM_FIELD(N);
@@ -185,8 +184,7 @@
  * @param ...: types contained in allocation. (Up to 8)
  * @return A pointer to Nth field after ptr.
  **/
-#define NRM_INNER_MALLOC_GET_FIELD(ptr, N, ...) \
-	(void *)(((intptr_t) ptr) + NRM_OFFSETOF_ALIGNED(N, __VA_ARGS__))
-
+#define NRM_INNER_MALLOC_GET_FIELD(ptr, N, ...)                                \
+	(void *)(((intptr_t)ptr) + NRM_OFFSETOF_ALIGNED(N, __VA_ARGS__))
 
 #endif

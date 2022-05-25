@@ -16,6 +16,7 @@ extern "C" {
 #endif
 
 #include "nrm.h"
+
 #include "internal/nrmi.h"
 
 /*******************************************************************************
@@ -40,7 +41,6 @@ typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_SCOPE (NRM__TARGETTYPE__SCOPE)
 #define NRM_MSG_TARGET_TYPE_MAX (3)
 
-
 typedef Nrm__Add nrm_msg_add_t;
 typedef Nrm__Event nrm_msg_event_t;
 typedef Nrm__List nrm_msg_list_t;
@@ -52,23 +52,27 @@ typedef Nrm__SensorList nrm_msg_sensorlist_t;
 typedef Nrm__Slice nrm_msg_slice_t;
 typedef Nrm__SliceList nrm_msg_slicelist_t;
 
-#define nrm_msg_add_init(msg)        nrm__add__init(msg)
-#define nrm_msg_event_init(msg)      nrm__event__init(msg)
-#define nrm_msg_init(msg)            nrm__message__init(msg)
-#define nrm_msg_list_init(msg)       nrm__list__init(msg)
-#define nrm_msg_remove_init(msg)     nrm__remove__init(msg)
-#define nrm_msg_scope_init(msg)      nrm__scope__init(msg)
-#define nrm_msg_scopelist_init(msg)  nrm__scope_list__init(msg)
-#define nrm_msg_sensor_init(msg)     nrm__sensor__init(msg)
+#define nrm_msg_add_init(msg) nrm__add__init(msg)
+#define nrm_msg_event_init(msg) nrm__event__init(msg)
+#define nrm_msg_init(msg) nrm__message__init(msg)
+#define nrm_msg_list_init(msg) nrm__list__init(msg)
+#define nrm_msg_remove_init(msg) nrm__remove__init(msg)
+#define nrm_msg_scope_init(msg) nrm__scope__init(msg)
+#define nrm_msg_scopelist_init(msg) nrm__scope_list__init(msg)
+#define nrm_msg_sensor_init(msg) nrm__sensor__init(msg)
 #define nrm_msg_sensorlist_init(msg) nrm__sensor_list__init(msg)
-#define nrm_msg_slice_init(msg)      nrm__slice__init(msg)
-#define nrm_msg_slicelist_init(msg)  nrm__slice_list__init(msg)
+#define nrm_msg_slice_init(msg) nrm__slice__init(msg)
+#define nrm_msg_slicelist_init(msg) nrm__slice_list__init(msg)
 
 nrm_msg_t *nrm_msg_create(void);
 void nrm_msg_destroy(nrm_msg_t **msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
-int nrm_msg_set_event(nrm_msg_t *msg, nrm_time_t time, nrm_uuid_t *uuid, nrm_scope_t *scope, double value);
+int nrm_msg_set_event(nrm_msg_t *msg,
+                      nrm_time_t time,
+                      nrm_uuid_t *uuid,
+                      nrm_scope_t *scope,
+                      double value);
 int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope);
 int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
 int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
@@ -108,7 +112,6 @@ nrm_msg_t *nrm_msg_sub(zsock_t *socket, nrm_string_t *topic);
  * for easier logic.
  */
 
-
 #define NRM_CTRLMSG_TYPE_STRING_TERM "$TERM"
 #define NRM_CTRLMSG_TYPE_STRING_SEND "SEND"
 #define NRM_CTRLMSG_TYPE_STRING_RECV "RECV"
@@ -127,15 +130,35 @@ enum nrm_ctrlmsg_type_e {
 int nrm_ctrlmsg__send(zsock_t *socket, int type, void *, void *);
 int nrm_ctrlmsg__recv(zsock_t *socket, int *type, void **, void **);
 
-int nrm_ctrlmsg_sendmsg(zsock_t *socket, int type, nrm_msg_t *msg, nrm_uuid_t *to);
+int nrm_ctrlmsg_sendmsg(zsock_t *socket,
+                        int type,
+                        nrm_msg_t *msg,
+                        nrm_uuid_t *to);
 nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from);
-int nrm_ctrlmsg_pub(zsock_t *socket, int type, nrm_string_t topic, nrm_msg_t *msg);
+int nrm_ctrlmsg_pub(zsock_t *socket,
+                    int type,
+                    nrm_string_t topic,
+                    nrm_msg_t *msg);
 int nrm_ctrlmsg_sub(zsock_t *socket, int type, nrm_string_t topic);
 
-#define NRM_CTRLMSG_2SEND(p,q,m) do { m = (nrm_msg_t *)p; } while(0)
-#define NRM_CTRLMSG_2SENDTO(p,q,m,t) do { m = (nrm_msg_t *)p; t = (nrm_uuid_t *)q; } while(0)
-#define NRM_CTRLMSG_2SUB(p,q,s) do { s = (nrm_string_t)p; } while(0)
-#define NRM_CTRLMSG_2PUB(p,q,s,m) do { s = (nrm_string_t)p; m = (nrm_msg_t *)q; } while(0)
+#define NRM_CTRLMSG_2SEND(p, q, m)                                             \
+	do {                                                                   \
+		m = (nrm_msg_t *)p;                                            \
+	} while (0)
+#define NRM_CTRLMSG_2SENDTO(p, q, m, t)                                        \
+	do {                                                                   \
+		m = (nrm_msg_t *)p;                                            \
+		t = (nrm_uuid_t *)q;                                           \
+	} while (0)
+#define NRM_CTRLMSG_2SUB(p, q, s)                                              \
+	do {                                                                   \
+		s = (nrm_string_t)p;                                           \
+	} while (0)
+#define NRM_CTRLMSG_2PUB(p, q, s, m)                                           \
+	do {                                                                   \
+		s = (nrm_string_t)p;                                           \
+		m = (nrm_msg_t *)q;                                            \
+	} while (0)
 
 #ifdef __cplusplus
 }

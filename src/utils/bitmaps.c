@@ -17,8 +17,6 @@
 
 #include "nrm.h"
 
-
-
 #define NRM_BITMAP_EMPTY (0UL)
 #define NRM_BITMAP_FULL (~0UL)
 #define NRM_BITMAP_NTH(i) ((i) / NRM_BITMAP_NBITS)
@@ -139,15 +137,14 @@ char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap)
 	return buf;
 }
 
-
 json_t *nrm_bitmap_to_json(struct nrm_bitmap *bitmap)
 {
 	json_t *ret;
 	size_t size = nrm_bitmap_nset(bitmap);
 
 	ret = json_array();
-	for(size_t i = 0, printed = 0; i < NRM_BITMAP_MAX && printed < size;
-	    i++) {
+	for (size_t i = 0, printed = 0; i < NRM_BITMAP_MAX && printed < size;
+	     i++) {
 		if (nrm_bitmap_isset(bitmap, i)) {
 			json_t *val = json_integer(i);
 			json_array_append_new(ret, val);
@@ -157,8 +154,9 @@ json_t *nrm_bitmap_to_json(struct nrm_bitmap *bitmap)
 	return ret;
 }
 
-
-int nrm_bitmap_to_array(const struct nrm_bitmap *map, size_t *nitems, int32_t **items)
+int nrm_bitmap_to_array(const struct nrm_bitmap *map,
+                        size_t *nitems,
+                        int32_t **items)
 {
 	size_t size = nrm_bitmap_nset(map);
 	*nitems = size;
@@ -184,14 +182,14 @@ int nrm_bitmap_from_array(struct nrm_bitmap *map, size_t nitems, int32_t *items)
 int nrm_bitmap_from_json(struct nrm_bitmap *bitmap, json_t *json)
 {
 	if (!json_is_array(json))
-	    return -NRM_EINVAL;
+		return -NRM_EINVAL;
 
 	size_t index;
 	json_t *value;
-	json_array_foreach(json, index, value) {
+	json_array_foreach(json, index, value)
+	{
 		json_int_t i = json_integer_value(value);
 		nrm_bitmap_set(bitmap, i);
 	}
 	return 0;
 }
-

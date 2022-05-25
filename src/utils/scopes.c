@@ -56,7 +56,7 @@ nrm_scope_t *nrm_scope_dup(nrm_scope_t *s)
 int nrm_scope_cmp(nrm_scope_t *one, nrm_scope_t *two)
 {
 	for (size_t i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
-		if(!nrm_bitmap_cmp(&one->maps[i], &two->maps[i]))
+		if (!nrm_bitmap_cmp(&one->maps[i], &two->maps[i]))
 			return 1;
 	return 0;
 }
@@ -89,8 +89,8 @@ json_t *nrm_scope_to_json(nrm_scope_t *scope)
 	cpu = nrm_bitmap_to_json(&scope->maps[0]);
 	numa = nrm_bitmap_to_json(&scope->maps[1]);
 	gpu = nrm_bitmap_to_json(&scope->maps[2]);
-	return json_pack("{s:o, s:o, s:o}",
-			 "cpu", cpu, "numa", numa, "gpu", gpu);
+	return json_pack("{s:o, s:o, s:o}", "cpu", cpu, "numa", numa, "gpu",
+	                 gpu);
 }
 
 int nrm_scope_from_json(nrm_scope_t *scope, json_t *json)
@@ -99,12 +99,13 @@ int nrm_scope_from_json(nrm_scope_t *scope, json_t *json)
 	char *uuid = NULL;
 	json_error_t error;
 	int err;
-	err = json_unpack_ex(json, &error, 0, "{s?:s, s?:o, s?:o, s?:o}", "uuid", &uuid,
-		    "cpu", &cpu, "numa", &numa, "gpu", &gpu);
+	err = json_unpack_ex(json, &error, 0, "{s?:s, s?:o, s?:o, s?:o}",
+	                     "uuid", &uuid, "cpu", &cpu, "numa", &numa, "gpu",
+	                     &gpu);
 	if (err) {
 		nrm_log_error("error unpacking json: %s, %s, %d, %d, %d\n",
-			      error.text, error.source, error.line, error.column,
-			      error.position);
+		              error.text, error.source, error.line,
+		              error.column, error.position);
 		return -NRM_EINVAL;
 	}
 	if (uuid)

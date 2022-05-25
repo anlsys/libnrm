@@ -75,16 +75,24 @@ int nrm_finalize(void);
 
 int nrm_log_init(FILE *f, const char *nm);
 
-void nrm_log_printf(int level, const char *file, unsigned int line, const char
-		    *format, ...);
+void nrm_log_printf(int level,
+                    const char *file,
+                    unsigned int line,
+                    const char *format,
+                    ...);
 
 int nrm_log_setlevel(int level);
 
-#define nrm_log_error(...) nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
-#define nrm_log_warning(...) nrm_log_printf(NRM_LOG_WARNING, __FILE__, __LINE__, __VA_ARGS__)
-#define nrm_log_normal(...) nrm_log_printf(NRM_LOG_NORMAL, __FILE__, __LINE__, __VA_ARGS__)
-#define nrm_log_info(...) nrm_log_printf(NRM_LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
-#define nrm_log_debug(...) nrm_log_printf(NRM_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_error(...)                                                     \
+	nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_warning(...)                                                   \
+	nrm_log_printf(NRM_LOG_WARNING, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_normal(...)                                                    \
+	nrm_log_printf(NRM_LOG_NORMAL, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_info(...)                                                      \
+	nrm_log_printf(NRM_LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
+#define nrm_log_debug(...)                                                     \
+	nrm_log_printf(NRM_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
 /*******************************************************************************
  * NRM Messages
@@ -127,7 +135,7 @@ nrm_sensor_t *nrm_sensor_create(char *name);
 void nrm_sensor_destroy(nrm_sensor_t **);
 
 /*******************************************************************************
- * State: the full state of a controller 
+ * State: the full state of a controller
  ******************************************************************************/
 
 struct nrm_state_s {
@@ -150,8 +158,8 @@ typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 nrm_eventbase_t *nrm_eventbase_create(size_t maxevents, size_t maxperiods);
 
-int nrm_eventbase_push_event(nrm_eventbase_t *, nrm_uuid_t *, nrm_scope_t *,
-			     nrm_time_t, double);
+int nrm_eventbase_push_event(
+        nrm_eventbase_t *, nrm_uuid_t *, nrm_scope_t *, nrm_time_t, double);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 
@@ -164,23 +172,37 @@ void nrm_eventbase_destroy(nrm_eventbase_t **);
 
 typedef struct nrm_client_s nrm_client_t;
 
-typedef int (nrm_client_event_listener_fn)(nrm_uuid_t *uuid, nrm_time_t time,
-					   nrm_scope_t *scope, double value);
+typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
+                                          nrm_time_t time,
+                                          nrm_scope_t *scope,
+                                          double value);
 
-int nrm_client_create(nrm_client_t **client, const char *uri, int pub_port,
-		      int rpc_port);
+int nrm_client_create(nrm_client_t **client,
+                      const char *uri,
+                      int pub_port,
+                      int rpc_port);
 
 int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope);
 int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
 int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
-int nrm_client_find(const nrm_client_t *client, int type, char *name, nrm_uuid_t *uuid, nrm_vector_t **results);
+int nrm_client_find(const nrm_client_t *client,
+                    int type,
+                    char *name,
+                    nrm_uuid_t *uuid,
+                    nrm_vector_t **results);
 int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes);
 int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
 int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
 int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid);
-int nrm_client_send_event(const nrm_client_t *client, nrm_time_t time, nrm_sensor_t *sensor, nrm_scope_t *scope, double value);
-int nrm_client_set_event_listener(nrm_client_t *client, nrm_client_event_listener_fn fn);
-int nrm_client_start_event_listener(const nrm_client_t *client, nrm_string_t topic);
+int nrm_client_send_event(const nrm_client_t *client,
+                          nrm_time_t time,
+                          nrm_sensor_t *sensor,
+                          nrm_scope_t *scope,
+                          double value);
+int nrm_client_set_event_listener(nrm_client_t *client,
+                                  nrm_client_event_listener_fn fn);
+int nrm_client_start_event_listener(const nrm_client_t *client,
+                                    nrm_string_t topic);
 
 void nrm_client_destroy(nrm_client_t **client);
 
@@ -194,7 +216,7 @@ void nrm_client_destroy(nrm_client_t **client);
  ******************************************************************************/
 
 typedef struct nrm_role_s nrm_role_t;
-typedef int (nrm_role_sub_callback_fn) (nrm_msg_t *msg, void *arg);
+typedef int(nrm_role_sub_callback_fn)(nrm_msg_t *msg, void *arg);
 
 nrm_role_t *nrm_role_monitor_create_fromenv();
 
@@ -205,7 +227,9 @@ nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int);
 int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg, nrm_uuid_t *to);
 nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from);
 int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg);
-int nrm_role_register_sub_cb(const nrm_role_t *role, nrm_role_sub_callback_fn *fn, void *arg);
+int nrm_role_register_sub_cb(const nrm_role_t *role,
+                             nrm_role_sub_callback_fn *fn,
+                             void *arg);
 int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
 
 void nrm_role_destroy(nrm_role_t **);

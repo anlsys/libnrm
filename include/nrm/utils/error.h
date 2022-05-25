@@ -46,7 +46,7 @@ const char *nrm_strerror(const int err);
 void nrm_perror(const char *msg);
 
 /** Generic value for success **/
-#define NRM_SUCCESS	0
+#define NRM_SUCCESS 0
 
 /**
  * Generic value for failure
@@ -54,39 +54,39 @@ void nrm_perror(const char *msg);
  * the function will detail another way to
  * inspect error.
  **/
-#define NRM_FAILURE	1
+#define NRM_FAILURE 1
 
 /**
  * Not enough memory was available
  * for fulfilling NRM function call.
  **/
-#define NRM_ENOMEM	2
+#define NRM_ENOMEM 2
 
 /**
  * One of the argument provided to
  * NRM function call was invalid.
  **/
-#define NRM_EINVAL	3
+#define NRM_EINVAL 3
 
 /**
  * One of the arguments provided
  * to NRM function call has out of bound
  * value.
  **/
-#define NRM_EDOM	4
+#define NRM_EDOM 4
 
 /**
  * Invoked NRM abstraction function is actually
  * not implemented for this particular version of
  * NRM abstraction.
  **/
-#define NRM_ENOTSUP     5
+#define NRM_ENOTSUP 5
 
 /**
  * Invoked NRM abstraction function has failed
  * because the resource it works on was busy.
  **/
-#define NRM_EBUSY       6
+#define NRM_EBUSY 6
 
 /**
  * Invoked NRM abstraction function has failed
@@ -107,4 +107,4 @@ void nrm_perror(const char *msg);
 }
 #endif
 
-#endif //NRM_ERROR_H
+#endif // NRM_ERROR_H

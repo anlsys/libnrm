@@ -9,6 +9,7 @@
  ******************************************************************************/
 
 #include "nrm.h"
+
 #include "internal/nrmi.h"
 #include "internal/roles.h"
 
@@ -33,9 +34,12 @@ int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg)
 	return role->ops->pub(role->data, topic, msg);
 }
 
-int nrm_role_register_sub_cb(const nrm_role_t *role, nrm_role_sub_callback_fn *fn, void *arg)
+int nrm_role_register_sub_cb(const nrm_role_t *role,
+                             nrm_role_sub_callback_fn *fn,
+                             void *arg)
 {
-	if (role == NULL || role->ops == NULL || role->ops->register_sub_cb == NULL)
+	if (role == NULL || role->ops == NULL ||
+	    role->ops->register_sub_cb == NULL)
 		return -NRM_ENOTSUP;
 	return role->ops->register_sub_cb(role->data, fn, arg);
 }

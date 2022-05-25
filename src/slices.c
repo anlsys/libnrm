@@ -16,8 +16,8 @@
 #include <string.h>
 
 #include "nrm.h"
-#include "internal/nrmi.h"
 
+#include "internal/nrmi.h"
 
 nrm_slice_t *nrm_slice_create(char *name)
 {
@@ -33,8 +33,7 @@ json_t *nrm_slice_to_json(nrm_slice_t *slice)
 
 	if (slice->uuid != NULL)
 		uuid = nrm_uuid_to_json(slice->uuid);
-	return json_pack("{s:s, s:o*}",
-			 "name", slice->name, "uuid", uuid);
+	return json_pack("{s:s, s:o*}", "name", slice->name, "uuid", uuid);
 }
 
 void nrm_slice_destroy(nrm_slice_t **slice)

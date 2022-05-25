@@ -10,13 +10,13 @@
 
 #include "config.h"
 
+#include <getopt.h>
+
 #include "nrm.h"
 
-#include "internal/nrmi.h"
 #include "internal/messages.h"
+#include "internal/nrmi.h"
 #include "internal/roles.h"
-
-#include <getopt.h>
 
 static int ask_help = 0;
 static int ask_version = 0;
@@ -26,23 +26,19 @@ static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 static nrm_client_t *client;
 
 static struct option long_options[] = {
-	{ "help", no_argument, &ask_help, 1 },
-	{ "version", no_argument, &ask_version, 1},
-	{ "uri", required_argument, NULL, 'u'},
-	{ "rpc-port", required_argument, NULL, 'r'},
-	{ "pub-port", required_argument, NULL, 'p'},
-	{ 0, 0, 0, 0},
+        {"help", no_argument, &ask_help, 1},
+        {"version", no_argument, &ask_version, 1},
+        {"uri", required_argument, NULL, 'u'},
+        {"rpc-port", required_argument, NULL, 'r'},
+        {"pub-port", required_argument, NULL, 'p'},
+        {0, 0, 0, 0},
 };
 
 static const char *short_options = "+hVu:r:p:";
 
-static const char *help[] = {
-	"Usage: nrmc [options]\n\n",
-	"Allowed options:\n",
-	"--help, -h    : print this help message\n",
-	"--version, -V : print program version\n",
-	NULL
-};
+static const char *help[] = {"Usage: nrmc [options]\n\n", "Allowed options:\n",
+                             "--help, -h    : print this help message\n",
+                             "--version, -V : print program version\n", NULL};
 
 void print_help()
 {
@@ -52,7 +48,7 @@ void print_help()
 
 void print_version()
 {
-	fprintf(stdout,"nrmc: version %s\n", nrm_version_string);
+	fprintf(stdout, "nrmc: version %s\n", nrm_version_string);
 }
 
 struct client_cmd {
@@ -60,27 +56,26 @@ struct client_cmd {
 	int (*fn)(int, char **);
 };
 
-int cmd_run(int argc, char **argv) {
+int cmd_run(int argc, char **argv)
+{
 
 	int err;
 	char *manifest_name = NULL;
 	static struct option cmd_run_long_options[] = {
-		{ "manifest", required_argument, NULL, 'm' },
-		{ 0, 0, 0, 0},
+	        {"manifest", required_argument, NULL, 'm'},
+	        {0, 0, 0, 0},
 	};
 
 	static const char *cmd_run_short_options = ":m:";
 
-
 	int c;
 	int option_index = 0;
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, cmd_run_short_options,
-				cmd_run_long_options,
-				&option_index);
+		                cmd_run_long_options, &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'm':
@@ -100,16 +95,17 @@ int cmd_run(int argc, char **argv) {
 	 */
 	if (argc < 1)
 		return EXIT_FAILURE;
-	
+
 	nrm_log_info("exec: argc: %u, argv[0]: %s\n", argc, argv[0]);
 	err = execvp(argv[0], &argv[0]);
 	return err;
 }
 
-int cmd_add_scope(int argc, char **argv) {
+int cmd_add_scope(int argc, char **argv)
+{
 
 	/* no matter the arguments, only one extra parameter */
-	if(argc != 2)
+	if (argc != 2)
 		return EXIT_FAILURE;
 
 	int err;
@@ -132,11 +128,12 @@ int cmd_add_scope(int argc, char **argv) {
 	return 0;
 }
 
-int cmd_add_slice(int argc, char **argv) {
+int cmd_add_slice(int argc, char **argv)
+{
 
 	if (argc < 2)
 		return EXIT_FAILURE;
-	
+
 	int err;
 	char *name = argv[1];
 	nrm_slice_t *slice = nrm_slice_create(name);
@@ -151,7 +148,8 @@ int cmd_add_slice(int argc, char **argv) {
 	return 0;
 }
 
-int cmd_add_sensor(int argc, char **argv) {
+int cmd_add_sensor(int argc, char **argv)
+{
 
 	if (argc < 2)
 		return EXIT_FAILURE;
@@ -170,26 +168,26 @@ int cmd_add_sensor(int argc, char **argv) {
 	return 0;
 }
 
-int cmd_find_scope(int argc, char **argv) {
+int cmd_find_scope(int argc, char **argv)
+{
 
 	int err;
 	static int ask_uuid = 0;
 	static struct option cmd_run_long_options[] = {
-		{ "uuid", no_argument, &ask_uuid, 1},
-		{ 0, 0, 0, 0},
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
 	};
 
 	static const char *cmd_run_short_options = ":u";
 
 	int c;
 	int option_index = 0;
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, cmd_run_short_options,
-				cmd_run_long_options,
-				&option_index);
+		                cmd_run_long_options, &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'u':
@@ -204,7 +202,7 @@ int cmd_find_scope(int argc, char **argv) {
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-	
+
 	if (argc < 1)
 		return EXIT_FAILURE;
 
@@ -215,8 +213,8 @@ int cmd_find_scope(int argc, char **argv) {
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name,
-			      uuid, &results);
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name, uuid,
+	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -234,30 +232,30 @@ int cmd_find_scope(int argc, char **argv) {
 		json_t *json = nrm_scope_to_json(s);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
-int cmd_find_sensor(int argc, char **argv) {
+int cmd_find_sensor(int argc, char **argv)
+{
 
 	int err;
 	static int ask_uuid = 0;
 	static struct option cmd_run_long_options[] = {
-		{ "uuid", no_argument, &ask_uuid, 1},
-		{ 0, 0, 0, 0},
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
 	};
 
 	static const char *cmd_run_short_options = ":u";
 
 	int c;
 	int option_index = 0;
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, cmd_run_short_options,
-				cmd_run_long_options,
-				&option_index);
+		                cmd_run_long_options, &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'u':
@@ -272,7 +270,7 @@ int cmd_find_sensor(int argc, char **argv) {
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-	
+
 	if (argc < 1)
 		return EXIT_FAILURE;
 
@@ -283,8 +281,8 @@ int cmd_find_sensor(int argc, char **argv) {
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
-			      uuid, &results);
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name, uuid,
+	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -302,30 +300,30 @@ int cmd_find_sensor(int argc, char **argv) {
 		json_t *json = nrm_sensor_to_json(s);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
-int cmd_find_slice(int argc, char **argv) {
+int cmd_find_slice(int argc, char **argv)
+{
 
 	int err;
 	static int ask_uuid = 0;
 	static struct option cmd_run_long_options[] = {
-		{ "uuid", no_argument, &ask_uuid, 1},
-		{ 0, 0, 0, 0},
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
 	};
 
 	static const char *cmd_run_short_options = ":u";
 
 	int c;
 	int option_index = 0;
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, cmd_run_short_options,
-				cmd_run_long_options,
-				&option_index);
+		                cmd_run_long_options, &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'u':
@@ -340,7 +338,7 @@ int cmd_find_slice(int argc, char **argv) {
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-	
+
 	if (argc < 1)
 		return EXIT_FAILURE;
 
@@ -351,8 +349,8 @@ int cmd_find_slice(int argc, char **argv) {
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name,
-			      uuid, &results);
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name, uuid,
+	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -370,12 +368,14 @@ int cmd_find_slice(int argc, char **argv) {
 		json_t *json = nrm_slice_to_json(s);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
-int client_listen_callback(nrm_uuid_t uuid, nrm_time_t time, nrm_scope_t scope,
-			   double value)
+int client_listen_callback(nrm_uuid_t uuid,
+                           nrm_time_t time,
+                           nrm_scope_t scope,
+                           double value)
 {
 	nrm_log_debug("event\n");
 }
@@ -395,7 +395,8 @@ int cmd_listen(int argc, char **argv)
 	/* don't want to push a message queue into the user API, so do it this
 	 * way. The callback will take care of printing events.
 	 */
-	while(1);
+	while (1)
+		;
 	return 0;
 }
 
@@ -426,12 +427,12 @@ int cmd_list_scopes(int argc, char **argv)
 		json_t *json = nrm_scope_to_json(s);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
-int cmd_list_sensors(int argc, char **argv) {
-
+int cmd_list_sensors(int argc, char **argv)
+{
 
 	/* no options at this time */
 	(void)argc;
@@ -458,12 +459,12 @@ int cmd_list_sensors(int argc, char **argv) {
 		json_t *json = nrm_sensor_to_json(s);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
-int cmd_list_slices(int argc, char **argv) {
-
+int cmd_list_slices(int argc, char **argv)
+{
 
 	/* no options at this time */
 	(void)argc;
@@ -490,7 +491,7 @@ int cmd_list_slices(int argc, char **argv) {
 		json_t *json = nrm_slice_to_json(s);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -500,22 +501,21 @@ int cmd_remove_scope(int argc, char **argv)
 	static int ask_uuid = 0;
 	static int ask_all = 0;
 	static struct option cmd_run_long_options[] = {
-		{ "uuid", no_argument, &ask_uuid, 1},
-		{ "all", no_argument, &ask_uuid, 1},
-		{ 0, 0, 0, 0},
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {"all", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
 	};
 
 	static const char *cmd_run_short_options = ":ua";
 
 	int c;
 	int option_index = 0;
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, cmd_run_short_options,
-				cmd_run_long_options,
-				&option_index);
+		                cmd_run_long_options, &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'u':
@@ -533,7 +533,7 @@ int cmd_remove_scope(int argc, char **argv)
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-	
+
 	if (argc < 1)
 		return EXIT_FAILURE;
 
@@ -544,8 +544,8 @@ int cmd_remove_scope(int argc, char **argv)
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name,
-			      uuid, &results);
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name, uuid,
+	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -566,7 +566,7 @@ int cmd_remove_scope(int argc, char **argv)
 		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SCOPE, s->uuid);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -576,22 +576,21 @@ int cmd_remove_sensor(int argc, char **argv)
 	static int ask_uuid = 0;
 	static int ask_all = 0;
 	static struct option cmd_run_long_options[] = {
-		{ "uuid", no_argument, &ask_uuid, 1},
-		{ "all", no_argument, &ask_uuid, 1},
-		{ 0, 0, 0, 0},
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {"all", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
 	};
 
 	static const char *cmd_run_short_options = ":ua";
 
 	int c;
 	int option_index = 0;
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, cmd_run_short_options,
-				cmd_run_long_options,
-				&option_index);
+		                cmd_run_long_options, &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'u':
@@ -609,7 +608,7 @@ int cmd_remove_sensor(int argc, char **argv)
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-	
+
 	if (argc < 1)
 		return EXIT_FAILURE;
 
@@ -620,8 +619,8 @@ int cmd_remove_sensor(int argc, char **argv)
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
-			      uuid, &results);
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name, uuid,
+	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -642,7 +641,7 @@ int cmd_remove_sensor(int argc, char **argv)
 		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SENSOR, s->uuid);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -652,22 +651,21 @@ int cmd_remove_slice(int argc, char **argv)
 	static int ask_uuid = 0;
 	static int ask_all = 0;
 	static struct option cmd_run_long_options[] = {
-		{ "uuid", no_argument, &ask_uuid, 1},
-		{ "all", no_argument, &ask_uuid, 1},
-		{ 0, 0, 0, 0},
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {"all", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
 	};
 
 	static const char *cmd_run_short_options = ":ua";
 
 	int c;
 	int option_index = 0;
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, cmd_run_short_options,
-				cmd_run_long_options,
-				&option_index);
+		                cmd_run_long_options, &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'u':
@@ -685,7 +683,7 @@ int cmd_remove_slice(int argc, char **argv)
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-	
+
 	if (argc < 1)
 		return EXIT_FAILURE;
 
@@ -696,8 +694,8 @@ int cmd_remove_slice(int argc, char **argv)
 		uuid = nrm_uuid_create_fromchar(argv[0]);
 	else
 		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name,
-			      uuid, &results);
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name, uuid,
+	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -718,7 +716,7 @@ int cmd_remove_slice(int argc, char **argv)
 		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SLICE, s->uuid);
 		json_array_append_new(array, json);
 	}
-	json_dumpf(array, stdout, JSON_SORT_KEYS); 
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -733,8 +731,8 @@ int cmd_send_event(int argc, char **argv)
 	/* find sensor */
 	int err;
 	nrm_vector_t *results;
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
-			      NULL, &results);
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name, NULL,
+	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
 		return EXIT_FAILURE;
@@ -760,22 +758,22 @@ int cmd_send_event(int argc, char **argv)
 }
 
 static struct client_cmd commands[] = {
-	{ "add-scope", cmd_add_scope },
-	{ "add-slice", cmd_add_slice },
-	{ "add-sensor", cmd_add_sensor },
-	{ "find-scope", cmd_find_scope },
-	{ "find-slice", cmd_find_slice },
-	{ "find-sensor", cmd_find_sensor },
-	{ "listen", cmd_listen },
-	{ "list-scopes", cmd_list_scopes },
-	{ "list-slices", cmd_list_slices },
-	{ "list-sensors", cmd_list_sensors },
-	{ "send-event", cmd_send_event },
-	{ "remove-scope", cmd_remove_scope },
-	{ "remove-slice", cmd_remove_slice },
-	{ "remove-sensor", cmd_remove_sensor },
-	{ "run", cmd_run },
-	{ 0, 0 },
+        {"add-scope", cmd_add_scope},
+        {"add-slice", cmd_add_slice},
+        {"add-sensor", cmd_add_sensor},
+        {"find-scope", cmd_find_scope},
+        {"find-slice", cmd_find_slice},
+        {"find-sensor", cmd_find_sensor},
+        {"listen", cmd_listen},
+        {"list-scopes", cmd_list_scopes},
+        {"list-slices", cmd_list_slices},
+        {"list-sensors", cmd_list_sensors},
+        {"send-event", cmd_send_event},
+        {"remove-scope", cmd_remove_scope},
+        {"remove-slice", cmd_remove_slice},
+        {"remove-sensor", cmd_remove_sensor},
+        {"run", cmd_run},
+        {0, 0},
 };
 
 int main(int argc, char *argv[])
@@ -783,12 +781,12 @@ int main(int argc, char *argv[])
 	int c;
 	int option_index = 0;
 
-	while(1) {
+	while (1) {
 		c = getopt_long(argc, argv, short_options, long_options,
-				&option_index);
+		                &option_index);
 		if (c == -1)
 			break;
-		switch(c) {
+		switch (c) {
 		case 0:
 			break;
 		case 'h':
@@ -811,14 +809,14 @@ int main(int argc, char *argv[])
 			ask_version = 1;
 			break;
 		case ':':
-			fprintf(stderr,"nrmc: missing argument\n");
+			fprintf(stderr, "nrmc: missing argument\n");
 			exit(EXIT_FAILURE);
 		case '?':
-			fprintf(stderr,"nrmc: invalid option: %s\n",
-				argv[optind-1]);
+			fprintf(stderr, "nrmc: invalid option: %s\n",
+			        argv[optind - 1]);
 			exit(EXIT_FAILURE);
 		default:
-			fprintf(stderr,"nrmc: this should not happen\n");
+			fprintf(stderr, "nrmc: this should not happen\n");
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -826,7 +824,7 @@ int main(int argc, char *argv[])
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
-	
+
 	if (ask_help) {
 		print_help();
 		exit(EXIT_SUCCESS);
@@ -836,7 +834,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if(argc == 0) {
+	if (argc == 0) {
 		print_help();
 		exit(EXIT_FAILURE);
 	}
@@ -846,21 +844,21 @@ int main(int argc, char *argv[])
 	nrm_log_setlevel(NRM_LOG_DEBUG);
 
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
-		      argc, argv[0]);
-	
+	              argc, argv[0]);
+
 	nrm_log_info("creating client\n");
 	nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
 
 	int err = 0;
-	for(int i = 0; commands[i].name != NULL; i++) {
-		if(!strcmp(argv[0], commands[i].name)) {
-		   err = commands[i].fn(argc, argv);
-		   goto end;
+	for (int i = 0; commands[i].name != NULL; i++) {
+		if (!strcmp(argv[0], commands[i].name)) {
+			err = commands[i].fn(argc, argv);
+			goto end;
 		}
 	}
 	fprintf(stderr, "wrong command: %s\n", argv[0]);
 	err = EXIT_FAILURE;
-end:	
+end:
 	nrm_client_destroy(&client);
 	nrm_finalize();
 	return err;

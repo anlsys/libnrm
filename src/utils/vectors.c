@@ -23,8 +23,6 @@ struct nrm_vector_s {
 	UT_icd icd;
 };
 
-
-
 int nrm_vector_create(nrm_vector_t **vector, const size_t element_size)
 {
 	nrm_vector_t *a;

@@ -11,7 +11,7 @@
 #ifndef NRM_STRINGS_H
 #define NRM_STRINGS_H 1
 
-typedef char * nrm_string_t;
+typedef char *nrm_string_t;
 
 nrm_string_t nrm_string_fromchar(const char *buf);
 nrm_string_t nrm_string_frombuf(const char *buf, size_t len);

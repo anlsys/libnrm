@@ -15,8 +15,8 @@
 
 #include "nrm.h"
 
-#include "internal/nrmi.h"
 #include "internal/messages.h"
+#include "internal/nrmi.h"
 
 /*******************************************************************************
  * Logging functions
@@ -27,12 +27,7 @@ static FILE *nrm_log_fd = NULL;
 static const char *nrm_log_namespace;
 
 static const char *nrm_log_level_string[] = {
-	"quiet",
-	"error",
-	"warning",
-	"normal",
-	"info",
-	"debug",
+        "quiet", "error", "warning", "normal", "info", "debug",
 };
 
 int nrm_log_init(FILE *f, const char *nm)
@@ -53,20 +48,19 @@ int nrm_log_setlevel(int level)
 	return 0;
 }
 
-void nrm_log_printf(int level, const char *file, unsigned int line,
-		    const char *format, ...)
+void nrm_log_printf(
+        int level, const char *file, unsigned int line, const char *format, ...)
 {
 	va_list ap;
 	if (level > nrm_log_level)
 		return;
 
 	if (nrm_log_level == NRM_LOG_DEBUG)
-		fprintf(nrm_log_fd, "%s:\t%s:\t%s:\t%u:\t",
-			nrm_log_namespace, nrm_log_level_string[level],
-			file, line);
+		fprintf(nrm_log_fd, "%s:\t%s:\t%s:\t%u:\t", nrm_log_namespace,
+		        nrm_log_level_string[level], file, line);
 	else
-		fprintf(nrm_log_fd, "%s:\t%s:\t",
-			nrm_log_namespace, nrm_log_level_string[level]);
+		fprintf(nrm_log_fd, "%s:\t%s:\t", nrm_log_namespace,
+		        nrm_log_level_string[level]);
 	va_start(ap, format);
 	vfprintf(nrm_log_fd, format, ap);
 	va_end(ap);

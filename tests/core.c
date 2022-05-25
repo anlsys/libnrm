@@ -8,10 +8,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-#include "nrm.h"
-
 #include <check.h>
 #include <stdlib.h>
+
+#include "nrm.h"
 
 START_TEST(test_version_values)
 {
@@ -63,4 +63,3 @@ int main(void)
 	srunner_free(sr);
 	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

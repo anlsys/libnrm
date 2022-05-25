@@ -8,12 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-#include "nrm.h"
-#include "internal/nrmi.h"
-
 #include <check.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include "nrm.h"
+
+#include "internal/nrmi.h"
 
 /* fixtures for client and server */
 zsock_t *client, *server;
@@ -25,11 +26,14 @@ void setup_pubsub(void)
 	ck_assert_int_eq(nrm_net_pub_init(&server), 0);
 	ck_assert_ptr_nonnull(server);
 	ck_assert_int_eq(nrm_net_bind_2(server, NRM_DEFAULT_UPSTREAM_URI,
-				  NRM_DEFAULT_UPSTREAM_PUB_PORT), 0);
+	                                NRM_DEFAULT_UPSTREAM_PUB_PORT),
+	                 0);
 	ck_assert_int_eq(nrm_net_sub_init(&client), 0);
 	ck_assert_ptr_nonnull(client);
-	ck_assert_int_eq(nrm_net_connect_and_wait_2(client, NRM_DEFAULT_UPSTREAM_URI,
-				  NRM_DEFAULT_UPSTREAM_PUB_PORT), 0);
+	ck_assert_int_eq(
+	        nrm_net_connect_and_wait_2(client, NRM_DEFAULT_UPSTREAM_URI,
+	                                   NRM_DEFAULT_UPSTREAM_PUB_PORT),
+	        0);
 	/* subscription is as annoying as usual, can't guarantee that the
 	 * messages are showing up without waiting a bit
 	 */
@@ -49,11 +53,14 @@ void setup_rpc(void)
 	ck_assert_int_eq(nrm_net_rpc_server_init(&server), 0);
 	ck_assert_ptr_nonnull(server);
 	ck_assert_int_eq(nrm_net_bind_2(server, NRM_DEFAULT_UPSTREAM_URI,
-				  NRM_DEFAULT_UPSTREAM_RPC_PORT), 0);
+	                                NRM_DEFAULT_UPSTREAM_RPC_PORT),
+	                 0);
 	ck_assert_int_eq(nrm_net_rpc_client_init(&client), 0);
 	ck_assert_ptr_nonnull(client);
-	ck_assert_int_eq(nrm_net_connect_and_wait_2(client, NRM_DEFAULT_UPSTREAM_URI,
-				  NRM_DEFAULT_UPSTREAM_RPC_PORT), 0);
+	ck_assert_int_eq(
+	        nrm_net_connect_and_wait_2(client, NRM_DEFAULT_UPSTREAM_URI,
+	                                   NRM_DEFAULT_UPSTREAM_RPC_PORT),
+	        0);
 }
 
 START_TEST(test_empty)
@@ -61,7 +68,6 @@ START_TEST(test_empty)
 	/* do nothing, just make sure that the fixtures are ok */
 }
 END_TEST
-
 
 START_TEST(test_send_onemsg_rpc)
 {
@@ -144,7 +150,7 @@ Suite *net_suite(void)
 	tcase_add_test(tc_pubsub, test_empty);
 	tcase_add_test(tc_pubsub, test_send_onemsg_pubsub);
 	suite_add_tcase(s, tc_pubsub);
-	
+
 	TCase *tc_rpc = tcase_create("rpc");
 	tcase_add_checked_fixture(tc_rpc, setup_rpc, teardown);
 	tcase_add_test(tc_rpc, test_empty);
@@ -170,4 +176,3 @@ int main(void)
 	nrm_finalize();
 	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

@@ -24,9 +24,9 @@ struct nrm_realstring_s {
 typedef struct nrm_realstring_s nrm_realstring_t;
 
 #define NRM_STRING_HEADER_SIZE (sizeof(nrm_realstring_t))
-#define NRM_STRING_C2S(s) (nrm_realstring_t *)(((intptr_t)s)-NRM_STRING_HEADER_SIZE)
-#define NRM_STRING_S2C(s) (char *)(((intptr_t)s)+NRM_STRING_HEADER_SIZE)
-
+#define NRM_STRING_C2S(s)                                                      \
+	(nrm_realstring_t *)(((intptr_t)s) - NRM_STRING_HEADER_SIZE)
+#define NRM_STRING_S2C(s) (char *)(((intptr_t)s) + NRM_STRING_HEADER_SIZE)
 
 static nrm_realstring_t *nrm_string_new(size_t slen)
 {

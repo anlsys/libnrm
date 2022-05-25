@@ -26,8 +26,8 @@ int nrm_errno;
 
 int nrm_init(int *argc, char **argv[])
 {
-	(void) argc;
-	(void) argv;
+	(void)argc;
+	(void)argv;
 	const char *rate = getenv(NRM_ENV_RATELIMIT);
 	const char *transmit = getenv(NRM_ENV_TRANSMIT);
 	if (rate == NULL)
@@ -53,4 +53,3 @@ int nrm_finalize(void)
 {
 	return 0;
 }
-

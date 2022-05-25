@@ -8,12 +8,12 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
+#include <check.h>
+#include <stdlib.h>
+
 #include "nrm.h"
 
 #include "nrm-internal.h"
-
-#include <check.h>
-#include <stdlib.h>
 
 /* fixtures for pair of sensor receiver and emitter */
 struct nrm_sensor_emitter_ctxt *sensor;
@@ -43,7 +43,7 @@ void teardown_both(void)
 
 START_TEST(test_send_progress)
 {
-	char *identity, *buf;	
+	char *identity, *buf;
 	nrm_scope_t *scope = nrm_scope_create();
 	ck_assert_ptr_nonnull(scope);
 	ck_assert(!nrm_scope_threadprivate(scope));
@@ -88,4 +88,3 @@ int main(void)
 	nrm_finalize();
 	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

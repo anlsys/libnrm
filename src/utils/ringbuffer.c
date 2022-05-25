@@ -17,9 +17,9 @@ struct nrm_ringbuffer_s {
 	UT_icd icd;
 };
 
-
-
-int nrm_ringbuffer_create(nrm_ringbuffer_t **ringbuffer, const size_t size, const size_t element_size)
+int nrm_ringbuffer_create(nrm_ringbuffer_t **ringbuffer,
+                          const size_t size,
+                          const size_t element_size)
 {
 	nrm_ringbuffer_t *a;
 
@@ -59,7 +59,9 @@ int nrm_ringbuffer_length(const nrm_ringbuffer_t *ringbuffer, size_t *length)
 	return NRM_SUCCESS;
 }
 
-int nrm_ringbuffer_get(const nrm_ringbuffer_t *ringbuffer, size_t index, void **out)
+int nrm_ringbuffer_get(const nrm_ringbuffer_t *ringbuffer,
+                       size_t index,
+                       void **out)
 {
 	if (ringbuffer == NULL || out == NULL)
 		return -NRM_EINVAL;

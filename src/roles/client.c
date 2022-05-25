@@ -12,8 +12,8 @@
 
 #include "nrm.h"
 
-#include "internal/nrmi.h"
 #include "internal/messages.h"
+#include "internal/nrmi.h"
 #include "internal/roles.h"
 
 struct nrm_client_sub_cb_s {
@@ -61,12 +61,14 @@ int nrm_client_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 
 	/* pipe messages are in shared memory, not actually packed on
 	 * the network */
-	int msg_type; void *p, *q;
-	nrm_msg_t *msg = NULL; nrm_string_t s = NULL;
+	int msg_type;
+	void *p, *q;
+	nrm_msg_t *msg = NULL;
+	nrm_string_t s = NULL;
 	nrm_ctrlmsg__recv(socket, &msg_type, &p, &q);
-	switch(msg_type) {
+	switch (msg_type) {
 	case NRM_CTRLMSG_TYPE_SEND:
-		NRM_CTRLMSG_2SEND(p,q, msg);
+		NRM_CTRLMSG_2SEND(p, q, msg);
 		nrm_log_debug("client sending message\n");
 		nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 		nrm_msg_send(self->rpc, msg);
@@ -127,9 +129,8 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	/* avoid losing messages */
 	zsock_set_unbounded(pipe);
 	self = calloc(1, sizeof(struct nrm_client_broker_s));
-	if (self == NULL)
-	{
-		zsock_signal(pipe,1);
+	if (self == NULL) {
+		zsock_signal(pipe, 1);
 		return;
 	}
 
@@ -142,13 +143,15 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	fprintf(stderr, "client: creating rpc socket\n");
 	err = nrm_net_rpc_client_init(&self->rpc);
 	assert(!err);
-	err = nrm_net_connect_and_wait_2(self->rpc, params->uri, params->rpc_port);
+	err = nrm_net_connect_and_wait_2(self->rpc, params->uri,
+	                                 params->rpc_port);
 	assert(!err);
 
 	fprintf(stderr, "client: creating sub socket\n");
 	err = nrm_net_sub_init(&self->sub);
 	assert(!err);
-	err = nrm_net_connect_and_wait_2(self->sub, params->uri, params->sub_port);
+	err = nrm_net_connect_and_wait_2(self->sub, params->uri,
+	                                 params->sub_port);
 	assert(!err);
 
 	/* set ourselves up to handle messages */
@@ -157,14 +160,14 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	assert(self->loop != NULL);
 
 	zloop_reader(self->loop, self->pipe,
-		     (zloop_reader_fn*)nrm_client_broker_pipe_handler,
-		     (void*)self);
+	             (zloop_reader_fn *)nrm_client_broker_pipe_handler,
+	             (void *)self);
 	zloop_reader(self->loop, self->rpc,
-		     (zloop_reader_fn*)nrm_client_broker_rpc_handler,
-		     (void*)self);
+	             (zloop_reader_fn *)nrm_client_broker_rpc_handler,
+	             (void *)self);
 	zloop_reader(self->loop, self->sub,
-		     (zloop_reader_fn*)nrm_client_broker_sub_handler,
-		     (void*)self);
+	             (zloop_reader_fn *)nrm_client_broker_sub_handler,
+	             (void *)self);
 	/* notify we are ready */
 	zsock_signal(self->pipe, 0);
 
@@ -177,19 +180,18 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	free(self);
 }
 
-nrm_role_t *nrm_role_client_create_fromparams(const char *uri,
-					      int sub_port,
-					      int rpc_port)
+nrm_role_t *
+nrm_role_client_create_fromparams(const char *uri, int sub_port, int rpc_port)
 {
 	nrm_role_t *role;
 	struct nrm_role_client_s *data;
-	
+
 	role = NRM_INNER_MALLOC(nrm_role_t, struct nrm_role_client_s);
 	if (role == NULL)
 		return NULL;
 
-	data = NRM_INNER_MALLOC_GET_FIELD(role, 2, nrm_role_t, struct
-					  nrm_role_client_s);
+	data = NRM_INNER_MALLOC_GET_FIELD(role, 2, nrm_role_t,
+	                                  struct nrm_role_client_s);
 	role->data = (struct nrm_role_data *)data;
 	role->ops = &nrm_role_client_ops;
 
@@ -213,8 +215,8 @@ void nrm_role_client_destroy(nrm_role_t **role)
 	if (role == NULL || *role == NULL)
 		return;
 
-	struct nrm_role_client_s *client = (struct nrm_role_client_s
-					    *)(*role)->data;
+	struct nrm_role_client_s *client =
+	        (struct nrm_role_client_s *)(*role)->data;
 	/* now exit: in principle this should just send a message on the pipe
 	 * and wait for the actor to exit by itself */
 	zactor_destroy(&client->broker);
@@ -224,16 +226,17 @@ void nrm_role_client_destroy(nrm_role_t **role)
 }
 
 int nrm_role_client_send(const struct nrm_role_data *data,
-			 nrm_msg_t *msg, nrm_uuid_t *to)
+                         nrm_msg_t *msg,
+                         nrm_uuid_t *to)
 {
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
-	nrm_ctrlmsg_sendmsg((zsock_t *)client->broker, NRM_CTRLMSG_TYPE_SEND, msg,
-			 to);
+	nrm_ctrlmsg_sendmsg((zsock_t *)client->broker, NRM_CTRLMSG_TYPE_SEND,
+	                    msg, to);
 	return 0;
 }
 
-nrm_msg_t *nrm_role_client_recv(const struct nrm_role_data *data, nrm_uuid_t
-				**from)
+nrm_msg_t *nrm_role_client_recv(const struct nrm_role_data *data,
+                                nrm_uuid_t **from)
 {
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
 	nrm_msg_t *msg;
@@ -243,8 +246,9 @@ nrm_msg_t *nrm_role_client_recv(const struct nrm_role_data *data, nrm_uuid_t
 	return msg;
 }
 
-int nrm_role_client_register_sub_cb(const struct nrm_role_data *data, 
-			nrm_role_sub_callback_fn *fn, void *arg)
+int nrm_role_client_register_sub_cb(const struct nrm_role_data *data,
+                                    nrm_role_sub_callback_fn *fn,
+                                    void *arg)
 {
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
 	client->sub_cb.fn = fn;
@@ -259,10 +263,10 @@ int nrm_role_client_sub(const struct nrm_role_data *data, nrm_string_t topic)
 }
 
 struct nrm_role_ops nrm_role_client_ops = {
-	nrm_role_client_send,
-	nrm_role_client_recv,
-	NULL,
-	nrm_role_client_register_sub_cb,
-	nrm_role_client_sub,
-	nrm_role_client_destroy,
+        nrm_role_client_send,
+        nrm_role_client_recv,
+        NULL,
+        nrm_role_client_register_sub_cb,
+        nrm_role_client_sub,
+        nrm_role_client_destroy,
 };

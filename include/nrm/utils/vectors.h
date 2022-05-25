@@ -152,9 +152,7 @@ int nrm_vector_pop_back(nrm_vector_t *vector, void *out);
  * @return -NRM_EDOM if `position` is out of bounds.
  * @return NRM_SUCCESS on success.
  **/
-int nrm_vector_take(nrm_vector_t *vector,
-                    const size_t position,
-                    void *out);
+int nrm_vector_take(nrm_vector_t *vector, const size_t position, void *out);
 
 /**
  * Allocate and initialize an empty vector.

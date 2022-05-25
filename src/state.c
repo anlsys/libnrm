@@ -16,8 +16,8 @@
 #include <string.h>
 
 #include "nrm.h"
-#include "internal/nrmi.h"
 
+#include "internal/nrmi.h"
 
 nrm_state_t *nrm_state_create()
 {

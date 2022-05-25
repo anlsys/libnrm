@@ -14,8 +14,8 @@
 
 #include "nrm.h"
 
-#include "internal/nrmi.h"
 #include "internal/messages.h"
+#include "internal/nrmi.h"
 
 /*******************************************************************************
  * Protobuf Management: Creating Messages
@@ -42,7 +42,7 @@ int nrm_msg_fill(nrm_msg_t *msg, int type)
 {
 	if (msg == NULL || type < 0 || type >= NRM_MSG_TYPE_MAX)
 		return -NRM_EINVAL;
-	msg->type  = type;
+	msg->type = type;
 	return 0;
 }
 
@@ -88,9 +88,12 @@ nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 	nrm_msg_scope_init(ret);
 	if (scope->uuid)
 		ret->uuid = strdup((char *)nrm_uuid_to_char(scope->uuid));
-	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_CPU], &ret->n_cpus, &ret->cpus);
-	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], &ret->n_numas, &ret->numas);
-	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_GPU], &ret->n_gpus, &ret->gpus);
+	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_CPU], &ret->n_cpus,
+	                    &ret->cpus);
+	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], &ret->n_numas,
+	                    &ret->numas);
+	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_GPU], &ret->n_gpus,
+	                    &ret->gpus);
 	return ret;
 }
 
@@ -104,8 +107,11 @@ nrm_msg_event_t *nrm_msg_event_new(nrm_uuid_t *uuid)
 	return ret;
 }
 
-int nrm_msg_set_event(nrm_msg_t *msg, nrm_time_t time, nrm_uuid_t *uuid, nrm_scope_t *scope,
-		      double value)
+int nrm_msg_set_event(nrm_msg_t *msg,
+                      nrm_time_t time,
+                      nrm_uuid_t *uuid,
+                      nrm_scope_t *scope,
+                      double value)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
@@ -303,11 +309,11 @@ nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg)
 		return NULL;
 	nrm_scope_t *ret = nrm_scope_create();
 	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_CPU], msg->n_cpus,
-			     msg->cpus);
+	                      msg->cpus);
 	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_NUMA], msg->n_numas,
-			     msg->numas);
+	                      msg->numas);
 	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_GPU], msg->n_gpus,
-			     msg->gpus);
+	                      msg->gpus);
 	return ret;
 }
 
@@ -344,7 +350,7 @@ static int nrm_msg_pop_packed_frames(zmsg_t *zm, nrm_msg_t **msg)
 	/* unpack */
 	frame = zmsg_pop(zm);
 	*msg = nrm__message__unpack(NULL, zframe_size(frame),
-				    zframe_data(frame));
+	                            zframe_data(frame));
 	zframe_destroy(&frame);
 	return 0;
 }
@@ -383,7 +389,7 @@ static int nrm_msg_push_identity(zmsg_t *zm, nrm_uuid_t *uuid)
 {
 	zframe_t *frame = zframe_from(nrm_uuid_to_char(uuid));
 	zmsg_append(zm, &frame);
-	return 0;	
+	return 0;
 }
 
 static int nrm_msg_push_topic(zmsg_t *zm, char *topic)
@@ -474,19 +480,16 @@ struct nrm_msg_type_table_s {
 typedef struct nrm_msg_type_table_s nrm_msg_type_table_t;
 
 static const nrm_msg_type_table_t nrm_msg_type_table[] = {
-	{ NRM_MSG_TYPE_ACK, "ACK" },
-	{ NRM_MSG_TYPE_LIST, "LIST" },
-	{ NRM_MSG_TYPE_ADD, "ADD" },
-	{ NRM_MSG_TYPE_REMOVE, "REMOVE" },
-	{ NRM_MSG_TYPE_EVENT, "EVENT" },
-	{ 0, NULL },
+        {NRM_MSG_TYPE_ACK, "ACK"},     {NRM_MSG_TYPE_LIST, "LIST"},
+        {NRM_MSG_TYPE_ADD, "ADD"},     {NRM_MSG_TYPE_REMOVE, "REMOVE"},
+        {NRM_MSG_TYPE_EVENT, "EVENT"}, {0, NULL},
 };
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
-	{ NRM_MSG_TARGET_TYPE_SLICE, "SLICE" },
-	{ NRM_MSG_TARGET_TYPE_SENSOR, "SENSOR" },
-	{ NRM_MSG_TARGET_TYPE_SCOPE, "SCOPE" },
-	{ 0, NULL },
+        {NRM_MSG_TARGET_TYPE_SLICE, "SLICE"},
+        {NRM_MSG_TARGET_TYPE_SENSOR, "SENSOR"},
+        {NRM_MSG_TARGET_TYPE_SCOPE, "SCOPE"},
+        {0, NULL},
 };
 
 const char *nrm_msg_type_t2s(int type, const nrm_msg_type_table_t *table)
@@ -515,8 +518,8 @@ json_t *nrm_msg_scope_to_json(nrm_msg_scope_t *msg)
 	cpus = nrm_msg_bitmap_to_json(msg->n_cpus, msg->cpus);
 	numas = nrm_msg_bitmap_to_json(msg->n_numas, msg->numas);
 	gpus = nrm_msg_bitmap_to_json(msg->n_gpus, msg->gpus);
-	ret = json_pack("{s:s?, s:o, s:o, s:o}", "uuid", msg->uuid, "cpu", cpus, "numa", numas, "gpu",
-			gpus);
+	ret = json_pack("{s:s?, s:o, s:o, s:o}", "uuid", msg->uuid, "cpu", cpus,
+	                "numa", numas, "gpu", gpus);
 	return ret;
 }
 
@@ -524,9 +527,9 @@ json_t *nrm_msg_scopelist_to_json(nrm_msg_scopelist_t *msg)
 {
 	json_t *ret;
 	ret = json_array();
-	for(size_t i = 0; i < msg->n_scopes; i++) {
+	for (size_t i = 0; i < msg->n_scopes; i++) {
 		json_array_append_new(ret,
-				      nrm_msg_scope_to_json(msg->scopes[i]));
+		                      nrm_msg_scope_to_json(msg->scopes[i]));
 	}
 	return ret;
 }
@@ -542,9 +545,9 @@ json_t *nrm_msg_sensorlist_to_json(nrm_msg_sensorlist_t *msg)
 {
 	json_t *ret;
 	ret = json_array();
-	for(size_t i = 0; i < msg->n_sensors; i++) {
+	for (size_t i = 0; i < msg->n_sensors; i++) {
 		json_array_append_new(ret,
-				      nrm_msg_sensor_to_json(msg->sensors[i]));
+		                      nrm_msg_sensor_to_json(msg->sensors[i]));
 	}
 	return ret;
 }
@@ -560,9 +563,9 @@ json_t *nrm_msg_slicelist_to_json(nrm_msg_slicelist_t *msg)
 {
 	json_t *ret;
 	ret = json_array();
-	for(size_t i = 0; i < msg->n_slices; i++) {
+	for (size_t i = 0; i < msg->n_slices; i++) {
 		json_array_append_new(ret,
-				      nrm_msg_slice_to_json(msg->slices[i]));
+		                      nrm_msg_slice_to_json(msg->slices[i]));
 	}
 	return ret;
 }
@@ -585,9 +588,9 @@ json_t *nrm_msg_add_to_json(nrm_msg_add_t *msg)
 		sub = NULL;
 		break;
 	}
-	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
-							  nrm_msg_target_table),
-			"data", sub);
+	ret = json_pack("{s:s, s:o?}", "type",
+	                nrm_msg_type_t2s(msg->type, nrm_msg_target_table),
+	                "data", sub);
 	return ret;
 }
 
@@ -609,17 +612,18 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 		sub = NULL;
 		break;
 	}
-	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
-							  nrm_msg_target_table),
-			"data", sub);
+	ret = json_pack("{s:s, s:o?}", "type",
+	                nrm_msg_type_t2s(msg->type, nrm_msg_target_table),
+	                "data", sub);
 	return ret;
 }
 
 json_t *nrm_msg_remove_to_json(nrm_msg_remove_t *msg)
 {
 	json_t *ret;
-	ret = json_pack("{s:s, s:s?}", "type", nrm_msg_type_t2s(msg->type, nrm_msg_target_table), 
-			"uuid", msg->uuid);
+	ret = json_pack("{s:s, s:s?}", "type",
+	                nrm_msg_type_t2s(msg->type, nrm_msg_target_table),
+	                "uuid", msg->uuid);
 	return ret;
 }
 
@@ -628,9 +632,8 @@ json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
 	json_t *ret;
 	json_t *sub;
 	sub = nrm_msg_scope_to_json(msg->scope);
-	ret = json_pack("{s:s, s:I, s:o?, s:f}", "uuid", msg->uuid, 
-			"time", msg->time , "scope", sub,
-			"value", msg->value);
+	ret = json_pack("{s:s, s:I, s:o?, s:f}", "uuid", msg->uuid, "time",
+	                msg->time, "scope", sub, "value", msg->value);
 	return ret;
 }
 
@@ -655,9 +658,9 @@ json_t *nrm_msg_to_json(nrm_msg_t *msg)
 		sub = NULL;
 		break;
 	}
-	ret = json_pack("{s:s, s:o?}", "type", nrm_msg_type_t2s(msg->type,
-							  nrm_msg_type_table),
-			"data", sub);
+	ret = json_pack("{s:s, s:o?}", "type",
+	                nrm_msg_type_t2s(msg->type, nrm_msg_type_table), "data",
+	                sub);
 	return ret;
 }
 
@@ -682,11 +685,11 @@ struct nrm_ctrlmsg_type_table_e {
 };
 
 static const struct nrm_ctrlmsg_type_table_e nrm_ctrlmsg_table[] = {
-	{ NRM_CTRLMSG_TYPE_TERM, NRM_CTRLMSG_TYPE_STRING_TERM },
-	{ NRM_CTRLMSG_TYPE_SEND, NRM_CTRLMSG_TYPE_STRING_SEND },
-	{ NRM_CTRLMSG_TYPE_RECV, NRM_CTRLMSG_TYPE_STRING_RECV },
-	{ NRM_CTRLMSG_TYPE_PUB, NRM_CTRLMSG_TYPE_STRING_PUB },
-	{ NRM_CTRLMSG_TYPE_SUB, NRM_CTRLMSG_TYPE_STRING_SUB },
+        {NRM_CTRLMSG_TYPE_TERM, NRM_CTRLMSG_TYPE_STRING_TERM},
+        {NRM_CTRLMSG_TYPE_SEND, NRM_CTRLMSG_TYPE_STRING_SEND},
+        {NRM_CTRLMSG_TYPE_RECV, NRM_CTRLMSG_TYPE_STRING_RECV},
+        {NRM_CTRLMSG_TYPE_PUB, NRM_CTRLMSG_TYPE_STRING_PUB},
+        {NRM_CTRLMSG_TYPE_SUB, NRM_CTRLMSG_TYPE_STRING_SUB},
 };
 
 const char *nrm_ctrlmsg_t2s(int type)
@@ -698,8 +701,8 @@ const char *nrm_ctrlmsg_t2s(int type)
 
 int nrm_ctrlmsg_s2t(const char *string)
 {
-	for(int i = 0; i < NRM_CTRLMSG_TYPE_MAX; i++)
-		if(!strcmp(string, nrm_ctrlmsg_table[i].s))
+	for (int i = 0; i < NRM_CTRLMSG_TYPE_MAX; i++)
+		if (!strcmp(string, nrm_ctrlmsg_table[i].s))
 			return i;
 	return -1;
 }
@@ -718,11 +721,12 @@ int nrm_ctrlmsg__send(zsock_t *socket, int type, void *p1, void *p2)
 int nrm_ctrlmsg__recv(zsock_t *socket, int *type, void **p1, void **p2)
 {
 	int err;
-	char *s; void *p, *q;
+	char *s;
+	void *p, *q;
 	err = zsock_recv(socket, "spp", &s, &p, &q);
 	assert(err == 0);
 	*type = nrm_ctrlmsg_s2t(s);
-	nrm_log_debug("received %s:%u\n",s,*type);
+	nrm_log_debug("received %s:%u\n", s, *type);
 	if (p1 != NULL) {
 		*p1 = p;
 	}
@@ -732,22 +736,28 @@ int nrm_ctrlmsg__recv(zsock_t *socket, int *type, void **p1, void **p2)
 	return err;
 }
 
-int nrm_ctrlmsg_sendmsg(zsock_t *socket, int type, nrm_msg_t *msg, nrm_uuid_t *to)
+int nrm_ctrlmsg_sendmsg(zsock_t *socket,
+                        int type,
+                        nrm_msg_t *msg,
+                        nrm_uuid_t *to)
 {
 	assert(type == NRM_CTRLMSG_TYPE_SEND);
-	return nrm_ctrlmsg__send(socket, type, (void*)msg, (void*)to);
+	return nrm_ctrlmsg__send(socket, type, (void *)msg, (void *)to);
 }
 
-int nrm_ctrlmsg_pub(zsock_t *socket, int type, nrm_string_t topic, nrm_msg_t *msg)
+int nrm_ctrlmsg_pub(zsock_t *socket,
+                    int type,
+                    nrm_string_t topic,
+                    nrm_msg_t *msg)
 {
 	assert(type == NRM_CTRLMSG_TYPE_PUB);
-	return nrm_ctrlmsg__send(socket, type, (void*)topic, (void*)msg);
+	return nrm_ctrlmsg__send(socket, type, (void *)topic, (void *)msg);
 }
 
 int nrm_ctrlmsg_sub(zsock_t *socket, int type, nrm_string_t topic)
 {
 	assert(type == NRM_CTRLMSG_TYPE_SUB);
-	return nrm_ctrlmsg__send(socket, type, (void*)topic, NULL);
+	return nrm_ctrlmsg__send(socket, type, (void *)topic, NULL);
 }
 
 nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from)
@@ -759,7 +769,7 @@ nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from)
 	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
 	if (from != NULL) {
 		*from = (nrm_uuid_t *)q;
-		nrm_log_debug("from %s\n",nrm_uuid_to_char(*from));
+		nrm_log_debug("from %s\n", nrm_uuid_to_char(*from));
 	}
 	return (nrm_msg_t *)p;
 }

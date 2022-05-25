@@ -16,8 +16,8 @@
 #include <string.h>
 
 #include "nrm.h"
-#include "internal/nrmi.h"
 
+#include "internal/nrmi.h"
 
 nrm_sensor_t *nrm_sensor_create(char *name)
 {
@@ -33,8 +33,7 @@ json_t *nrm_sensor_to_json(nrm_sensor_t *sensor)
 
 	if (sensor->uuid != NULL)
 		uuid = nrm_uuid_to_json(sensor->uuid);
-	return json_pack("{s:s, s:o*}",
-			 "name", sensor->name, "uuid", uuid);
+	return json_pack("{s:s, s:o*}", "name", sensor->name, "uuid", uuid);
 }
 
 void nrm_sensor_destroy(nrm_sensor_t **sensor)

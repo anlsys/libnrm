@@ -224,18 +224,21 @@ int nrm_client__sub_callback(nrm_msg_t *msg, void *arg)
 	return 0;
 }
 
-int nrm_client_set_event_listener(nrm_client_t *client, nrm_client_event_listener_fn *fn)
+int nrm_client_set_event_listener(nrm_client_t *client,
+                                  nrm_client_event_listener_fn *fn)
 {
 	if (client == NULL || fn == NULL)
 		return -NRM_EINVAL;
 	client->user_fn = fn;
 }
 
-int nrm_client_start_event_listener(const nrm_client_t *client, nrm_string_t topic)
+int nrm_client_start_event_listener(const nrm_client_t *client,
+                                    nrm_string_t topic)
 {
 	if (client == NULL)
 		return -NRM_EINVAL;
-	nrm_role_register_sub_cb(client->role, nrm_client__sub_callback, client);
+	nrm_role_register_sub_cb(client->role, nrm_client__sub_callback,
+	                         client);
 	nrm_role_sub(client->role, topic);
 	return 0;
 }

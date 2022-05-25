@@ -22,8 +22,7 @@ void nrm_time_gettime(nrm_time_t *now)
 int64_t nrm_time_diff(const nrm_time_t *start, const nrm_time_t *end)
 {
 	int64_t timediff = (end->tv_nsec - start->tv_nsec) +
-					1000000000 * (end->tv_sec -
-						   start->tv_sec);
+	                   1000000000 * (end->tv_sec - start->tv_sec);
 	return timediff;
 }
 
@@ -35,7 +34,7 @@ int64_t nrm_time_tons(const nrm_time_t *now)
 nrm_time_t nrm_time_fromns(int64_t ns)
 {
 	nrm_time_t ret;
-	ret.tv_sec = ns/1000000000;
+	ret.tv_sec = ns / 1000000000;
 	ret.tv_nsec = ns % 1000000000;
 	return ret;
 }
@@ -46,7 +45,7 @@ json_t *nrm_time_to_json(nrm_time_t *time)
 	 * conversion ourselves.
 	 */
 	int64_t ns = nrm_time_tons(time);
-	
+
 	/* snprintf can be used to figure out how much characters will be
 	 * written.
 	 */
@@ -55,7 +54,7 @@ json_t *nrm_time_to_json(nrm_time_t *time)
 	bufsize = snprintf(NULL, 0, "%" PRId64 "", ns);
 	assert(bufsize > 0);
 	bufsize++;
-	buf = calloc(1,bufsize);
+	buf = calloc(1, bufsize);
 	assert(buf != NULL);
 	snprintf(buf, bufsize, "%" PRId64 "", ns);
 

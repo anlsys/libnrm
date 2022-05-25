@@ -15,10 +15,10 @@
 extern "C" {
 #endif
 
+#include <czmq.h>
 #include <jansson.h>
 #include <time.h>
 #include <zmq.h>
-#include <czmq.h>
 
 /*******************************************************************************
  * Compat functions
@@ -99,7 +99,6 @@ json_t *nrm_scope_to_json(nrm_scope_t *);
 json_t *nrm_sensor_to_json(nrm_sensor_t *);
 json_t *nrm_slice_to_json(nrm_slice_t *);
 json_t *nrm_time_to_json(nrm_time_t *);
-
 
 #ifdef __cplusplus
 }
