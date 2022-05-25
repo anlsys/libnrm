@@ -51,6 +51,26 @@ AX_VALGRIND_CHECK
 # getcpu is somewhat new, and might be missing from the system libc
 AC_REPLACE_FUNCS(getcpu)
 
+# check doxygen + sphinx for documentation build
+
+AC_ARG_ENABLE(docs,
+[AS_HELP_STRING([--enable-docs],
+		[Generate full html documentation (default is no).])],
+[docs=true],[docs=false])
+
+if test "x$docs" = "xtrue"; then
+	AC_CHECK_PROG([DOXYGEN], [doxygen], [doxygen], [no])
+	if test "x$DOXYGEN" = "xno"; then
+		AC_MSG_ERROR([Doxygen not found])
+	fi
+
+	AC_CHECK_PROG([SPHINXBUILD], [sphinx-build], [sphinx-build], [no])
+	if test "x$SPHINXBUILD" = "xno"; then
+		AC_MSG_ERROR([Sphinx not found])
+	fi
+fi
+AM_CONDITIONAL([BUILD_DOCS],[ test "x$docs" = "xtrue" ])
+
 # doc in m4/ax_pthread.m4. Defines automake PTHREAD_CFLAGS and PTHREAD_LIBS
 AX_PTHREAD([],[AC_MSG_ERROR([Cannot find how to compile with pthreads.])])
 CC="$PTHREAD_CC"
@@ -58,7 +78,7 @@ CC="$PTHREAD_CC"
 # check for libtool
 LT_INIT
 AC_SEARCH_LIBS([dlsym], [dl dld], [], [
-  AC_MSG_ERROR([unable to find the dlsym() function])
+	AC_MSG_ERROR([unable to find the dlsym() function])
 ])
 
 # dependencies
@@ -104,6 +124,7 @@ AC_CONFIG_FILES([Makefile
 		 include/Makefile
 		 src/Makefile
 		 tests/Makefile
+		 doc/Makefile
 		 libnrm.pc
 		 include/nrm/utils/version.h])
 AC_OUTPUT
