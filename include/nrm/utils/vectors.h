@@ -154,6 +154,8 @@ int nrm_vector_pop_back(nrm_vector_t *vector, void *out);
  **/
 int nrm_vector_take(nrm_vector_t *vector, const size_t position, void *out);
 
+int nrm_vector_clear(const nrm_vector_t *vector);
+
 /**
  * Allocate and initialize an empty vector.
  *

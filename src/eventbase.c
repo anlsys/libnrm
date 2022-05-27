@@ -23,7 +23,6 @@
 
 /* the typedef is already in nrm.h */
 struct nrm_eventbase_s {
-	size_t maxevents;
 	size_t maxperiods;
 	struct nrm_sensor2scope_s *hash;
 };
@@ -41,7 +40,7 @@ typedef struct nrm_event_s nrm_event_t;
 struct nrm_scope2ring_s {
 	nrm_scope_t *scope;
 	nrm_ringbuffer_t *past;
-	nrm_ringbuffer_t *events;
+	nrm_vector_t *events;
 	/* needed to link them together */
 	struct nrm_scope2ring_s *prev;
 	struct nrm_scope2ring_s *next;
@@ -60,13 +59,13 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 	period.time = time;
 	period.value = 0;
 	size_t len;
-	nrm_ringbuffer_length(s->events, &len);
+	nrm_vector_length(s->events, &len);
 	for (size_t i = 0; i < len; i++) {
 		nrm_event_t *f;
-		nrm_ringbuffer_get(s->events, i, (void **)&f);
+		nrm_vector_get(s->events, i, (void **)&f);
 		period.value += f->value;
 	}
-	nrm_ringbuffer_clear(s->events);
+	nrm_vector_clear(s->events);
 	nrm_ringbuffer_push_back(s->past, &period);
 	return 0;
 }
@@ -75,25 +74,10 @@ int nrm_eventbase_add_event(struct nrm_scope2ring_s *s,
                             nrm_time_t time,
                             double val)
 {
-	if (nrm_ringbuffer_isfull(s->events)) {
-		/* in this case, we aggregate the entire ringbuffer */
-		size_t len;
-		nrm_event_t *f;
-		nrm_event_t agg;
-		agg.value = 0;
-		nrm_ringbuffer_length(s->events, &len);
-		for (size_t i = 0; i < len; i++) {
-			nrm_ringbuffer_get(s->events, i, (void **)&f);
-			agg.value += f->value;
-		}
-		agg.time = f->time;
-		nrm_ringbuffer_clear(s->events);
-		nrm_ringbuffer_push_back(s->events, &agg);
-	}
 	nrm_event_t e;
 	e.time = time;
 	e.value = val;
-	nrm_ringbuffer_push_back(s->events, &e);
+	nrm_vector_push_back(s->events, &e);
 	return 0;
 }
 
@@ -106,7 +90,7 @@ struct nrm_scope2ring_s *nrm_eventbase_add_scope(nrm_eventbase_t *eb,
 		return NULL;
 	ret->scope = nrm_scope_dup(scope);
 	nrm_ringbuffer_create(&ret->past, eb->maxperiods, sizeof(nrm_event_t));
-	nrm_ringbuffer_create(&ret->events, eb->maxevents, sizeof(nrm_event_t));
+	nrm_vector_create(&ret->events, sizeof(nrm_event_t));
 	return ret;
 }
 
@@ -135,7 +119,7 @@ int nrm_eventbase_remove_sensor(nrm_eventbase_t *eb, nrm_uuid_t *sensor_uuid)
 		{
 			nrm_scope_destroy(elt->scope);
 			nrm_ringbuffer_destroy(&elt->past);
-			nrm_ringbuffer_destroy(&elt->events);
+			nrm_vector_destroy(&elt->events);
 			free(elt);
 		}
 		HASH_DEL(eb->hash, s);
@@ -169,12 +153,11 @@ int nrm_eventbase_push_event(nrm_eventbase_t *eb,
 	return 0;
 }
 
-nrm_eventbase_t *nrm_eventbase_create(size_t maxevents, size_t maxperiods)
+nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods)
 {
 	nrm_eventbase_t *ret = calloc(1, sizeof(nrm_state_t));
 	if (ret == NULL)
 		return NULL;
-	ret->maxevents = maxevents;
 	ret->maxperiods = maxperiods;
 	ret->hash = NULL;
 	return ret;

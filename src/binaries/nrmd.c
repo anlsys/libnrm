@@ -381,7 +381,7 @@ int main(int argc, char *argv[])
 
 	/* init state */
 	my_daemon.state = nrm_state_create();
-	my_daemon.events = nrm_eventbase_create(10, 5);
+	my_daemon.events = nrm_eventbase_create(5);
 
 	nrm_role_t *controller = nrm_role_controller_create_fromparams(
 	        NRM_DEFAULT_UPSTREAM_URI, NRM_DEFAULT_UPSTREAM_PUB_PORT,

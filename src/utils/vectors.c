@@ -174,3 +174,11 @@ int nrm_vector_take(nrm_vector_t *vector, const size_t position, void *out)
 	utarray_erase(vector->array, position, 1);
 	return NRM_SUCCESS;
 }
+
+int nrm_vector_clear(const nrm_vector_t *vector)
+{
+	if (vector == NULL)
+		return -NRM_EINVAL;
+	utarray_clear(vector->array);
+	return NRM_SUCCESS;
+}

@@ -156,7 +156,7 @@ struct nrm_eventbase_s;
 
 typedef struct nrm_eventbase_s nrm_eventbase_t;
 
-nrm_eventbase_t *nrm_eventbase_create(size_t maxevents, size_t maxperiods);
+nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
 
 int nrm_eventbase_push_event(
         nrm_eventbase_t *, nrm_uuid_t *, nrm_scope_t *, nrm_time_t, double);
