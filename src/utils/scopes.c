@@ -17,13 +17,7 @@
 
 #include "nrm.h"
 
-#ifndef HAVE_GETCPU
-int getcpu(unsigned int *cpu, unsigned int *node);
-#endif
-
-struct nrm_scope {
-	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
-};
+#include "internal/nrmi.h"
 
 nrm_scope_t *nrm_scope_create()
 {
@@ -45,9 +39,25 @@ size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type)
 	return nrm_bitmap_nset(&s->maps[type]);
 }
 
-int nrm_scope_delete(nrm_scope_t *s)
+int nrm_scope_destroy(nrm_scope_t *s)
 {
 	free(s);
+	return 0;
+}
+
+nrm_scope_t *nrm_scope_dup(nrm_scope_t *s)
+{
+	nrm_scope_t *ret = nrm_scope_create();
+	for (size_t i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
+		nrm_bitmap_copy(&ret->maps[i], &s->maps[i]);
+	return ret;
+}
+
+int nrm_scope_cmp(nrm_scope_t *one, nrm_scope_t *two)
+{
+	for (size_t i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
+		if (!nrm_bitmap_cmp(&one->maps[i], &two->maps[i]))
+			return 1;
 	return 0;
 }
 
@@ -69,6 +79,40 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 	snprintf(buf, bufsize, format, scopes[0], scopes[1], scopes[2]);
 	for (int i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
 		free(scopes[i]);
+	return 0;
+}
+
+json_t *nrm_scope_to_json(nrm_scope_t *scope)
+{
+	json_t *cpu, *numa, *gpu;
+
+	cpu = nrm_bitmap_to_json(&scope->maps[0]);
+	numa = nrm_bitmap_to_json(&scope->maps[1]);
+	gpu = nrm_bitmap_to_json(&scope->maps[2]);
+	return json_pack("{s:o, s:o, s:o}", "cpu", cpu, "numa", numa, "gpu",
+	                 gpu);
+}
+
+int nrm_scope_from_json(nrm_scope_t *scope, json_t *json)
+{
+	json_t *cpu = NULL, *numa = NULL, *gpu = NULL;
+	char *uuid = NULL;
+	json_error_t error;
+	int err;
+	err = json_unpack_ex(json, &error, 0, "{s?:s, s?:o, s?:o, s?:o}",
+	                     "uuid", &uuid, "cpu", &cpu, "numa", &numa, "gpu",
+	                     &gpu);
+	if (err) {
+		nrm_log_error("error unpacking json: %s, %s, %d, %d, %d\n",
+		              error.text, error.source, error.line,
+		              error.column, error.position);
+		return -NRM_EINVAL;
+	}
+	if (uuid)
+		scope->uuid = nrm_uuid_create_fromchar(uuid);
+	nrm_bitmap_from_json(&scope->maps[0], cpu);
+	nrm_bitmap_from_json(&scope->maps[1], numa);
+	nrm_bitmap_from_json(&scope->maps[2], gpu);
 	return 0;
 }
 

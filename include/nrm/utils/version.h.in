@@ -1,0 +1,106 @@
+/*******************************************************************************
+ * Copyright 2019 UChicago Argonne, LLC.
+ * (c.f. AUTHORS, LICENSE)
+ *
+ * This file is part of the libnrm project.
+ * For more info, see https://github.com/anlsys/libnrm
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ ******************************************************************************/
+
+/**
+ * @defgroup nrm_version "nrm Version Management"
+ * @brief nrm library Version.
+ * @{
+ **/
+
+#ifndef NRM_VERSION_H
+#define NRM_VERSION_H 1
+
+/**
+ * nrm Major version (compilation time value).
+ * Major version changes in nrm
+ * denotes ABI changes which prevent
+ * compatibility with previous major version ABI.
+ *
+ **/
+#define	NRM_VERSION_MAJOR @PACKAGE_VERSION_MAJOR@
+
+/**
+ * nrm Minor version (compilation time value).
+ * nrm ABI is compatible across increasing minor
+ * versions.
+ * New minor versions should only bring new features
+ * or improvement without breaking the old ABI.
+ **/
+#define	NRM_VERSION_MINOR @PACKAGE_VERSION_MINOR@
+
+/**
+ * nrm Patch version (compilation time value).
+ * nrm version for patch and fix releases.
+ **/
+#define	NRM_VERSION_PATCH @PACKAGE_VERSION_PATCH@
+
+/**
+ * nrm revision version (compilation time value)
+ * nrm revision (git drift since last tag), used
+ * for identifying major drift since release.
+ **/
+#define NRM_VERSION_REVISION "@PACKAGE_VERSION_REVISION@"
+
+/**
+ * nrm version as string.
+ * "major.minor.patch"
+ **/
+#define	NRM_VERSION_STRING "@PACKAGE_VERSION@"
+
+/**
+ * nrm Major version (runtime value).
+ * If runtime value and compilation value do not
+ * match, either the wrong library is linked or
+ * the program has been compiled with the wrong header.
+ * @see nrm_VERSION_MAJOR
+ **/
+extern const int nrm_version_major;
+
+/**
+ * nrm Minor version (runtime value).
+ * If runtime value and compilation value do not
+ * match, either the wrong library is linked or
+ * the program has been compiled with the wrong header.
+ * @see nrm_VERSION_MINOR
+ **/
+extern const int nrm_version_minor;
+
+/**
+ * nrm Patch version (runtime value).
+ * If runtime value and compilation value do not
+ * match, either the wrong library is linked or
+ * the program has been compiled with the wrong header.
+ * @see nrm_VERSION_PATCH
+ **/
+extern const int nrm_version_patch;
+
+/**
+ * nrm revision as string (runtime value).
+ * If runtime value and compilation value do not
+ * match, either the wrong library is linked or
+ * the program has been compiled with the wrong header.
+ * @see nrm_VERSION_REVISION
+ **/
+extern const char *nrm_version_revision;
+
+/**
+ * nrm version as string (runtime value).
+ * If runtime value and compilation value do not
+ * match, either the wrong library is linked or
+ * the program has been compiled with the wrong header.
+ * @see nrm_VERSION_STRING
+ **/
+extern const char *nrm_version_string;
+
+/**
+ * @}
+ **/
+
+#endif /* NRM_VERSION_H */

@@ -9,6 +9,7 @@
  ******************************************************************************/
 
 #include <assert.h>
+#include <jansson.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,6 +84,17 @@ int nrm_bitmap_nset(const struct nrm_bitmap *bitmap)
 	return nset;
 }
 
+int nrm_bitmap_copy(struct nrm_bitmap *dest, struct nrm_bitmap *src)
+{
+	memcpy(dest->mask, src->mask, NRM_BITMAP_BYTES);
+	return 0;
+}
+
+int nrm_bitmap_cmp(struct nrm_bitmap *one, struct nrm_bitmap *two)
+{
+	return memcmp(one->mask, two->mask, NRM_BITMAP_BYTES);
+}
+
 /**
  * Bitmap conversion to string. Output strings are index numbers wrapped in
  *brackets [].
@@ -123,4 +135,61 @@ char *nrm_bitmap_to_string(const struct nrm_bitmap *bitmap)
 		}
 	}
 	return buf;
+}
+
+json_t *nrm_bitmap_to_json(struct nrm_bitmap *bitmap)
+{
+	json_t *ret;
+	size_t size = nrm_bitmap_nset(bitmap);
+
+	ret = json_array();
+	for (size_t i = 0, printed = 0; i < NRM_BITMAP_MAX && printed < size;
+	     i++) {
+		if (nrm_bitmap_isset(bitmap, i)) {
+			json_t *val = json_integer(i);
+			json_array_append_new(ret, val);
+			printed++;
+		}
+	}
+	return ret;
+}
+
+int nrm_bitmap_to_array(const struct nrm_bitmap *map,
+                        size_t *nitems,
+                        int32_t **items)
+{
+	size_t size = nrm_bitmap_nset(map);
+	*nitems = size;
+	*items = calloc(size, sizeof(int32_t));
+	if (*items == NULL)
+		return -NRM_ENOMEM;
+	for (size_t i = 0, set = 0; i < NRM_BITMAP_MAX && set < size; i++) {
+		if (nrm_bitmap_isset(map, i)) {
+			*items[set] = i;
+			set++;
+		}
+	}
+	return 0;
+}
+
+int nrm_bitmap_from_array(struct nrm_bitmap *map, size_t nitems, int32_t *items)
+{
+	for (size_t i = 0; i < nitems; i++)
+		nrm_bitmap_set(map, items[i]);
+	return 0;
+}
+
+int nrm_bitmap_from_json(struct nrm_bitmap *bitmap, json_t *json)
+{
+	if (!json_is_array(json))
+		return -NRM_EINVAL;
+
+	size_t index;
+	json_t *value;
+	json_array_foreach(json, index, value)
+	{
+		json_int_t i = json_integer_value(value);
+		nrm_bitmap_set(bitmap, i);
+	}
+	return 0;
 }

@@ -18,4 +18,5 @@ header:
   paths-ignore:
     - '**/*.f90'
     - '**/nrmf.h'
+    - '**/ut*.h'
   comment: never
