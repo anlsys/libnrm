@@ -4,6 +4,7 @@ include_nrm_utilsdir=$(includedir)/nrm/utils
 include_nrm_utils_HEADERS = \
 			    nrm/utils/alloc.h \
 			    nrm/utils/bitmaps.h \
+			    nrm/utils/error.h \
 			    nrm/utils/ringbuffer.h \
 			    nrm/utils/scopes.h \
 			    nrm/utils/strings.h \
@@ -13,5 +14,10 @@ include_nrm_utils_HEADERS = \
 			    nrm/utils/version.h
 
 noinst_HEADERS = \
+		 internal/nrmi.h \
 		 internal/messages.h \
-		 internal/roles.h
+		 internal/roles.h \
+		 internal/utarray.h \
+		 internal/uthash.h \
+		 internal/utlist.h \
+		 internal/utringbuffer.h

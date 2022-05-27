@@ -29,35 +29,35 @@ jobs:
           name: generic
           path: |
             config.log
-  out-of-tree:
-    runs-on: ubuntu-latest
-    steps:
-      - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: configure
-        run: |
-          ./autogen.sh
-          mkdir out
-          cd out
-          mkdir build
-          ../configure --prefix=`pwd`/build
-      - name: make
-        run: |
-          cd out
-          make
-      - name: make install
-        run: |
-          cd out
-          make install
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: out-of-tree
-          path: |
-            out/config.log
+#  out-of-tree:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - run: sudo apt-get update
+#      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - name: configure
+#        run: |
+#          ./autogen.sh
+#          mkdir out
+#          cd out
+#          mkdir build
+#          ../configure --prefix=`pwd`/build
+#      - name: make
+#        run: |
+#          cd out
+#          make
+#      - name: make install
+#        run: |
+#          cd out
+#          make install
+#      - uses: actions/upload-artifact@v2
+#        if: failure()
+#        with:
+#          name: out-of-tree
+#          path: |
+#            out/config.log
   old:
     runs-on: ubuntu-18.04
     steps:
@@ -89,24 +89,24 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-20.09
       - run: nix-build -A libnrm
-  distcheck:
-    runs-on: ubuntu-latest
-    steps:
-      - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: configure
-        run: |
-          ./autogen.sh
-          mkdir build
-          ./configure --prefix=`pwd`/build
-      - run: make
-      - run: make distcheck
-      - uses: actions/upload-artifact@v2
-        if: failure()
-        with:
-          name: distcheck
-          path: |
-            config.log
+#  distcheck:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - run: sudo apt-get update
+#      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check
+#      - uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#      - name: configure
+#        run: |
+#          ./autogen.sh
+#          mkdir build
+#          ./configure --prefix=`pwd`/build
+#      - run: make
+#      - run: make distcheck
+#      - uses: actions/upload-artifact@v2
+#        if: failure()
+#        with:
+#          name: distcheck
+#          path: |
+#            config.log
