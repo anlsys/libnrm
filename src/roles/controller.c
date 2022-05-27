@@ -238,9 +238,9 @@ int nrm_role_controller_pub(const struct nrm_role_data *data,
 
 struct nrm_role_ops nrm_role_controller_ops = {
         nrm_role_controller_send,
-	nrm_role_controller_recv,
+        nrm_role_controller_recv,
         nrm_role_controller_pub,
-	NULL,
-	NULL,
+        NULL,
+        NULL,
         nrm_role_controller_destroy,
 };
