@@ -8,7 +8,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = \
 	      -include $(top_builddir)/src/config.h \
-	      -I$(top_srcdir)/include
+	      -I$(top_srcdir)/include \
 	      -I$(top_builddir)/include
 
 AM_CFLAGS = $(LIBZMQ_CFLAGS) \
@@ -30,7 +30,7 @@ pkgconfig_DATA = libnrm.pc
 # Version management
 ###############################################################################
 
-EXTRA_DIST += .version
+EXTRA_DIST += $(top_srcdir)/.version
 BUILT_SOURCES += $(top_srcdir)/.version
 $(top_srcdir)/.version:
 		echo $(VERSION) > $@-t && mv $@-t $@
@@ -161,11 +161,13 @@ clean-local:
 	rm -rf $(DOXYGEN_BUILD_DIR) $(SPHINX_BUILD_DIR)
 
 EXTRA_DIST += doc/nrm.doxy doc/conf.py doc/index.rst doc/pages
+
 ###############################################################################
 # TESTS
 ###############################################################################
 
 AM_COLOR_TESTS = yes
+AM_CPPFLAGS += $(CHECK_CFLAGS)
 AM_CFLAGS += $(CHECK_CFLAGS)
 AM_LDFLAGS += $(CHECK_LIBS)
 LDADD = libnrm.la
