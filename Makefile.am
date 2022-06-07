@@ -7,18 +7,19 @@ CLEANFILES =
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = \
-	      -I$(top_builddir)/src/config.h \
+	      -include $(top_builddir)/src/config.h \
 	      -I$(top_srcdir)/include
+	      -I$(top_builddir)/include
 
-AM_CFLAGS = @LIBZMQ_CFLAGS@ \
-	    @LIBCZMQ_CFLAGS@ \
-	    @JANSSON_CFLAGS@ \
-	    @LIBPROTOC_CFLAGS@
+AM_CFLAGS = $(LIBZMQ_CFLAGS) \
+	    $(LIBCZMQ_CFLAGS) \
+	    $(JANSSON_CFLAGS) \
+	    $(LIBPROTOC_CFLAGS)
 
-AM_LDFLAGS = @LIBZMQ_LIBS@ \
-	     @LIBCZMQ_LIBS@ \
-	     @JANSSON_LIBS@ \
-	     @LIBPROTOC_LIBS@
+AM_LDFLAGS = $(LIBZMQ_LIBS) \
+	     $(LIBCZMQ_LIBS) \
+	     $(JANSSON_LIBS) \
+	     $(LIBPROTOC_LIBS)
 
 EXTRA_DIST += autogen.sh libnrm.pc README.md LICENSE CONTRIBUTING.markdown
 
@@ -165,8 +166,8 @@ EXTRA_DIST += doc/nrm.doxy doc/conf.py doc/index.rst doc/pages
 ###############################################################################
 
 AM_COLOR_TESTS = yes
-AM_CFLAGS += @CHECK_CFLAGS@
-AM_LDFLAGS += @CHECK_LIBS@
+AM_CFLAGS += $(CHECK_CFLAGS)
+AM_LDFLAGS += $(CHECK_LIBS)
 LDADD = libnrm.la
 
 # valgrind support
