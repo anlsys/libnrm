@@ -10,14 +10,14 @@ libnrm
   :maxdepth: 2
   :caption: Complete C API
 
-  doxy_c_api
+  pages/doxy_c_api
 
 .. toctree::
   :maxdepth: 2
   :caption: Examples
 
-  simple_c_example
-  simple_f_example
+  pages/simple_c_example
+  pages/simple_f_example
 
 .. toctree::
    :maxdepth: 2

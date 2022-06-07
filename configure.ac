@@ -121,10 +121,6 @@ AM_CONDITIONAL([BUILD_BINARIES],[test "x$binaries" = "xtrue"])
 AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile
-		 include/Makefile
-		 src/Makefile
-		 tests/Makefile
-		 doc/Makefile
 		 libnrm.pc
 		 include/nrm/utils/version.h])
 AC_OUTPUT
