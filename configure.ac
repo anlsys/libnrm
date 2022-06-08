@@ -122,5 +122,6 @@ AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile
 		 libnrm.pc
+	 	 doc/Makefile
 		 include/nrm/utils/version.h])
 AC_OUTPUT

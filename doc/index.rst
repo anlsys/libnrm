@@ -2,7 +2,7 @@
 libnrm
 ======
 
-.. include:: intro_install.rst
+.. include:: pages/intro_install.rst
 
 * Check out the repository on `GitHub`_.
 

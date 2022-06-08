@@ -127,40 +127,8 @@ CLEANFILES += src/msg.pb-c.c src/msg.pb-c.h
 # Documentation
 ###############################################################################
 
-DOXYGEN_BUILD_DIR=$(top_srcdir)/doc/build-doxygen
-SPHINX_BUILD_DIR=$(top_srcdir)/doc/build-sphinx
-
-$(SPHINX_BUILD_DIR): doc/nrm.doxy doc/conf.py
-	cd $(top_srcdir)/doc
-	$(DOXYGEN) nrm.doxy
-	$(SPHINXBUILD) -v -W -b html -a . $(SPHINX_BUILD_DIR)
-
-if BUILD_DOCS
-
-build-docs: $(SPHINX_BUILD_DIR)
-
-install-doc-html: $(SPHINX_BUILD_DIR)
-	$(MKDIR_P) $(docdir)/html
-	cp -r $(SPHINX_BUILD_DIR)/. $(docdir)/html
-else
-
-build-docs:
-	@echo "not building documentation"
-
-install-doc-html:
-
-endif
-
-html-local: build-docs
-
-install-html-local: html-local install-doc-html
-
-install-data-local: install-html-local
-
-clean-local:
-	rm -rf $(DOXYGEN_BUILD_DIR) $(SPHINX_BUILD_DIR)
-
-EXTRA_DIST += doc/nrm.doxy doc/conf.py doc/index.rst doc/pages
+# can't make it work nicely with readthedocs, so use a subdir
+SUBDIRS = doc
 
 ###############################################################################
 # TESTS
