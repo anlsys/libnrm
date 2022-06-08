@@ -6,12 +6,19 @@ The following describes the C API for libnrm instrumentation.
 The corresponding header file can be found in ``src/nrm.h``. See
 :doc:`the Examples<simple_c_example>` for code samples and more information.
 
-Library Initialization
-----------------------
+Context Configuration
+---------------------
+
+An NRM ``context`` object corresponds to an NRM instrumentation instance. Typically
+only one is needed per application.
+
+.. doxygenfunction:: nrm_ctxt_create
+
+.. doxygenfunction:: nrm_ctxt_delete
 
 .. doxygenfunction:: nrm_init
 
-.. doxygenfunction:: nrm_finalize
+.. doxygenfunction:: nrm_fini
 
 Scope Configuration
 -------------------
@@ -33,10 +40,20 @@ to be reported to NRM.
 
 .. doxygenfunction:: nrm_scope_length
 
-.. doxygenfunction:: nrm_scope_destroy
+.. doxygenfunction:: nrm_scope_delete
 
 .. doxygenfunction:: nrm_scope_snprintf
 
 .. doxygenfunction:: nrm_scope_threadshared
 
 .. doxygenfunction:: nrm_scope_threadprivate
+
+Reporting Measurements
+----------------------
+
+.. doxygenfunction:: nrm_send_progress
+
+.. note::
+  Continuing the example: If reporting power for the socket, call ``nrm_send_progress()``
+  using the application's context, a cumulative measurement, and the scope previously
+  configured with ``NRM_SCOPE_TYPE_CPU``.
