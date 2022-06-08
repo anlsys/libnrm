@@ -131,9 +131,8 @@ DOXYGEN_BUILD_DIR=$(top_srcdir)/doc/build-doxygen
 SPHINX_BUILD_DIR=$(top_srcdir)/doc/build-sphinx
 
 $(SPHINX_BUILD_DIR): doc/nrm.doxy doc/conf.py
-	cd $(top_srcdir)/doc
-	$(DOXYGEN) nrm.doxy
-	$(SPHINXBUILD) -v -W -b html -a . $(SPHINX_BUILD_DIR)
+	$(DOXYGEN) doc/nrm.doxy
+	$(SPHINXBUILD) -v -W -b html -a $(top_srcdir)/doc $(SPHINX_BUILD_DIR)
 
 if BUILD_DOCS
 

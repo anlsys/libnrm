@@ -14,6 +14,12 @@ mkShell {
     llvmPackages.clang-unwrapped.python
     bear
     protobufc
+    # doc 
+    graphviz
+    doxygen
+    python3Packages.sphinx
+    python3Packages.breathe
+    python3Packages.sphinx_rtd_theme
   ];
 
   CFLAGS =
