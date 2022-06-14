@@ -5,6 +5,7 @@ enum TARGETTYPE {
 	SLICE = 0;
 	SENSOR = 1;
 	SCOPE = 2;
+	ACTUATOR = 3;
 }
 
 enum MSGTYPE {
@@ -39,6 +40,13 @@ message Slice {
 	string uuid = 2;
 }
 
+message Actuator {
+	string name = 1;
+	string uuid = 2;
+	double value = 3;
+	repeated double choices = 4;
+}
+
 message ScopeList {
 	repeated Scope scopes = 1;
 }
@@ -49,6 +57,10 @@ message SensorList {
 
 message SliceList {
 	repeated Slice slices = 1;
+}
+
+message ActuatorList {
+	repeated Actuator actuators = 1;
 }
 
 message Remove {
@@ -62,6 +74,7 @@ message Add {
 		Slice slice = 2;
 		Sensor sensor = 3;
 		Scope scope = 4;
+		Actuator actuator = 5;
 	}
 }
 
@@ -71,6 +84,7 @@ message List {
 		SliceList slices = 2;
 		SensorList sensors = 3;
 		ScopeList scopes = 4;
+		ActuatorList actuators = 5;
 	}
 }
 

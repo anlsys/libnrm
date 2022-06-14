@@ -84,6 +84,7 @@ noinst_HEADERS = \
 lib_LTLIBRARIES = libnrm.la
 
 libnrm_la_SOURCES = \
+		 src/actuator.c \
 		 src/client.c \
 		 src/eventbase.c \
 		 src/net.c \

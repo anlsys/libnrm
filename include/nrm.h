@@ -120,6 +120,24 @@ typedef struct _Nrm__Message nrm_msg_t;
 void nrm_msg_destroy(nrm_msg_t **msg);
 
 /*******************************************************************************
+ * Actuator: something capable of actions on the system
+ ******************************************************************************/
+
+struct nrm_actuator_s {
+	nrm_string_t name;
+	nrm_uuid_t *uuid;
+	double value;
+	nrm_vector_t *choices;
+};
+
+typedef struct nrm_actuator_s nrm_actuator_t;
+
+nrm_actuator_t *nrm_actuator_create(char *name);
+
+void nrm_actuator_destroy(nrm_actuator_t **);
+void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
+
+/*******************************************************************************
  * Slice: a resource arbitration unit
  ******************************************************************************/
 

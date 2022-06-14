@@ -39,8 +39,11 @@ typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_SLICE (NRM__TARGETTYPE__SLICE)
 #define NRM_MSG_TARGET_TYPE_SENSOR (NRM__TARGETTYPE__SENSOR)
 #define NRM_MSG_TARGET_TYPE_SCOPE (NRM__TARGETTYPE__SCOPE)
-#define NRM_MSG_TARGET_TYPE_MAX (3)
+#define NRM_MSG_TARGET_TYPE_ACTUATOR (NRM__TARGETTYPE__ACTUATOR)
+#define NRM_MSG_TARGET_TYPE_MAX (4)
 
+typedef Nrm__Actuator nrm_msg_actuator_t;
+typedef Nrm__ActuatorList nrm_msg_actuatorlist_t;
 typedef Nrm__Add nrm_msg_add_t;
 typedef Nrm__Event nrm_msg_event_t;
 typedef Nrm__List nrm_msg_list_t;
@@ -52,6 +55,8 @@ typedef Nrm__SensorList nrm_msg_sensorlist_t;
 typedef Nrm__Slice nrm_msg_slice_t;
 typedef Nrm__SliceList nrm_msg_slicelist_t;
 
+#define nrm_msg_actuator_init(msg) nrm__actuator__init(msg)
+#define nrm_msg_actuatorlist_init(msg) nrm__actuatorlist__init(msg)
 #define nrm_msg_add_init(msg) nrm__add__init(msg)
 #define nrm_msg_event_init(msg) nrm__event__init(msg)
 #define nrm_msg_init(msg) nrm__message__init(msg)
@@ -73,14 +78,17 @@ int nrm_msg_set_event(nrm_msg_t *msg,
                       nrm_uuid_t *uuid,
                       nrm_scope_t *scope,
                       double value);
+int nrm_msg_set_add_actuator(nrm_msg_t *msg, nrm_actuator_t *actuator);
 int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope);
 int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
 int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
+int nrm_msg_set_list_actuators(nrm_msg_t *msg, nrm_vector_t *actuators);
 int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes);
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
 int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid);
 
+nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg);
 nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg);
 nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg);
 nrm_sensor_t *nrm_sensor_create_frommsg(nrm_msg_sensor_t *msg);
