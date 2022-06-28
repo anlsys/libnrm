@@ -80,6 +80,26 @@ nrm_msg_add_t *nrm_msg_add_new(int type)
 	return ret;
 }
 
+nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
+{
+	nrm_msg_actuator_t *ret = calloc(1, sizeof(nrm_msg_actuator_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_actuator_init(ret);
+	if (actuator->uuid)
+		ret->uuid = strdup((char *)nrm_uuid_to_char(actuator->uuid));
+	ret->value = actuator->value;
+	ret->choices = calloc(ret->n_choices, sizeof(double));
+	assert(ret->choices);
+	for (size_t i = 0; i < ret->n_choices; i++) {
+		void *p; double *d;
+		nrm_vector_get(actuator->choices, i, &p);
+		d = (double *)p;
+		ret->choices[i] = *d;
+	}
+	return ret;
+}
+
 nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 {
 	nrm_msg_scope_t *ret = calloc(1, sizeof(nrm_msg_scope_t));
@@ -122,6 +142,18 @@ int nrm_msg_set_event(nrm_msg_t *msg,
 	msg->event->value = value;
 	msg->event->scope = nrm_msg_scope_new(scope);
 	assert(msg->event->scope);
+	return 0;
+}
+
+int nrm_msg_set_add_actuator(nrm_msg_t *msg, nrm_actuator_t *actuator)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->add = nrm_msg_add_new(NRM_MSG_TARGET_TYPE_ACTUATOR);
+	assert(msg->add);
+	msg->data_case = NRM__MESSAGE__DATA_ADD;
+	msg->add->data_case = NRM__ADD__DATA_ACTUATOR;
+	msg->add->actuator = nrm_msg_actuator_new(actuator);
 	return 0;
 }
 
@@ -302,6 +334,21 @@ int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid)
 /*******************************************************************************
  * Protobuf Management: Parsing Messages
  *******************************************************************************/
+
+nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
+{
+	if (msg == NULL)
+		return NULL;
+	nrm_actuator_t *ret = nrm_actuator_create(msg->name);
+	if (msg->uuid)
+		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	ret->value = msg->value;
+	nrm_vector_create(&ret->choices, sizeof(double));
+	nrm_vector_resize(ret->choices, msg->n_choices);
+	for(size_t i = 0; i < msg->n_choices; i++)
+		nrm_vector_push_back(ret->choices, &msg->choices[i]);
+	return ret;
+}
 
 nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg)
 {

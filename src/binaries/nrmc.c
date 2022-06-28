@@ -101,6 +101,27 @@ int cmd_run(int argc, char **argv)
 	return err;
 }
 
+int cmd_add_actuator(int argc, char **argv)
+{
+
+	/* no matter the arguments, only one extra parameter */
+	if (argc != 2)
+		return EXIT_FAILURE;
+
+	int err;
+	char *name = argv[1];
+	nrm_actuator_t *actuator = nrm_actuator_create(name);
+
+	err = nrm_client_add_actuator(client, actuator);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+	json_t *json = nrm_actuator_to_json(actuator);
+	json_dumpf(json, stdout, JSON_SORT_KEYS);
+	return 0;
+}
+
 int cmd_add_scope(int argc, char **argv)
 {
 

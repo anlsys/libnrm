@@ -132,7 +132,7 @@ struct nrm_actuator_s {
 
 typedef struct nrm_actuator_s nrm_actuator_t;
 
-nrm_actuator_t *nrm_actuator_create(char *name);
+nrm_actuator_t *nrm_actuator_create();
 
 void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
@@ -196,6 +196,7 @@ void nrm_sensor_destroy(nrm_sensor_t **);
  ******************************************************************************/
 
 struct nrm_state_s {
+	nrm_vector_t *actuators;
 	nrm_vector_t *slices;
 	nrm_vector_t *sensors;
 	nrm_vector_t *scopes;

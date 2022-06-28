@@ -42,6 +42,32 @@ int nrm_client_create(nrm_client_t **client,
 	return 0;
 }
 
+int nrm_client_add_actuator(const nrm_client_t *client, nrm_actuator_t *actuator)
+{
+	if (client == NULL || actuator == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_actuator(msg, actuator);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply:\t");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ADD);
+	assert(msg->add->type == NRM_MSG_TARGET_TYPE_ACTUATOR);
+	actuator = nrm_actuator_create_frommsg(msg->add->actuator);
+	return 0;
+}
+
 int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
 {
 	if (client == NULL || scope == NULL)
