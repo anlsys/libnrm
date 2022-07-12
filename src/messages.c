@@ -337,6 +337,38 @@ nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg)
 	return ret;
 }
 
+int nrm_scope_update_frommsg(nrm_scope_t *scope, nrm_msg_scope_t *msg)
+{
+	if (scope == NULL || msg == NULL)
+		return -NRM_EINVAL;
+	nrm_bitmap_from_array(&scope->maps[NRM_SCOPE_TYPE_CPU], msg->n_cpus,
+	                      msg->cpus);
+	nrm_bitmap_from_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], msg->n_numas,
+	                      msg->numas);
+	nrm_bitmap_from_array(&scope->maps[NRM_SCOPE_TYPE_GPU], msg->n_gpus,
+	                      msg->gpus);
+	return 0;
+}
+
+int nrm_sensor_update_frommsg(nrm_sensor_t *sensor, nrm_msg_sensor_t *msg)
+{
+	if (sensor == NULL || msg == NULL)
+		return -NRM_EINVAL;
+	sensor->name = nrm_string_fromchar(msg->name);
+	if (msg->uuid)
+		sensor->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	return 0;
+}
+
+int nrm_slice_update_frommsg(nrm_slice_t *slice, nrm_msg_slice_t *msg)
+{
+	if (slice == NULL || msg == NULL)
+		return -NRM_EINVAL;
+	slice->name = nrm_string_fromchar(msg->name);
+	if (msg->uuid)
+		slice->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	return 0;
+}
 /*******************************************************************************
  * Protobuf Management: ZMQ Management
  *******************************************************************************/
@@ -741,7 +773,6 @@ int nrm_ctrlmsg_sendmsg(zsock_t *socket,
                         nrm_msg_t *msg,
                         nrm_uuid_t *to)
 {
-	assert(type == NRM_CTRLMSG_TYPE_SEND);
 	return nrm_ctrlmsg__send(socket, type, (void *)msg, (void *)to);
 }
 
@@ -765,7 +796,6 @@ nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from)
 	int err;
 	void *p, *q;
 	err = nrm_ctrlmsg__recv(socket, type, &p, &q);
-	assert(type == NRM_CTRLMSG_TYPE_RECV);
 	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
 	if (from != NULL) {
 		*from = (nrm_uuid_t *)q;

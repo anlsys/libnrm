@@ -95,6 +95,12 @@ int nrm_bitmap_cmp(struct nrm_bitmap *one, struct nrm_bitmap *two)
 	return memcmp(one->mask, two->mask, NRM_BITMAP_BYTES);
 }
 
+int nrm_bitmap_reset(struct nrm_bitmap *bitmap)
+{
+	memset(bitmap->mask, 0, NRM_BITMAP_BYTES);
+	return 0;
+}
+
 /**
  * Bitmap conversion to string. Output strings are index numbers wrapped in
  *brackets [].
@@ -174,6 +180,7 @@ int nrm_bitmap_to_array(const struct nrm_bitmap *map,
 
 int nrm_bitmap_from_array(struct nrm_bitmap *map, size_t nitems, int32_t *items)
 {
+	nrm_bitmap_reset(map);
 	for (size_t i = 0; i < nitems; i++)
 		nrm_bitmap_set(map, items[i]);
 	return 0;
@@ -186,6 +193,7 @@ int nrm_bitmap_from_json(struct nrm_bitmap *bitmap, json_t *json)
 
 	size_t index;
 	json_t *value;
+	nrm_bitmap_reset(bitmap);
 	json_array_foreach(json, index, value)
 	{
 		json_int_t i = json_integer_value(value);

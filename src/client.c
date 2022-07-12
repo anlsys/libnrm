@@ -64,7 +64,7 @@ int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SCOPE);
-	scope = nrm_scope_create_frommsg(msg->add->scope);
+	nrm_scope_update_frommsg(scope, msg->add->scope);
 	return 0;
 }
 
@@ -90,7 +90,7 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SLICE);
-	slice = nrm_slice_create_frommsg(msg->add->slice);
+	nrm_slice_update_frommsg(slice, msg->add->slice);
 	return 0;
 }
 
@@ -116,7 +116,7 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SENSOR);
-	sensor = nrm_sensor_create_frommsg(msg->add->sensor);
+	nrm_sensor_update_frommsg(sensor, msg->add->sensor);
 	return 0;
 }
 
