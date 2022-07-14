@@ -56,7 +56,7 @@ typedef Nrm__Slice nrm_msg_slice_t;
 typedef Nrm__SliceList nrm_msg_slicelist_t;
 
 #define nrm_msg_actuator_init(msg) nrm__actuator__init(msg)
-#define nrm_msg_actuatorlist_init(msg) nrm__actuatorlist__init(msg)
+#define nrm_msg_actuatorlist_init(msg) nrm__actuator_list__init(msg)
 #define nrm_msg_add_init(msg) nrm__add__init(msg)
 #define nrm_msg_event_init(msg) nrm__event__init(msg)
 #define nrm_msg_init(msg) nrm__message__init(msg)

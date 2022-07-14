@@ -188,7 +188,20 @@ int nrm_client_find(const nrm_client_t *client,
 	assert(msg->list->type == type);
 
 	nrm_vector_t *ret;
-	if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
+	if (type == NRM_MSG_TARGET_TYPE_ACTUATOR) {
+		err = nrm_vector_create(&ret, sizeof(nrm_actuator_t));
+		if (err)
+			return err;
+
+		for (size_t i = 0; i < msg->list->actuators->n_actuators; i++) {
+			if (uuid != NULL &&
+			    strcmp(*uuid, msg->list->actuators->actuators[i]->uuid))
+				continue;
+			nrm_actuator_t *s = nrm_actuator_create_frommsg(
+			        msg->list->actuators->actuators[i]);
+			nrm_vector_push_back(ret, s);
+		}
+	} else if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
 		err = nrm_vector_create(&ret, sizeof(nrm_scope_t));
 		if (err)
 			return err;
@@ -266,6 +279,43 @@ int nrm_client_start_event_listener(const nrm_client_t *client,
 	nrm_role_register_sub_cb(client->role, nrm_client__sub_callback,
 	                         client);
 	nrm_role_sub(client->role, topic);
+	return 0;
+}
+
+int nrm_client_list_actuators(const nrm_client_t *client, nrm_vector_t **actuators)
+{
+	if (client == NULL || actuators == NULL)
+		return -NRM_EINVAL;
+
+	int err;
+	/* craft the message we want to send */
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_actuators(msg, NULL);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	nrm_vector_t *ret;
+	err = nrm_vector_create(&ret, sizeof(nrm_actuator_t));
+	if (err)
+		return err;
+
+	assert(msg->type == NRM_MSG_TYPE_LIST);
+	assert(msg->list->type == NRM_MSG_TARGET_TYPE_ACTUATOR);
+	for (size_t i = 0; i < msg->list->actuators->n_actuators; i++) {
+		nrm_actuator_t *s =
+		        nrm_actuator_create_frommsg(msg->list->actuators->actuators[i]);
+		nrm_vector_push_back(ret, s);
+	}
+	*actuators = ret;
 	return 0;
 }
 

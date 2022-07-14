@@ -203,6 +203,29 @@ static nrm_msg_list_t *nrm_msg_list_new(int type)
 	return ret;
 }
 
+nrm_msg_actuatorlist_t *nrm_msg_actuatorlist_new(nrm_vector_t *actuators)
+{
+	void *p;
+	nrm_msg_actuatorlist_t *ret = calloc(1, sizeof(nrm_msg_actuatorlist_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_actuatorlist_init(ret);
+	if (actuators == NULL) {
+		ret->n_actuators = 0;
+		return ret;
+	}
+	nrm_vector_length(actuators, &ret->n_actuators);
+	nrm_log_debug("vector contains %zu\n", ret->n_actuators);
+	ret->actuators = calloc(ret->n_actuators, sizeof(nrm_msg_actuator_t *));
+	assert(ret->actuators);
+	for (size_t i = 0; i < ret->n_actuators; i++) {
+		nrm_vector_get(actuators, i, &p);
+		nrm_actuator_t *s = (nrm_actuator_t *)p;
+		ret->actuators[i] = nrm_msg_actuator_new(s);
+	}
+	return ret;
+}
+
 nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
 {
 	void *p;
@@ -272,6 +295,18 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 		ret->slices[i] = nrm_msg_slice_new(s->name, s->uuid);
 	}
 	return ret;
+}
+
+int nrm_msg_set_list_actuators(nrm_msg_t *msg, nrm_vector_t *actuators)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->list = nrm_msg_list_new(NRM_MSG_TARGET_TYPE_ACTUATOR);
+	assert(msg->list);
+	msg->data_case = NRM__MESSAGE__DATA_LIST;
+	msg->list->data_case = NRM__LIST__DATA_ACTUATORS;
+	msg->list->actuators = nrm_msg_actuatorlist_new(actuators);
+	return 0;
 }
 
 int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes)
@@ -565,6 +600,7 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
 };
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
+        {NRM_MSG_TARGET_TYPE_ACTUATOR, "ACTUATOR"},
         {NRM_MSG_TARGET_TYPE_SLICE, "SLICE"},
         {NRM_MSG_TARGET_TYPE_SENSOR, "SENSOR"},
         {NRM_MSG_TARGET_TYPE_SCOPE, "SCOPE"},
@@ -587,6 +623,37 @@ json_t *nrm_msg_bitmap_to_json(size_t nitems, int32_t *items)
 	ret = json_array();
 	for (size_t i = 0; i < nitems; i++)
 		json_array_append_new(ret, json_integer(items[i]));
+	return ret;
+}
+
+json_t *nrm_msg_darray_to_json(size_t nitems, double *items)
+{
+	json_t *ret;
+	ret = json_array();
+	for (size_t i = 0; i < nitems; i++)
+		json_array_append_new(ret, json_real(items[i]));
+	return ret;
+}
+
+json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
+{
+	json_t *ret;
+	json_t *choices;
+	choices = nrm_msg_darray_to_json(msg->n_choices, msg->choices);
+	ret = json_pack("{s:s, s:s?, s:o, s:o}", "name", msg->name,
+			"uuid", msg->uuid, "value", json_real(msg->value),
+			"choices", choices);
+	return ret;
+}
+
+json_t *nrm_msg_actuatorlist_to_json(nrm_msg_actuatorlist_t *msg)
+{
+	json_t *ret;
+	ret = json_array();
+	for (size_t i = 0; i < msg->n_actuators; i++) {
+		json_array_append_new(ret,
+		                      nrm_msg_actuator_to_json(msg->actuators[i]));
+	}
 	return ret;
 }
 
@@ -654,6 +721,9 @@ json_t *nrm_msg_add_to_json(nrm_msg_add_t *msg)
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		sub = nrm_msg_actuator_to_json(msg->actuator);
+		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		sub = nrm_msg_slice_to_json(msg->slice);
 		break;
@@ -678,6 +748,9 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		sub = nrm_msg_actuatorlist_to_json(msg->actuators);
+		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		sub = nrm_msg_slicelist_to_json(msg->slices);
 		break;

@@ -189,6 +189,74 @@ int cmd_add_sensor(int argc, char **argv)
 	return 0;
 }
 
+int cmd_find_actuator(int argc, char **argv)
+{
+
+	int err;
+	static int ask_uuid = 0;
+	static struct option cmd_run_long_options[] = {
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
+	};
+
+	static const char *cmd_run_short_options = ":u";
+
+	int c;
+	int option_index = 0;
+	while (1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+		                cmd_run_long_options, &option_index);
+		if (c == -1)
+			break;
+		switch (c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_ACTUATOR, name, uuid,
+	                      &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_actuator_t *a;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		a = (nrm_actuator_t *)p;
+		json_t *json = nrm_actuator_to_json(a);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	return 0;
+}
+
 int cmd_find_scope(int argc, char **argv)
 {
 
@@ -399,6 +467,7 @@ int client_listen_callback(nrm_uuid_t uuid,
                            double value)
 {
 	nrm_log_debug("event\n");
+	return 0;
 }
 
 int cmd_listen(int argc, char **argv)
@@ -418,6 +487,37 @@ int cmd_listen(int argc, char **argv)
 	 */
 	while (1)
 		;
+	return 0;
+}
+
+int cmd_list_actuators(int argc, char **argv)
+{
+	/* no options at this time */
+	(void)argc;
+	(void)argv;
+
+	int err;
+	nrm_vector_t *actuators;
+
+	err = nrm_client_list_actuators(client, &actuators);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(actuators, &len);
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_actuator_t *r;
+		void *p;
+		nrm_vector_get(actuators, i, &p);
+		r = (nrm_actuator_t *)p;
+		json_t *json = nrm_actuator_to_json(r);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
 	return 0;
 }
 
@@ -510,6 +610,81 @@ int cmd_list_slices(int argc, char **argv)
 		nrm_vector_get(slices, i, &p);
 		s = (nrm_slice_t *)p;
 		json_t *json = nrm_slice_to_json(s);
+		json_array_append_new(array, json);
+	}
+	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	return 0;
+}
+
+int cmd_remove_actuator(int argc, char **argv)
+{
+	int err;
+	static int ask_uuid = 0;
+	static int ask_all = 0;
+	static struct option cmd_run_long_options[] = {
+	        {"uuid", no_argument, &ask_uuid, 1},
+	        {"all", no_argument, &ask_uuid, 1},
+	        {0, 0, 0, 0},
+	};
+
+	static const char *cmd_run_short_options = ":ua";
+
+	int c;
+	int option_index = 0;
+	while (1) {
+		c = getopt_long(argc, argv, cmd_run_short_options,
+		                cmd_run_long_options, &option_index);
+		if (c == -1)
+			break;
+		switch (c) {
+		case 0:
+			break;
+		case 'u':
+			ask_uuid = 1;
+			break;
+		case 'a':
+			ask_all = 1;
+			break;
+		case '?':
+			return EXIT_FAILURE;
+		default:
+			return EXIT_FAILURE;
+		}
+	}
+	/* remove the parsed part */
+	argc -= optind;
+	argv = &(argv[optind]);
+
+	if (argc < 1)
+		return EXIT_FAILURE;
+
+	nrm_vector_t *results;
+	char *name = NULL;
+	nrm_uuid_t *uuid = NULL;
+	if (ask_uuid)
+		uuid = nrm_uuid_create_fromchar(argv[0]);
+	else
+		name = argv[0];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_ACTUATOR, name, uuid,
+	                      &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+	/* either remove all, or just one (if we found one) */
+	len = ask_all ? len : len > 0 ? 1 : 0;
+
+	json_t *array = json_array();
+	for (size_t i = 0; i < len; i++) {
+		nrm_actuator_t *r;
+		void *p;
+		nrm_vector_get(results, i, &p);
+		r = (nrm_actuator_t *)p;
+		json_t *json = nrm_actuator_to_json(r);
+		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_ACTUATOR, r->uuid);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
@@ -779,17 +954,21 @@ int cmd_send_event(int argc, char **argv)
 }
 
 static struct client_cmd commands[] = {
+        {"add-actuator", cmd_add_actuator},
         {"add-scope", cmd_add_scope},
         {"add-slice", cmd_add_slice},
         {"add-sensor", cmd_add_sensor},
+        {"find-actuator", cmd_find_actuator},
         {"find-scope", cmd_find_scope},
         {"find-slice", cmd_find_slice},
         {"find-sensor", cmd_find_sensor},
         {"listen", cmd_listen},
+        {"list-actuators", cmd_list_actuators},
         {"list-scopes", cmd_list_scopes},
         {"list-slices", cmd_list_slices},
         {"list-sensors", cmd_list_sensors},
         {"send-event", cmd_send_event},
+        {"remove-actuator", cmd_remove_actuator},
         {"remove-scope", cmd_remove_scope},
         {"remove-slice", cmd_remove_slice},
         {"remove-sensor", cmd_remove_sensor},
