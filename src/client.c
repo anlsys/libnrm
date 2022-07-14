@@ -64,7 +64,7 @@ int nrm_client_add_actuator(const nrm_client_t *client, nrm_actuator_t *actuator
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_ACTUATOR);
-	actuator = nrm_actuator_create_frommsg(msg->add->actuator);
+	nrm_actuator_update_frommsg(actuator, msg->add->actuator);
 	return 0;
 }
 

@@ -419,6 +419,20 @@ nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg)
 	return ret;
 }
 
+int nrm_actuator_update_frommsg(nrm_actuator_t *actuator, nrm_msg_actuator_t *msg)
+{
+	if (actuator == NULL || msg == NULL)
+		return -NRM_EINVAL;
+
+	actuator->name = nrm_string_fromchar(msg->name);
+	if (msg->uuid)
+		actuator->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	actuator->value = msg->value;
+	actuator->choices = realloc(actuator->choices, msg->n_choices*sizeof(double));
+	memcpy(actuator->choices, msg->choices, msg->n_choices * sizeof(double));
+	return 0;
+}
+
 int nrm_scope_update_frommsg(nrm_scope_t *scope, nrm_msg_scope_t *msg)
 {
 	if (scope == NULL || msg == NULL)
