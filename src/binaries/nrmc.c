@@ -105,12 +105,19 @@ int cmd_add_actuator(int argc, char **argv)
 {
 
 	/* no matter the arguments, only one extra parameter */
-	if (argc != 2)
+	if (argc != 3)
 		return EXIT_FAILURE;
 
 	int err;
 	char *name = argv[1];
 	nrm_actuator_t *actuator = nrm_actuator_create(name);
+
+	json_t *param;
+	json_error_t json_error;
+	param = json_loads(argv[2], 0, &json_error);
+	err = nrm_actuator_from_json(actuator, param);
+	if (err)
+		return EXIT_FAILURE;
 
 	err = nrm_client_add_actuator(client, actuator);
 	if (err) {

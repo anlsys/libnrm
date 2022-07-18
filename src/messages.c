@@ -86,9 +86,11 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_actuator_init(ret);
+	ret->name = strdup(actuator->name);
 	if (actuator->uuid)
 		ret->uuid = strdup((char *)nrm_uuid_to_char(actuator->uuid));
 	ret->value = actuator->value;
+	nrm_vector_length(actuator->choices, &ret->n_choices);
 	ret->choices = calloc(ret->n_choices, sizeof(double));
 	assert(ret->choices);
 	for (size_t i = 0; i < ret->n_choices; i++) {
@@ -378,8 +380,8 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 	if (msg->uuid)
 		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
 	ret->value = msg->value;
-	nrm_vector_create(&ret->choices, sizeof(double));
 	nrm_vector_resize(ret->choices, msg->n_choices);
+	nrm_vector_clear(ret->choices);
 	for(size_t i = 0; i < msg->n_choices; i++)
 		nrm_vector_push_back(ret->choices, &msg->choices[i]);
 	return ret;
@@ -428,8 +430,13 @@ int nrm_actuator_update_frommsg(nrm_actuator_t *actuator, nrm_msg_actuator_t *ms
 	if (msg->uuid)
 		actuator->uuid = nrm_uuid_create_fromchar(msg->uuid);
 	actuator->value = msg->value;
-	actuator->choices = realloc(actuator->choices, msg->n_choices*sizeof(double));
-	memcpy(actuator->choices, msg->choices, msg->n_choices * sizeof(double));
+	if (actuator->choices)
+		nrm_vector_destroy(&actuator->choices);
+	nrm_vector_create(&actuator->choices, sizeof(double));
+	nrm_vector_resize(actuator->choices, msg->n_choices);
+	nrm_vector_clear(actuator->choices);
+	for(size_t i = 0; i < msg->n_choices; i++)
+		nrm_vector_push_back(actuator->choices, &msg->choices[i]);
 	return 0;
 }
 
