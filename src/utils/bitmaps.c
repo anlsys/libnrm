@@ -171,7 +171,7 @@ int nrm_bitmap_to_array(const struct nrm_bitmap *map,
 		return -NRM_ENOMEM;
 	for (size_t i = 0, set = 0; i < NRM_BITMAP_MAX && set < size; i++) {
 		if (nrm_bitmap_isset(map, i)) {
-			*items[set] = i;
+			(*items)[set] = i;
 			set++;
 		}
 	}
