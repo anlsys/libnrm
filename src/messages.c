@@ -46,6 +46,17 @@ int nrm_msg_fill(nrm_msg_t *msg, int type)
 	return 0;
 }
 
+nrm_msg_actuate_t *nrm_msg_actuate_new(nrm_uuid_t *uuid, double value)
+{
+	nrm_msg_actuate_t *ret = calloc(1, sizeof(nrm_msg_actuate_t));
+	if (ret == NULL)
+		return ret;
+	nrm_msg_actuate_init(ret);
+	ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	ret->value = value;
+	return ret;
+}
+
 nrm_msg_sensor_t *nrm_msg_sensor_new(const char *name, nrm_uuid_t *uuid)
 {
 	nrm_msg_sensor_t *ret = calloc(1, sizeof(nrm_msg_sensor_t));
@@ -144,6 +155,15 @@ int nrm_msg_set_event(nrm_msg_t *msg,
 	msg->event->value = value;
 	msg->event->scope = nrm_msg_scope_new(scope);
 	assert(msg->event->scope);
+	return 0;
+}
+
+int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_uuid_t *uuid, double value)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->data_case = NRM__MESSAGE__DATA_ACTUATE;
+	msg->actuate = nrm_msg_actuate_new(uuid, value);
 	return 0;
 }
 
@@ -615,9 +635,13 @@ struct nrm_msg_type_table_s {
 typedef struct nrm_msg_type_table_s nrm_msg_type_table_t;
 
 static const nrm_msg_type_table_t nrm_msg_type_table[] = {
-        {NRM_MSG_TYPE_ACK, "ACK"},     {NRM_MSG_TYPE_LIST, "LIST"},
-        {NRM_MSG_TYPE_ADD, "ADD"},     {NRM_MSG_TYPE_REMOVE, "REMOVE"},
-        {NRM_MSG_TYPE_EVENT, "EVENT"}, {0, NULL},
+        {NRM_MSG_TYPE_ACK, "ACK"},
+	{NRM_MSG_TYPE_LIST, "LIST"},
+        {NRM_MSG_TYPE_ADD, "ADD"},
+	{NRM_MSG_TYPE_REMOVE, "REMOVE"},
+        {NRM_MSG_TYPE_EVENT, "EVENT"},
+        {NRM_MSG_TYPE_ACTUATE, "ACTUATE"},
+	{0, NULL},
 };
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
@@ -810,11 +834,21 @@ json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
 	return ret;
 }
 
+json_t *nrm_msg_actuate_to_json(nrm_msg_actuate_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:s, s:f}", "uuid", msg->uuid, "value", msg->value);
+	return ret;
+}
+
 json_t *nrm_msg_to_json(nrm_msg_t *msg)
 {
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
+	case NRM_MSG_TYPE_ACTUATE:
+		sub = nrm_msg_actuate_to_json(msg->actuate);
+		break;
 	case NRM_MSG_TYPE_ADD:
 		sub = nrm_msg_add_to_json(msg->add);
 		break;

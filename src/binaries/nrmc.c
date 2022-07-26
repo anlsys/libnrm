@@ -56,6 +56,40 @@ struct client_cmd {
 	int (*fn)(int, char **);
 };
 
+int cmd_actuate(int argc, char **argv)
+{
+	/* no options at this time */
+	if (argc < 3)
+		return EXIT_FAILURE;
+
+	char *name = argv[1];
+	double value = strtod(argv[2], NULL);
+
+	/* find actuator */
+	int err;
+	nrm_vector_t *results;
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_ACTUATOR, name, NULL,
+	                      &results);
+	if (err) {
+		nrm_log_error("error during client request\n");
+		return EXIT_FAILURE;
+	}
+
+	size_t len;
+	nrm_vector_length(results, &len);
+
+	assert(len == 1);
+	nrm_actuator_t *a;
+	void *p;
+	nrm_vector_get(results, 0, &p);
+	a = (nrm_actuator_t *)p;
+
+	nrm_log_info("sending actuation\n");
+	nrm_client_actuate(client, a, value);
+	return 0;
+}
+
+
 int cmd_run(int argc, char **argv)
 {
 
@@ -961,6 +995,7 @@ int cmd_send_event(int argc, char **argv)
 }
 
 static struct client_cmd commands[] = {
+        {"actuate", cmd_actuate},
         {"add-actuator", cmd_add_actuator},
         {"add-scope", cmd_add_scope},
         {"add-slice", cmd_add_slice},

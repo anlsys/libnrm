@@ -33,7 +33,8 @@ typedef enum _Nrm__MSGTYPE nrm_msg_msgtype_e;
 #define NRM_MSG_TYPE_ADD (NRM__MSGTYPE__ADD)
 #define NRM_MSG_TYPE_REMOVE (NRM__MSGTYPE__REMOVE)
 #define NRM_MSG_TYPE_EVENT (NRM__MSGTYPE__EVENT)
-#define NRM_MSG_TYPE_MAX (5)
+#define NRM_MSG_TYPE_ACTUATE (NRM__MSGTYPE__ACTUATE)
+#define NRM_MSG_TYPE_MAX (6)
 
 typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_SLICE (NRM__TARGETTYPE__SLICE)
@@ -42,6 +43,7 @@ typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_ACTUATOR (NRM__TARGETTYPE__ACTUATOR)
 #define NRM_MSG_TARGET_TYPE_MAX (4)
 
+typedef Nrm__Actuate nrm_msg_actuate_t;
 typedef Nrm__Actuator nrm_msg_actuator_t;
 typedef Nrm__ActuatorList nrm_msg_actuatorlist_t;
 typedef Nrm__Add nrm_msg_add_t;
@@ -55,6 +57,7 @@ typedef Nrm__SensorList nrm_msg_sensorlist_t;
 typedef Nrm__Slice nrm_msg_slice_t;
 typedef Nrm__SliceList nrm_msg_slicelist_t;
 
+#define nrm_msg_actuate_init(msg) nrm__actuate__init(msg)
 #define nrm_msg_actuator_init(msg) nrm__actuator__init(msg)
 #define nrm_msg_actuatorlist_init(msg) nrm__actuator_list__init(msg)
 #define nrm_msg_add_init(msg) nrm__add__init(msg)
@@ -78,6 +81,7 @@ int nrm_msg_set_event(nrm_msg_t *msg,
                       nrm_uuid_t *uuid,
                       nrm_scope_t *scope,
                       double value);
+int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_uuid_t *uuid, double value);
 int nrm_msg_set_add_actuator(nrm_msg_t *msg, nrm_actuator_t *actuator);
 int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope);
 int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
@@ -115,6 +119,7 @@ nrm_msg_t *nrm_msg_recvfrom(zsock_t *socket, nrm_uuid_t **from);
 
 int nrm_msg_pub(zsock_t *socket, nrm_string_t topic, nrm_msg_t *msg);
 nrm_msg_t *nrm_msg_sub(zsock_t *socket, nrm_string_t *topic);
+
 /*******************************************************************************
  * Control Messages: mostly needed to exchange through shared memory between
  * various nrm layers (e.g. brokers and user-facing APIs)

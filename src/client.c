@@ -42,6 +42,47 @@ int nrm_client_create(nrm_client_t **client,
 	return 0;
 }
 
+int nrm_client_actuate(const nrm_client_t *client, nrm_actuator_t *actuator,
+		       double value)
+{
+	if (client == NULL || actuator == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("checking value is valid");
+	size_t i, len;
+	nrm_vector_length(actuator->choices, &len);
+	for (i = 0; i < len; i++) {
+		double d;
+		void *p;
+		nrm_vector_get(actuator->choices, i, &p);
+		d = *(double *)p;
+		if (d == value)
+			break;
+	}
+	if (i == len) {
+		nrm_log_info("value %f not in choices\n", value);
+		return -NRM_EDOM;
+	}
+
+	nrm_log_debug("crafting message\n");
+	/* craft the message we want to send */
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_ACTUATE);
+	nrm_msg_set_actuate(msg, actuator->uuid, value);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply:\t");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
+	return 0;
+}
+
 int nrm_client_add_actuator(const nrm_client_t *client, nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
@@ -168,13 +209,25 @@ int nrm_client_find(const nrm_client_t *client,
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
-	if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
-		nrm_msg_set_list_scopes(msg, NULL);
-	} else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
-		nrm_msg_set_list_sensors(msg, NULL);
-	} else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
-		nrm_msg_set_list_slices(msg, NULL);
+	switch(type) {
+		case NRM_MSG_TARGET_TYPE_ACTUATOR:
+			nrm_msg_set_list_actuators(msg, NULL);
+			break;
+		case NRM_MSG_TARGET_TYPE_SCOPE:
+			nrm_msg_set_list_scopes(msg, NULL);
+			break;
+		case NRM_MSG_TARGET_TYPE_SENSOR:
+			nrm_msg_set_list_sensors(msg, NULL);
+			break;
+		case NRM_MSG_TARGET_TYPE_SLICE:
+			nrm_msg_set_list_slices(msg, NULL);
+			break;
+		default:
+			nrm_log_error("missing case for type %d\n", type);
+			assert(0);
 	}
+	assert(msg->type == NRM_MSG_TYPE_LIST);
+	assert(msg->list->type == type);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	nrm_role_send(client->role, msg, NULL);
