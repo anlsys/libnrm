@@ -44,8 +44,9 @@ message Slice {
 message Actuator {
 	string name = 1;
 	string uuid = 2;
-	double value = 3;
-	repeated double choices = 4;
+	string clientid = 3;
+	double value = 4;
+	repeated double choices = 5;
 }
 
 message ScopeList {

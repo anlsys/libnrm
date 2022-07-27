@@ -126,6 +126,7 @@ void nrm_msg_destroy(nrm_msg_t **msg);
 struct nrm_actuator_s {
 	nrm_string_t name;
 	nrm_uuid_t *uuid;
+	nrm_uuid_t *clientid;
 	double value;
 	nrm_vector_t *choices;
 };

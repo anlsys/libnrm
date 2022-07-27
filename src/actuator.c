@@ -83,23 +83,27 @@ int nrm_vector_d_from_json(nrm_vector_t *vector, json_t *json)
 json_t *nrm_actuator_to_json(nrm_actuator_t *actuator)
 {
 	json_t *uuid = NULL;
+	json_t *clientid = NULL;
 	json_t *choices = NULL;
 	if (actuator->uuid != NULL)
 		uuid = nrm_uuid_to_json(actuator->uuid);
+	if (actuator->clientid != NULL)
+		clientid = nrm_uuid_to_json(actuator->clientid);
 	choices = nrm_vector_d_to_json(actuator->choices);
-	return json_pack("{s:s, s:o?, s:f, s:o?}", "name", actuator->name, 
-			 "uuid", uuid, "value", actuator->value,
-			 "choices", choices);
+	return json_pack("{s:s, s:o?, s:o?, s:f, s:o?}", "name", actuator->name, 
+			 "uuid", uuid, "clientid", clientid, 
+			 "value", actuator->value, "choices", choices);
 }
 
 int nrm_actuator_from_json(nrm_actuator_t *actuator, json_t *json)
 {
 	json_t *choices = NULL;
 	char *uuid = NULL;
+	char *clientid = NULL;
 	json_error_t error;
 	int err;
-	err = json_unpack_ex(json, &error, 0, "{s?:s, s?:o, s?:f}",
-			     "uuid", &uuid, "choices", &choices,
+	err = json_unpack_ex(json, &error, 0, "{s?:s, s?:o, s?:o, s?:f}",
+			     "uuid", &uuid, "clientid", &clientid, "choices", &choices,
 			     "value", &actuator->value);
 	if (err) {
 		nrm_log_error("error unpacking json: %s, %s, %d, %d, %d\n",
@@ -109,6 +113,8 @@ int nrm_actuator_from_json(nrm_actuator_t *actuator, json_t *json)
 	}
 	if (uuid)
 		actuator->uuid = nrm_uuid_create_fromchar(uuid);
+	if (clientid)
+		actuator->clientid = nrm_uuid_create_fromchar(clientid);
 	nrm_vector_d_from_json(actuator->choices, choices);
 	return 0;
 }
@@ -119,6 +125,7 @@ void nrm_actuator_destroy(nrm_actuator_t **actuator)
 		return;
 	nrm_string_decref(&(*actuator)->name);
 	nrm_uuid_destroy(&(*actuator)->uuid);
+	nrm_uuid_destroy(&(*actuator)->clientid);
 	nrm_vector_destroy(&(*actuator)->choices);
 	*actuator = NULL;
 }

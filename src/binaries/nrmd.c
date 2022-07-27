@@ -133,10 +133,11 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	return ret;
 }
 
-nrm_msg_t *nrmd_daemon_add_actuator(nrm_msg_actuator_t *actuator)
+nrm_msg_t *nrmd_daemon_add_actuator(nrm_uuid_t *clientid, nrm_msg_actuator_t *actuator)
 {
 	nrm_actuator_t *newactuator = nrm_actuator_create_frommsg(actuator);
 	newactuator->uuid = nrm_uuid_create();
+	newactuator->clientid = nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
 	nrm_vector_push_back(my_daemon.state->actuators, newactuator);
 
 	nrm_msg_t *ret = nrm_msg_create();
@@ -181,13 +182,13 @@ nrm_msg_t *nrmd_daemon_add_slice(const char *name)
 	return ret;
 }
 
-nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
+nrm_msg_t *nrmd_handle_add_request(nrm_uuid_t *clientid, nrm_msg_add_t *msg)
 {
 	nrm_msg_t *ret = NULL;
 	switch (msg->type) {
 	case NRM_MSG_TARGET_TYPE_ACTUATOR:
 		nrm_log_info("adding an actuator\n");
-		ret = nrmd_daemon_add_actuator(msg->actuator);
+		ret = nrmd_daemon_add_actuator(clientid, msg->actuator);
 		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
 		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
@@ -331,7 +332,7 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 		nrm_role_send(self, ret, uuid);
 		break;
 	case NRM_MSG_TYPE_ADD:
-		ret = nrmd_handle_add_request(msg->add);
+		ret = nrmd_handle_add_request(uuid, msg->add);
 		nrm_role_send(self, ret, uuid);
 		break;
 	case NRM_MSG_TYPE_EVENT:

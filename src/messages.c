@@ -99,7 +99,9 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	nrm_msg_actuator_init(ret);
 	ret->name = strdup(actuator->name);
 	if (actuator->uuid)
-		ret->uuid = strdup((char *)nrm_uuid_to_char(actuator->uuid));
+		ret->uuid = strdup(nrm_uuid_to_char(actuator->uuid));
+	if (actuator->clientid)
+		ret->clientid = strdup(nrm_uuid_to_char(actuator->clientid));
 	ret->value = actuator->value;
 	nrm_vector_length(actuator->choices, &ret->n_choices);
 	ret->choices = calloc(ret->n_choices, sizeof(double));
@@ -120,7 +122,7 @@ nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 		return NULL;
 	nrm_msg_scope_init(ret);
 	if (scope->uuid)
-		ret->uuid = strdup((char *)nrm_uuid_to_char(scope->uuid));
+		ret->uuid = strdup(nrm_uuid_to_char(scope->uuid));
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_CPU], &ret->n_cpus,
 	                    &ret->cpus);
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], &ret->n_numas,
@@ -399,6 +401,8 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 	nrm_actuator_t *ret = nrm_actuator_create(msg->name);
 	if (msg->uuid)
 		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	if (msg->clientid)
+		ret->clientid = nrm_uuid_create_fromchar(msg->uuid);
 	ret->value = msg->value;
 	nrm_vector_resize(ret->choices, msg->n_choices);
 	nrm_vector_clear(ret->choices);
@@ -449,6 +453,8 @@ int nrm_actuator_update_frommsg(nrm_actuator_t *actuator, nrm_msg_actuator_t *ms
 	actuator->name = nrm_string_fromchar(msg->name);
 	if (msg->uuid)
 		actuator->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	if (msg->clientid)
+		actuator->clientid = nrm_uuid_create_fromchar(msg->clientid);
 	actuator->value = msg->value;
 	if (actuator->choices)
 		nrm_vector_destroy(&actuator->choices);
@@ -685,8 +691,9 @@ json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
 	json_t *ret;
 	json_t *choices;
 	choices = nrm_msg_darray_to_json(msg->n_choices, msg->choices);
-	ret = json_pack("{s:s, s:s?, s:o, s:o}", "name", msg->name,
-			"uuid", msg->uuid, "value", json_real(msg->value),
+	ret = json_pack("{s:s, s:s?, s:s?, s:o, s:o}", "name", msg->name,
+			"uuid", msg->uuid, "clientid", msg->clientid,
+			"value", json_real(msg->value),
 			"choices", choices);
 	return ret;
 }
