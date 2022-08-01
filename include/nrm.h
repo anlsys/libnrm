@@ -251,7 +251,8 @@ int nrm_client_create(nrm_client_t **client,
                       int pub_port,
                       int rpc_port);
 
-int nrm_client_add_actuator(const nrm_client_t *client, nrm_actuator_t *actuator);
+int nrm_client_add_actuator(const nrm_client_t *client,
+                            nrm_actuator_t *actuator);
 
 /**
  * Adds an NRM scope to an NRM client.
@@ -286,7 +287,8 @@ int nrm_client_find(const nrm_client_t *client,
                     nrm_uuid_t *uuid,
                     nrm_vector_t **results);
 
-int nrm_client_list_actuators(const nrm_client_t *client, nrm_vector_t **actuators);
+int nrm_client_list_actuators(const nrm_client_t *client,
+                              nrm_vector_t **actuators);
 
 /**
  * Lists an NRM client's registered scopes into a vector

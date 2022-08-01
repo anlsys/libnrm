@@ -107,7 +107,8 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	ret->choices = calloc(ret->n_choices, sizeof(double));
 	assert(ret->choices);
 	for (size_t i = 0; i < ret->n_choices; i++) {
-		void *p; double *d;
+		void *p;
+		double *d;
 		nrm_vector_get(actuator->choices, i, &p);
 		d = (double *)p;
 		ret->choices[i] = *d;
@@ -406,7 +407,7 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 	ret->value = msg->value;
 	nrm_vector_resize(ret->choices, msg->n_choices);
 	nrm_vector_clear(ret->choices);
-	for(size_t i = 0; i < msg->n_choices; i++)
+	for (size_t i = 0; i < msg->n_choices; i++)
 		nrm_vector_push_back(ret->choices, &msg->choices[i]);
 	return ret;
 }
@@ -445,7 +446,8 @@ nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg)
 	return ret;
 }
 
-int nrm_actuator_update_frommsg(nrm_actuator_t *actuator, nrm_msg_actuator_t *msg)
+int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
+                                nrm_msg_actuator_t *msg)
 {
 	if (actuator == NULL || msg == NULL)
 		return -NRM_EINVAL;
@@ -461,7 +463,7 @@ int nrm_actuator_update_frommsg(nrm_actuator_t *actuator, nrm_msg_actuator_t *ms
 	nrm_vector_create(&actuator->choices, sizeof(double));
 	nrm_vector_resize(actuator->choices, msg->n_choices);
 	nrm_vector_clear(actuator->choices);
-	for(size_t i = 0; i < msg->n_choices; i++)
+	for (size_t i = 0; i < msg->n_choices; i++)
 		nrm_vector_push_back(actuator->choices, &msg->choices[i]);
 	return 0;
 }
@@ -642,12 +644,12 @@ typedef struct nrm_msg_type_table_s nrm_msg_type_table_t;
 
 static const nrm_msg_type_table_t nrm_msg_type_table[] = {
         {NRM_MSG_TYPE_ACK, "ACK"},
-	{NRM_MSG_TYPE_LIST, "LIST"},
+        {NRM_MSG_TYPE_LIST, "LIST"},
         {NRM_MSG_TYPE_ADD, "ADD"},
-	{NRM_MSG_TYPE_REMOVE, "REMOVE"},
+        {NRM_MSG_TYPE_REMOVE, "REMOVE"},
         {NRM_MSG_TYPE_EVENT, "EVENT"},
         {NRM_MSG_TYPE_ACTUATE, "ACTUATE"},
-	{0, NULL},
+        {0, NULL},
 };
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
@@ -692,9 +694,8 @@ json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
 	json_t *choices;
 	choices = nrm_msg_darray_to_json(msg->n_choices, msg->choices);
 	ret = json_pack("{s:s, s:s?, s:s?, s:o, s:o}", "name", msg->name,
-			"uuid", msg->uuid, "clientid", msg->clientid,
-			"value", json_real(msg->value),
-			"choices", choices);
+	                "uuid", msg->uuid, "clientid", msg->clientid, "value",
+	                json_real(msg->value), "choices", choices);
 	return ret;
 }
 
@@ -703,8 +704,8 @@ json_t *nrm_msg_actuatorlist_to_json(nrm_msg_actuatorlist_t *msg)
 	json_t *ret;
 	ret = json_array();
 	for (size_t i = 0; i < msg->n_actuators; i++) {
-		json_array_append_new(ret,
-		                      nrm_msg_actuator_to_json(msg->actuators[i]));
+		json_array_append_new(
+		        ret, nrm_msg_actuator_to_json(msg->actuators[i]));
 	}
 	return ret;
 }

@@ -133,11 +133,13 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	return ret;
 }
 
-nrm_msg_t *nrmd_daemon_add_actuator(nrm_uuid_t *clientid, nrm_msg_actuator_t *actuator)
+nrm_msg_t *nrmd_daemon_add_actuator(nrm_uuid_t *clientid,
+                                    nrm_msg_actuator_t *actuator)
 {
 	nrm_actuator_t *newactuator = nrm_actuator_create_frommsg(actuator);
 	newactuator->uuid = nrm_uuid_create();
-	newactuator->clientid = nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
+	newactuator->clientid =
+	        nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
 	nrm_vector_push_back(my_daemon.state->actuators, newactuator);
 
 	nrm_msg_t *ret = nrm_msg_create();
@@ -292,7 +294,7 @@ nrm_msg_t *nrmd_handle_actuate_request(nrm_msg_actuate_t *msg)
 	nrm_actuator_t *actuator;
 	size_t len;
 	nrm_vector_length(my_daemon.state->actuators, &len);
-	for(size_t i = 0; i < len; i++) {
+	for (size_t i = 0; i < len; i++) {
 		void *p;
 		nrm_actuator_t *a;
 		nrm_vector_get(my_daemon.state->actuators, i, &p);
@@ -300,7 +302,7 @@ nrm_msg_t *nrmd_handle_actuate_request(nrm_msg_actuate_t *msg)
 		if (!nrm_uuid_cmp(a->uuid, uuid)) {
 			/* found the actuator */
 			nrm_log_debug("actuating %s: %f\n", *a->uuid,
-				      msg->value);
+			              msg->value);
 			break;
 		}
 	}

@@ -89,7 +89,6 @@ int cmd_actuate(int argc, char **argv)
 	return 0;
 }
 
-
 int cmd_run(int argc, char **argv)
 {
 
@@ -725,7 +724,8 @@ int cmd_remove_actuator(int argc, char **argv)
 		nrm_vector_get(results, i, &p);
 		r = (nrm_actuator_t *)p;
 		json_t *json = nrm_actuator_to_json(r);
-		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_ACTUATOR, r->uuid);
+		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_ACTUATOR,
+		                  r->uuid);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);

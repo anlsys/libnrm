@@ -42,8 +42,9 @@ int nrm_client_create(nrm_client_t **client,
 	return 0;
 }
 
-int nrm_client_actuate(const nrm_client_t *client, nrm_actuator_t *actuator,
-		       double value)
+int nrm_client_actuate(const nrm_client_t *client,
+                       nrm_actuator_t *actuator,
+                       double value)
 {
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
@@ -83,7 +84,8 @@ int nrm_client_actuate(const nrm_client_t *client, nrm_actuator_t *actuator,
 	return 0;
 }
 
-int nrm_client_add_actuator(const nrm_client_t *client, nrm_actuator_t *actuator)
+int nrm_client_add_actuator(const nrm_client_t *client,
+                            nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
@@ -209,22 +211,22 @@ int nrm_client_find(const nrm_client_t *client,
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_LIST);
-	switch(type) {
-		case NRM_MSG_TARGET_TYPE_ACTUATOR:
-			nrm_msg_set_list_actuators(msg, NULL);
-			break;
-		case NRM_MSG_TARGET_TYPE_SCOPE:
-			nrm_msg_set_list_scopes(msg, NULL);
-			break;
-		case NRM_MSG_TARGET_TYPE_SENSOR:
-			nrm_msg_set_list_sensors(msg, NULL);
-			break;
-		case NRM_MSG_TARGET_TYPE_SLICE:
-			nrm_msg_set_list_slices(msg, NULL);
-			break;
-		default:
-			nrm_log_error("missing case for type %d\n", type);
-			assert(0);
+	switch (type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_msg_set_list_actuators(msg, NULL);
+		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_msg_set_list_scopes(msg, NULL);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_msg_set_list_sensors(msg, NULL);
+		break;
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_msg_set_list_slices(msg, NULL);
+		break;
+	default:
+		nrm_log_error("missing case for type %d\n", type);
+		assert(0);
 	}
 	assert(msg->type == NRM_MSG_TYPE_LIST);
 	assert(msg->list->type == type);
@@ -248,7 +250,8 @@ int nrm_client_find(const nrm_client_t *client,
 
 		for (size_t i = 0; i < msg->list->actuators->n_actuators; i++) {
 			if (uuid != NULL &&
-			    strcmp(*uuid, msg->list->actuators->actuators[i]->uuid))
+			    strcmp(*uuid,
+			           msg->list->actuators->actuators[i]->uuid))
 				continue;
 			nrm_actuator_t *s = nrm_actuator_create_frommsg(
 			        msg->list->actuators->actuators[i]);
@@ -335,7 +338,8 @@ int nrm_client_start_event_listener(const nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_list_actuators(const nrm_client_t *client, nrm_vector_t **actuators)
+int nrm_client_list_actuators(const nrm_client_t *client,
+                              nrm_vector_t **actuators)
 {
 	if (client == NULL || actuators == NULL)
 		return -NRM_EINVAL;
@@ -364,8 +368,8 @@ int nrm_client_list_actuators(const nrm_client_t *client, nrm_vector_t **actuato
 	assert(msg->type == NRM_MSG_TYPE_LIST);
 	assert(msg->list->type == NRM_MSG_TARGET_TYPE_ACTUATOR);
 	for (size_t i = 0; i < msg->list->actuators->n_actuators; i++) {
-		nrm_actuator_t *s =
-		        nrm_actuator_create_frommsg(msg->list->actuators->actuators[i]);
+		nrm_actuator_t *s = nrm_actuator_create_frommsg(
+		        msg->list->actuators->actuators[i]);
 		nrm_vector_push_back(ret, s);
 	}
 	*actuators = ret;
