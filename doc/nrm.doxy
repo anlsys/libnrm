@@ -875,6 +875,7 @@ WARN_LOGFILE           =
 # Note: If this tag is empty the current directory is searched.
 
 INPUT                  = ../include/nrm.h \
+                         ../include/nrm/utils/scopes.h \
                          ../include/nrm/utils \
                          ../README.md
 

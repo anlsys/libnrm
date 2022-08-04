@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2019 UChicago Argonne, LLC.
+ * Copyright 2022 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
  * This file is part of the libnrm project.
@@ -11,6 +11,7 @@
 /**
  * Main NRM header, contains most of the nrm public API
  **/
+
 
 #ifndef NRM_H
 #define NRM_H 1
@@ -44,8 +45,8 @@ extern "C" {
  * out if the library should emit messages at all and if a ratelimit is in
  * place.
  *
- * @param[inout] argc: a pointer to the number of arguments in *argv
- * @param[inout] argv: an array of command line options.
+ * @param[in,out] argc: a pointer to the number of arguments in *argv
+ * @param[in,out] argv: an array of command line options.
  *
  * If the library detects command line options it understands, it will consume
  * those arguments and modify the two variables accordingly. Other arguments
@@ -177,12 +178,37 @@ typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
                                           nrm_scope_t *scope,
                                           double value);
 
+
+/**
+ * Creates a new NRM Client.
+ *
+ * @param client: pointer to a variable that contains the created client handle
+ * @param uri: address for connecting to `nrmd`
+ * @param pub_port:
+ * @param rpc_port:
+ *
+ */
 int nrm_client_create(nrm_client_t **client,
                       const char *uri,
                       int pub_port,
                       int rpc_port);
 
+/**
+ * Adds an NRM scope to an NRM client.
+ *
+ * @param client: pointer to an NRM client
+ * @param scope: pointer to an NRM scope
+ *
+ */
 int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope);
+
+/**
+ * Adds an NRM sensor to an NRM client.
+ *
+ * @param client: pointer to a `nrm_client_t` structure
+ * @param sensor: pointer to an NRM sensor
+ *
+ */
 int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
 int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
 int nrm_client_find(const nrm_client_t *client,

@@ -6,12 +6,32 @@ The following describes the C API for libnrm instrumentation.
 The corresponding header file can be found in ``src/nrm.h``. See
 :doc:`the Examples<simple_c_example>` for code samples and more information.
 
+
 Library Initialization
 ----------------------
 
 .. doxygenfunction:: nrm_init
 
 .. doxygenfunction:: nrm_finalize
+
+.. _clients:
+
+Client Configuration and Reports
+--------------------------------
+
+NRM clients are used by any program that intends to communicate with a NRM daemon (``nrmd``).
+
+.. doxygenfunction:: nrm_client_create
+
+.. doxygenfunction:: nrm_client_add_scope
+
+.. doxygenfunction:: nrm_client_add_sensor
+
+.. doxygenfunction:: nrm_client_send_event
+
+.. doxygenfunction:: nrm_client_destroy
+
+.. _scopes:
 
 Scope Configuration
 -------------------
@@ -40,3 +60,27 @@ to be reported to NRM.
 .. doxygenfunction:: nrm_scope_threadshared
 
 .. doxygenfunction:: nrm_scope_threadprivate
+
+.. _sensors:
+
+Sensor Configuration
+--------------------
+
+An NRM ``sensor`` corresponds to events to be reported to NRM.
+
+.. _logs:
+
+Logging Interface
+-----------------
+
+.. _timers:
+
+Timers
+------
+
+High Resolution Timers
+type and functions to save a timestamp and compute a difference.
+Resolution should be in nanoseconds.
+
+.. doxygenfile:: timers.h
+  :project: nrm
