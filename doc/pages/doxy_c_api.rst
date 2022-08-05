@@ -20,6 +20,8 @@ Client Configuration and Reports
 --------------------------------
 
 NRM clients are used by any program that intends to communicate with a NRM daemon (``nrmd``).
+Initiate most RPCs, retrieve information about the state of the daemon, can register new
+elements, send events, listen to state changes.
 
 .. doxygenfunction:: nrm_client_create
 
@@ -39,27 +41,16 @@ Scope Configuration
 An NRM ``scope`` contains a list of resources corresponding to a *type of progress*
 to be reported to NRM.
 
-.. doxygenfunction:: nrm_scope_create
-
-.. doxygenfunction:: nrm_scope_add
-
-.. doxygenfunction:: nrm_scope_add_atomic
+.. doxygenfile:: scopes.h
+  :project: nrm
 
 .. note::
   For example, if reporting power usage for one socket and one GPU,
   you may want to instantiate two scopes. For the first scope, while looping over corresponding
-  CPU logical indexes, call ``nrm_scope_add()`` with the ``NRM_SCOPE_TYPE_CPU`` type
+  CPU logical indexes, call ``nrm_scope_add()`` with ``NRM_SCOPE_TYPE_CPU``
   and set ``num`` to each index.
 
-.. doxygenfunction:: nrm_scope_length
-
-.. doxygenfunction:: nrm_scope_destroy
-
-.. doxygenfunction:: nrm_scope_snprintf
-
-.. doxygenfunction:: nrm_scope_threadshared
-
-.. doxygenfunction:: nrm_scope_threadprivate
+.. doxygenfunction:: nrm_client_list_scopes
 
 .. _sensors:
 
@@ -68,10 +59,34 @@ Sensor Configuration
 
 An NRM ``sensor`` corresponds to events to be reported to NRM.
 
+.. doxygenfunction:: nrm_sensor_create
+
+.. doxygenfunction:: nrm_sensor_destroy
+
 .. _logs:
 
 Logging Interface
 -----------------
+
+.. doxygenfunction:: nrm_log_init
+
+.. doxygenfunction:: nrm_log_setlevel
+
+Log Levels include:
+
+.. doxygendefine:: NRM_LOG_QUIET
+.. doxygendefine:: NRM_LOG_ERROR
+.. doxygendefine:: NRM_LOG_WARNING
+.. doxygendefine:: NRM_LOG_NORMAL
+.. doxygendefine:: NRM_LOG_INFO
+.. doxygendefine:: NRM_LOG_DEBUG
+
+.. doxygenfunction:: nrm_log_printf
+
+.. note::
+
+  Optionally use ``nrm_log_error()``, ``nrm_log_warning()``, ``nrm_log_normal()``, ``nrm_log_info()``, or ``nrm_log_debug()``
+  in place of ``nrm_log_printf()``
 
 .. _timers:
 

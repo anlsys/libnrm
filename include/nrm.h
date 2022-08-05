@@ -58,7 +58,7 @@ extern "C" {
 int nrm_init(int *argc, char **argv[]);
 
 /**
- * Terminates the library.
+ * Terminates the library. Do this before an instrumented program exits.
  * @return 0 if successful; an error code otherwise.
  **/
 int nrm_finalize(void);
@@ -67,6 +67,7 @@ int nrm_finalize(void);
  * Logging
  ******************************************************************************/
 
+
 #define NRM_LOG_QUIET 0
 #define NRM_LOG_ERROR 1
 #define NRM_LOG_WARNING 2
@@ -74,8 +75,23 @@ int nrm_finalize(void);
 #define NRM_LOG_INFO 4
 #define NRM_LOG_DEBUG 5
 
+/**
+ * Initializes NRM logging
+ *
+ * @param f: file descriptor
+ * @param nm: prefixed name for output
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_log_init(FILE *f, const char *nm);
 
+/**
+ * Prints an NRM log message at a log level.
+ *
+ * @param level: file descriptor
+ * @param file: file descriptor
+ * @param line: file descriptor
+ * @param format: file descriptor
+ */
 void nrm_log_printf(int level,
                     const char *file,
                     unsigned int line,
@@ -130,9 +146,17 @@ struct nrm_sensor_s {
 };
 
 typedef struct nrm_sensor_s nrm_sensor_t;
-
+/**
+ * Creates a new NRM sensor
+ *
+ * @param name: char pointer to a name describing the sensor
+ * @return: a new NRM sensor structure
+ */
 nrm_sensor_t *nrm_sensor_create(char *name);
 
+/**
+ * Removes an NRM sensor. Do this for each sensor before an instrumented program exits.
+ */
 void nrm_sensor_destroy(nrm_sensor_t **);
 
 /*******************************************************************************
@@ -186,6 +210,7 @@ typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
  * @param uri: address for connecting to `nrmd`
  * @param pub_port:
  * @param rpc_port:
+ * @return 0 if successful, an error code otherwise
  *
  */
 int nrm_client_create(nrm_client_t **client,
@@ -195,19 +220,13 @@ int nrm_client_create(nrm_client_t **client,
 
 /**
  * Adds an NRM scope to an NRM client.
- *
- * @param client: pointer to an NRM client
- * @param scope: pointer to an NRM scope
- *
+ * @return 0 if successful, an error code otherwise
  */
 int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope);
 
 /**
  * Adds an NRM sensor to an NRM client.
- *
- * @param client: pointer to a `nrm_client_t` structure
- * @param sensor: pointer to an NRM sensor
- *
+ * @return 0 if successful, an error code otherwise
  */
 int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
 int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
@@ -220,6 +239,15 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes);
 int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
 int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
 int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid);
+
+/**
+ * Sends a measurement to the NRM daemon
+ *
+ * @param time: a time value retrieved via `nrm_time_gettime(&time)`
+ * @param value: a measurement to send to the NRM daemon`
+ * @return 0 if successful, an error code otherwise
+ *
+ */
 int nrm_client_send_event(const nrm_client_t *client,
                           nrm_time_t time,
                           nrm_sensor_t *sensor,
@@ -230,6 +258,9 @@ int nrm_client_set_event_listener(nrm_client_t *client,
 int nrm_client_start_event_listener(const nrm_client_t *client,
                                     nrm_string_t topic);
 
+/**
+ * Removes an NRM client. Do this for each client before an instrumented program exits.
+ */
 void nrm_client_destroy(nrm_client_t **client);
 
 /*******************************************************************************

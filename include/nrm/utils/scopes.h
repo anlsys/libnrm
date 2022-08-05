@@ -24,13 +24,18 @@ typedef struct nrm_scope nrm_scope_t;
 
 nrm_scope_t *nrm_scope_create(void);
 
+
+
 #define NRM_SCOPE_TYPE_CPU 0
 #define NRM_SCOPE_TYPE_NUMA 1
 #define NRM_SCOPE_TYPE_GPU 2
 #define NRM_SCOPE_TYPE_MAX 3
 
 /**
- * Add an int to the list
+ * Add an int corresponding to some hardware ID to the list
+ * @param *:
+ * @param type: an int for some `NRM_SCOPE_TYPE_`
+ * @param num: an integer corresponding to some hardware ID
  */
 int nrm_scope_add(nrm_scope_t *, unsigned int type, unsigned int num);
 
@@ -41,6 +46,10 @@ int nrm_scope_add_atomic(nrm_scope_t *, unsigned int type, unsigned int num);
  **/
 size_t nrm_scope_length(const nrm_scope_t *, unsigned int type);
 
+/**
+ * Removes an NRM scope. Do this for each scope before an instrumented program exits.
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_scope_destroy(nrm_scope_t *);
 
 nrm_scope_t *nrm_scope_dup(nrm_scope_t *);
