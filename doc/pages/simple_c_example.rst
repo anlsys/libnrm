@@ -1,8 +1,8 @@
 Using libnrm in your C applications
 ===================================
 
-1. Include NRM and create a context
------------------------------------
+1. Include NRM and initialize
+-----------------------------
 
 To make code report progress to NRM, we need to:
 
@@ -10,22 +10,29 @@ To make code report progress to NRM, we need to:
 
     # include <nrm.h>
 
-- Create a ``nrm_context`` structure, corresponding to this program::
+- Create :ref:`nrm_client<clients>`, :ref:`nrm_scope<scopes>`, and :ref:`nrm_sensor<sensors>` structures::
 
-    struct nrm_context *context;
-    context = nrm_ctxt_create();
+    static nrm_client_t *client;
+    static nrm_scope_t *scope;
+    static nrm_sensor_t *sensor;
 
-- Initialize this NRM context::
+- Initialize NRM, create a client for connecting to ``nrmd``::
 
-    nrm_init(context, "my-program", 0, 0);  // zeros refer to rank, thread
+    nrm_init(NULL, NULL);
 
-2. Determine measurements and create scopes
--------------------------------------------
+    static char *upstream_uri = "tcp://127.0.0.1";
+    static int pub_port = 2345;
+    static int rpc_port = 3456;
+
+    nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
+
+
+1. Determine measurements, create scopes and sensors
+----------------------------------------------------
 
 - Create a ``nrm_scope`` structure **for each** measurement to report. If only reporting
   a single measurement, the following is all you need::
 
-    struct nrm_scope *scope;
     scope = nrm_scope_create();
 
   However, if reporting multiple measurements, feel free to use the ``nrm_scope_t`` type
@@ -46,7 +53,7 @@ To make code report progress to NRM, we need to:
 
 Other scope types include ``NRM_SCOPE_TYPE_NUMA`` and ``NRM_SCOPE_TYPE_GPU``.
 
-3. Send measurements and close down
+1. Send measurements and close down
 -----------------------------------
 
 - Report measurement progress to NRM using the context and a scope::
