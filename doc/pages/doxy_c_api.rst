@@ -29,7 +29,23 @@ elements, send events, listen to state changes.
 
 .. doxygenfunction:: nrm_client_add_sensor
 
+.. doxygenfunction:: nrm_client_add_slice
+
+.. doxygenfunction:: nrm_client_find
+
+.. doxygenfunction:: nrm_client_list_scopes
+
+.. doxygenfunction:: nrm_client_list_sensors
+
+.. doxygenfunction:: nrm_client_list_slices
+
+.. doxygenfunction:: nrm_client_remove
+
 .. doxygenfunction:: nrm_client_send_event
+
+.. doxygenfunction:: nrm_client_set_event_listener
+
+.. doxygenfunction:: nrm_client_start_event_listener
 
 .. doxygenfunction:: nrm_client_destroy
 
@@ -50,8 +66,6 @@ to be reported to NRM.
   CPU logical indexes, call ``nrm_scope_add()`` with ``NRM_SCOPE_TYPE_CPU``
   and set ``num`` to each index.
 
-.. doxygenfunction:: nrm_client_list_scopes
-
 .. _sensors:
 
 Sensor Configuration
@@ -65,6 +79,17 @@ An NRM ``sensor`` corresponds to events to be reported to NRM.
 
 .. _logs:
 
+Slice Configuration
+-------------------
+
+An NRM ``slice`` names and assigns a uuid to a set of resources.
+
+.. doxygenfunction:: nrm_slice_create
+
+.. doxygenfunction:: nrm_slice_destroy
+
+.. doxygenfunction:: nrm_slice_fprintf
+
 Logging Interface
 -----------------
 
@@ -74,19 +99,20 @@ Logging Interface
 
 Log Levels include:
 
-.. doxygendefine:: NRM_LOG_QUIET
-.. doxygendefine:: NRM_LOG_ERROR
-.. doxygendefine:: NRM_LOG_WARNING
-.. doxygendefine:: NRM_LOG_NORMAL
-.. doxygendefine:: NRM_LOG_INFO
-.. doxygendefine:: NRM_LOG_DEBUG
+.. literalinclude:: ../../include/nrm.h
+  :lines: 71-76
+  :language: C
 
 .. doxygenfunction:: nrm_log_printf
 
 .. note::
 
   Optionally use ``nrm_log_error()``, ``nrm_log_warning()``, ``nrm_log_normal()``, ``nrm_log_info()``, or ``nrm_log_debug()``
-  in place of ``nrm_log_printf()``
+  in place of ``nrm_log_printf()`` for sensible defaults:
+
+.. literalinclude:: ../../include/nrm.h
+  :lines: 103-112
+  :language: C
 
 .. _timers:
 
