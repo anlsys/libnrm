@@ -24,8 +24,6 @@ typedef struct nrm_scope nrm_scope_t;
 
 nrm_scope_t *nrm_scope_create(void);
 
-
-
 #define NRM_SCOPE_TYPE_CPU 0
 #define NRM_SCOPE_TYPE_NUMA 1
 #define NRM_SCOPE_TYPE_GPU 2
@@ -47,7 +45,8 @@ int nrm_scope_add_atomic(nrm_scope_t *, unsigned int type, unsigned int num);
 size_t nrm_scope_length(const nrm_scope_t *, unsigned int type);
 
 /**
- * Removes an NRM scope. Do this for each scope before an instrumented program exits.
+ * Removes an NRM scope. Do this for each scope before an instrumented program
+ * exits.
  * @return 0 if successful, an error code otherwise
  */
 int nrm_scope_destroy(nrm_scope_t *);

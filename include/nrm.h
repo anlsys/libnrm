@@ -12,7 +12,6 @@
  * Main NRM header, contains most of the nrm public API
  **/
 
-
 #ifndef NRM_H
 #define NRM_H 1
 
@@ -66,7 +65,6 @@ int nrm_finalize(void);
 /*******************************************************************************
  * Logging
  ******************************************************************************/
-
 
 #define NRM_LOG_QUIET 0
 #define NRM_LOG_ERROR 1
@@ -140,7 +138,8 @@ typedef struct nrm_slice_s nrm_slice_t;
 nrm_slice_t *nrm_slice_create(char *name);
 
 /**
- * Removes an NRM slice. Do this for each slice before an instrumented program exits.
+ * Removes an NRM slice. Do this for each slice before an instrumented program
+ * exits.
  */
 void nrm_slice_destroy(nrm_slice_t **);
 
@@ -168,7 +167,8 @@ typedef struct nrm_sensor_s nrm_sensor_t;
 nrm_sensor_t *nrm_sensor_create(char *name);
 
 /**
- * Removes an NRM sensor. Do this for each sensor before an instrumented program exits.
+ * Removes an NRM sensor. Do this for each sensor before an instrumented program
+ * exits.
  */
 void nrm_sensor_destroy(nrm_sensor_t **);
 
@@ -215,7 +215,6 @@ typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
                                           nrm_scope_t *scope,
                                           double value);
 
-
 /**
  * Creates a new NRM Client.
  *
@@ -249,7 +248,8 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
  */
 int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
 
-// TODO: Determine descriptions for these parameters. Referring to sensor or slice?
+// TODO: Determine descriptions for these parameters. Referring to sensor or
+// slice?
 /**
  * Find matching NRM objects within a client
  * @param client: NRM client
@@ -325,7 +325,8 @@ int nrm_client_start_event_listener(const nrm_client_t *client,
                                     nrm_string_t topic);
 
 /**
- * Removes an NRM client. Do this for each client before an instrumented program exits.
+ * Removes an NRM client. Do this for each client before an instrumented program
+ * exits.
  */
 void nrm_client_destroy(nrm_client_t **client);
 
