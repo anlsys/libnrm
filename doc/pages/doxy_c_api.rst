@@ -77,8 +77,6 @@ An NRM ``sensor`` corresponds to events to be reported to NRM.
 
 .. doxygenfunction:: nrm_sensor_destroy
 
-.. _logs:
-
 Slice Configuration
 -------------------
 
@@ -89,6 +87,8 @@ An NRM ``slice`` names and assigns a uuid to a set of resources.
 .. doxygenfunction:: nrm_slice_destroy
 
 .. doxygenfunction:: nrm_slice_fprintf
+
+.. _logs:
 
 Logging Interface
 -----------------
