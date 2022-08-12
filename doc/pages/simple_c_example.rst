@@ -92,7 +92,7 @@ Other scope types include ``NRM_SCOPE_TYPE_NUMA`` and ``NRM_SCOPE_TYPE_GPU``.
 The best way to understand how to make your application report progress to NRM is to use an example.
 The following simple program uses each of the previously described NRM components
 to periodically report a measurement that corresponds to a set of logical CPUs on some system. We also
-assume that the NRM daemon `nrmd` is currently running on this system.::
+assume that the NRM daemon ``nrmd`` is currently running on this system.::
 
    # include <stdio.h>
    # include <unistd.h>
@@ -149,7 +149,7 @@ assume that the NRM daemon `nrmd` is currently running on this system.::
 6. Logging Introduction
 -----------------------
 
-Initialize the NRM logging interface after `nrm_init()`::
+Initialize the NRM logging interface after ``nrm_init()``::
 
   ...
   nrm_init(NULL, NULL);
