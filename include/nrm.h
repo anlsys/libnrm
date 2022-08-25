@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2022 UChicago Argonne, LLC.
+ * Copyright 2019 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
  * This file is part of the libnrm project.
@@ -248,12 +248,10 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
  */
 int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
 
-// TODO: Determine descriptions for these parameters. Referring to sensor or
-// slice?
 /**
  * Find matching NRM objects within a client
  * @param client: NRM client
- * @param type: An NRM scope resource type
+ * @param type: An NRM scope, sensor, or slice type
  * @param name: A sensor or type name?
  * @param uuid: A sensor uuid
  * @param results: NRM vector for containing results
