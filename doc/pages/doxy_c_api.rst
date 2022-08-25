@@ -146,5 +146,12 @@ High Resolution Timers
 type and functions to save a timestamp and compute a difference.
 Resolution should be in nanoseconds.
 
-.. doxygenfile:: timers.h
-  :project: nrm
+.. doxygentypedef:: nrm_time_t
+
+.. doxygenfunction:: nrm_time_gettime
+
+.. doxygenfunction:: nrm_time_diff
+
+.. doxygenfunction:: nrm_time_tons
+
+.. doxygenfunction:: nrm_time_fromns

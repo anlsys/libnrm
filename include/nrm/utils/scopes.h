@@ -65,7 +65,7 @@ nrm_scope_t *nrm_scope_dup(nrm_scope_t *scope);
  * Compares two NRM scopes.
  * @return 0 if equivalent, 1 otherwise
  */
-int nrm_scope_cmp(nrm_scope_t *scope, nrm_scope_t *scope);
+int nrm_scope_cmp(nrm_scope_t *one, nrm_scope_t *two);
 
 /**
  * snprintf the contents of an NRM scope
