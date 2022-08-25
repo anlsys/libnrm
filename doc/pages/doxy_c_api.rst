@@ -55,16 +55,39 @@ Scope Configuration
 -------------------
 
 An NRM ``scope`` contains a list of resources corresponding to a *type of progress*
-to be reported to NRM.
+to be reported to NRM. Types of progress reports include:
 
-.. doxygenfile:: scopes.h
-  :project: nrm
+.. doxygendefine:: NRM_SCOPE_TYPE_CPU
+.. doxygendefine:: NRM_SCOPE_TYPE_NUMA
+.. doxygendefine:: NRM_SCOPE_TYPE_GPU
+
+**Functions**
+
+.. doxygenfunction:: nrm_scope_create
+
+.. doxygenfunction:: nrm_scope_add
+
+.. doxygenfunction:: nrm_scope_add_atomic
 
 .. note::
   For example, if reporting power usage for one socket and one GPU,
   you may want to instantiate two scopes. For the first scope, while looping over corresponding
   CPU logical indexes, call ``nrm_scope_add()`` with ``NRM_SCOPE_TYPE_CPU``
   and set ``num`` to each index.
+
+.. doxygenfunction:: nrm_scope_length
+
+.. doxygenfunction:: nrm_scope_destroy
+
+.. doxygenfunction:: nrm_scope_dup
+
+.. doxygenfunction:: nrm_scope_cmp
+
+.. doxygenfunction:: nrm_scope_snprintf
+
+.. doxygenfunction:: nrm_scope_threadshared
+
+.. doxygenfunction:: nrm_scope_threadprivate
 
 .. _sensors:
 

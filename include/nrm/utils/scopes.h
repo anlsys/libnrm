@@ -22,6 +22,9 @@
  **/
 typedef struct nrm_scope nrm_scope_t;
 
+/**
+ * Creates and returns a new NRM scope
+ */
 nrm_scope_t *nrm_scope_create(void);
 
 #define NRM_SCOPE_TYPE_CPU 0
@@ -53,10 +56,21 @@ size_t nrm_scope_length(const nrm_scope_t *scope, unsigned int type);
  */
 int nrm_scope_destroy(nrm_scope_t *scope);
 
+/**
+ * Creates and returns a pointer to a copy of an NRM scope
+ */
 nrm_scope_t *nrm_scope_dup(nrm_scope_t *scope);
 
+/**
+ * Compares two NRM scopes.
+ * @return 0 if equivalent, 1 otherwise
+ */
 int nrm_scope_cmp(nrm_scope_t *scope, nrm_scope_t *scope);
 
+/**
+ * snprintf the contents of an NRM scope
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *scope);
 
 /*******************************************************************************
