@@ -83,7 +83,8 @@ int nrm_finalize(void);
 int nrm_log_init(FILE *f, const char *nm);
 
 /**
- * Prints an NRM log message at a log level, labeled with source file and line number.
+ * Prints an NRM log message at a log level, labeled with source file and line
+ * number.
  *
  * @param level: log level constant
  * @param file: source file label typically ``__FILE__``
