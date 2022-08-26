@@ -17,7 +17,6 @@ libnrm
   :caption: Examples
 
   pages/simple_c_example
-  pages/simple_f_example
 
 .. toctree::
    :maxdepth: 2
