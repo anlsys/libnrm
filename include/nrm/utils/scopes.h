@@ -40,7 +40,9 @@ nrm_scope_t *nrm_scope_create(void);
  */
 int nrm_scope_add(nrm_scope_t *scope, unsigned int type, unsigned int num);
 
-int nrm_scope_add_atomic(nrm_scope_t *scope, unsigned int type, unsigned int num);
+int nrm_scope_add_atomic(nrm_scope_t *scope,
+                         unsigned int type,
+                         unsigned int num);
 
 /**
  * Size of the list (number of elements)
