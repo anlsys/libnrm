@@ -77,18 +77,18 @@ int nrm_finalize(void);
  * Initializes NRM logging
  *
  * @param f: file descriptor
- * @param nm: prefixed name for output
+ * @param nm: logging source namespace
  * @return 0 if successful, an error code otherwise
  */
 int nrm_log_init(FILE *f, const char *nm);
 
 /**
- * Prints an NRM log message at a log level.
+ * Prints an NRM log message at a log level, labeled with source file and line number.
  *
  * @param level: log level constant
- * @param file: file descriptor
- * @param line: file descriptor
- * @param format: file descriptor
+ * @param file: source file label typically ``__FILE__``
+ * @param line: source line number label. typically ``__LINE__``
+ * @param format: printf formatted string
  */
 void nrm_log_printf(int level,
                     const char *file,

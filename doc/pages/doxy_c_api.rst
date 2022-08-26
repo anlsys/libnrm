@@ -122,9 +122,14 @@ Logging Interface
 
 Log Levels include:
 
-.. literalinclude:: ../../include/nrm.h
-  :lines: 71-76
-  :language: C
+.. doxygendefine:: NRM_LOG_QUIET
+.. doxygendefine:: NRM_LOG_ERROR
+.. doxygendefine:: NRM_LOG_WARNING
+.. doxygendefine:: NRM_LOG_NORMAL
+.. doxygendefine:: NRM_LOG_INFO
+.. doxygendefine:: NRM_LOG_DEBUG
+
+**Functions**
 
 .. doxygenfunction:: nrm_log_printf
 
@@ -132,10 +137,6 @@ Log Levels include:
 
   Optionally use ``nrm_log_error()``, ``nrm_log_warning()``, ``nrm_log_normal()``, ``nrm_log_info()``, or ``nrm_log_debug()``
   in place of ``nrm_log_printf()`` for sensible defaults:
-
-.. literalinclude:: ../../include/nrm.h
-  :lines: 103-112
-  :language: C
 
 .. _timers:
 
