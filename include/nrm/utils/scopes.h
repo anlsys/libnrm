@@ -22,6 +22,9 @@
  **/
 typedef struct nrm_scope nrm_scope_t;
 
+/**
+ * Creates and returns a new NRM scope
+ */
 nrm_scope_t *nrm_scope_create(void);
 
 #define NRM_SCOPE_TYPE_CPU 0
@@ -30,30 +33,53 @@ nrm_scope_t *nrm_scope_create(void);
 #define NRM_SCOPE_TYPE_MAX 3
 
 /**
- * Add an int to the list
+ * Add an int corresponding to some hardware ID to the list
+ * @param scope: scope pointer
+ * @param type: an int for some `NRM_SCOPE_TYPE_`
+ * @param num: an integer corresponding to some hardware ID
  */
-int nrm_scope_add(nrm_scope_t *, unsigned int type, unsigned int num);
+int nrm_scope_add(nrm_scope_t *scope, unsigned int type, unsigned int num);
 
-int nrm_scope_add_atomic(nrm_scope_t *, unsigned int type, unsigned int num);
+int nrm_scope_add_atomic(nrm_scope_t *scope,
+                         unsigned int type,
+                         unsigned int num);
 
 /**
  * Size of the list (number of elements)
+ * @param scope: scope pointer
+ * @param type: an int for some `NRM_SCOPE_TYPE_`
  **/
-size_t nrm_scope_length(const nrm_scope_t *, unsigned int type);
+size_t nrm_scope_length(const nrm_scope_t *scope, unsigned int type);
 
-int nrm_scope_destroy(nrm_scope_t *);
+/**
+ * Removes an NRM scope. Do this for each scope before an instrumented program
+ * exits.
+ * @return 0 if successful, an error code otherwise
+ */
+int nrm_scope_destroy(nrm_scope_t *scope);
 
-nrm_scope_t *nrm_scope_dup(nrm_scope_t *);
+/**
+ * Creates and returns a pointer to a copy of an NRM scope
+ */
+nrm_scope_t *nrm_scope_dup(nrm_scope_t *scope);
 
-int nrm_scope_cmp(nrm_scope_t *, nrm_scope_t *);
+/**
+ * Compares two NRM scopes.
+ * @return 0 if equivalent, 1 otherwise
+ */
+int nrm_scope_cmp(nrm_scope_t *one, nrm_scope_t *two);
 
-int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *);
+/**
+ * snprintf the contents of an NRM scope
+ * @return 0 if successful, an error code otherwise
+ */
+int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *scope);
 
 /*******************************************************************************
  * Scope Utils
  ******************************************************************************/
 
-int nrm_scope_threadshared(nrm_scope_t *);
-int nrm_scope_threadprivate(nrm_scope_t *);
+int nrm_scope_threadshared(nrm_scope_t *scope);
+int nrm_scope_threadprivate(nrm_scope_t *scope);
 
 #endif

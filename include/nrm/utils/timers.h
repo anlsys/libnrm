@@ -37,6 +37,9 @@ int64_t nrm_time_diff(const nrm_time_t *start, const nrm_time_t *end);
  **/
 int64_t nrm_time_tons(const nrm_time_t *time);
 
+/**
+ * Convert a nanoseconds timestamp into an NRM time value
+ **/
 nrm_time_t nrm_time_fromns(int64_t time);
 
 #endif /* NRM_TIMERS_H */

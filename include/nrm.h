@@ -44,8 +44,8 @@ extern "C" {
  * out if the library should emit messages at all and if a ratelimit is in
  * place.
  *
- * @param[inout] argc: a pointer to the number of arguments in *argv
- * @param[inout] argv: an array of command line options.
+ * @param[in,out] argc: a pointer to the number of arguments in *argv
+ * @param[in,out] argv: an array of command line options.
  *
  * If the library detects command line options it understands, it will consume
  * those arguments and modify the two variables accordingly. Other arguments
@@ -57,7 +57,7 @@ extern "C" {
 int nrm_init(int *argc, char **argv[]);
 
 /**
- * Terminates the library.
+ * Terminates the library. Do this before an instrumented program exits.
  * @return 0 if successful; an error code otherwise.
  **/
 int nrm_finalize(void);
@@ -73,8 +73,24 @@ int nrm_finalize(void);
 #define NRM_LOG_INFO 4
 #define NRM_LOG_DEBUG 5
 
+/**
+ * Initializes NRM logging
+ *
+ * @param f: file descriptor
+ * @param nm: logging source namespace
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_log_init(FILE *f, const char *nm);
 
+/**
+ * Prints an NRM log message at a log level, labeled with source file and line
+ * number.
+ *
+ * @param level: log level constant
+ * @param file: source file label typically ``__FILE__``
+ * @param line: source line number label. typically ``__LINE__``
+ * @param format: printf formatted string
+ */
 void nrm_log_printf(int level,
                     const char *file,
                     unsigned int line,
@@ -114,9 +130,23 @@ struct nrm_slice_s {
 
 typedef struct nrm_slice_s nrm_slice_t;
 
+/**
+ * Creates a new NRM slice
+ *
+ * @param name: char pointer to a name describing the slice
+ * @return: a new NRM slice structure
+ */
 nrm_slice_t *nrm_slice_create(char *name);
 
+/**
+ * Removes an NRM slice. Do this for each slice before an instrumented program
+ * exits.
+ */
 void nrm_slice_destroy(nrm_slice_t **);
+
+/**
+ * Prints an NRM slice's contents to the specified output file.
+ */
 void nrm_slice_fprintf(FILE *out, nrm_slice_t *);
 
 /*******************************************************************************
@@ -129,9 +159,18 @@ struct nrm_sensor_s {
 };
 
 typedef struct nrm_sensor_s nrm_sensor_t;
-
+/**
+ * Creates a new NRM sensor
+ *
+ * @param name: char pointer to a name describing the sensor
+ * @return: a new NRM sensor structure
+ */
 nrm_sensor_t *nrm_sensor_create(char *name);
 
+/**
+ * Removes an NRM sensor. Do this for each sensor before an instrumented program
+ * exits.
+ */
 void nrm_sensor_destroy(nrm_sensor_t **);
 
 /*******************************************************************************
@@ -177,33 +216,117 @@ typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
                                           nrm_scope_t *scope,
                                           double value);
 
+/**
+ * Creates a new NRM Client.
+ *
+ * @param client: pointer to a variable that contains the created client handle
+ * @param uri: address for connecting to `nrmd`
+ * @param pub_port:
+ * @param rpc_port:
+ * @return 0 if successful, an error code otherwise
+ *
+ */
 int nrm_client_create(nrm_client_t **client,
                       const char *uri,
                       int pub_port,
                       int rpc_port);
 
+/**
+ * Adds an NRM scope to an NRM client.
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope);
+
+/**
+ * Adds an NRM sensor to an NRM client.
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
+
+/**
+ * Adds an NRM slice to an NRM client.
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
+
+/**
+ * Find matching NRM objects within a client
+ * @param client: NRM client
+ * @param type: An NRM scope, sensor, or slice type
+ * @param name: A sensor or type name?
+ * @param uuid: A sensor uuid
+ * @param results: NRM vector for containing results
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_find(const nrm_client_t *client,
                     int type,
                     char *name,
                     nrm_uuid_t *uuid,
                     nrm_vector_t **results);
+
+/**
+ * Lists an NRM client's registered scopes into a vector
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes);
+
+/**
+ * Lists an NRM client's registered sensors into a vector
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
+
+/**
+ * Lists an NRM client's registered slices into a vector
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
+
+/**
+ * Removes an NRM slice from a client
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid);
+
+/**
+ * Sends a measurement to the NRM daemon
+ *
+ * @param client: NRM client object
+ * @param time: a time value retrieved via `nrm_time_gettime(&time)`
+ * @param sensor: NRM sensor object
+ * @param scope: NRM scope object
+ * @param value: a measurement to send to the NRM daemon`
+ * @return 0 if successful, an error code otherwise
+ *
+ */
 int nrm_client_send_event(const nrm_client_t *client,
                           nrm_time_t time,
                           nrm_sensor_t *sensor,
                           nrm_scope_t *scope,
                           double value);
+
+/**
+ * Set a callback function for client events
+ * @param client: NRM client object
+ * @param fn: function reference
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_set_event_listener(nrm_client_t *client,
                                   nrm_client_event_listener_fn fn);
+
+/**
+ * Start a callback function for client events
+ * @param client: NRM client object
+ * @param topic: NRM string label
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_start_event_listener(const nrm_client_t *client,
                                     nrm_string_t topic);
 
+/**
+ * Removes an NRM client. Do this for each client before an instrumented program
+ * exits.
+ */
 void nrm_client_destroy(nrm_client_t **client);
 
 /*******************************************************************************
