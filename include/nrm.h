@@ -235,6 +235,7 @@ typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
                                           nrm_time_t time,
                                           nrm_scope_t *scope,
                                           double value);
+typedef int(nrm_client_actuate_listener_fn)(nrm_uuid_t *uuid, double value);
 
 /**
  * Creates a new NRM Client.
@@ -349,6 +350,10 @@ int nrm_client_set_event_listener(nrm_client_t *client,
 int nrm_client_start_event_listener(const nrm_client_t *client,
                                     nrm_string_t topic);
 
+int nrm_client_set_actuate_listener(nrm_client_t *client,
+                                    nrm_client_actuate_listener_fn fn);
+int nrm_client_start_actuate_listener(const nrm_client_t *client);
+
 /**
  * Removes an NRM client. Do this for each client before an instrumented program
  * exits.
@@ -366,6 +371,7 @@ void nrm_client_destroy(nrm_client_t **client);
 
 typedef struct nrm_role_s nrm_role_t;
 typedef int(nrm_role_sub_callback_fn)(nrm_msg_t *msg, void *arg);
+typedef int(nrm_role_cmd_callback_fn)(nrm_msg_t *msg, void *arg);
 
 nrm_role_t *nrm_role_monitor_create_fromenv();
 
@@ -378,6 +384,9 @@ nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from);
 int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg);
 int nrm_role_register_sub_cb(const nrm_role_t *role,
                              nrm_role_sub_callback_fn *fn,
+                             void *arg);
+int nrm_role_register_cmd_cb(const nrm_role_t *role,
+                             nrm_role_cmd_callback_fn *fn,
                              void *arg);
 int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
 

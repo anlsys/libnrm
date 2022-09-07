@@ -242,5 +242,6 @@ struct nrm_role_ops nrm_role_controller_ops = {
         nrm_role_controller_pub,
         NULL,
         NULL,
+        NULL,
         nrm_role_controller_destroy,
 };

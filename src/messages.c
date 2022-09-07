@@ -889,6 +889,17 @@ int nrm_msg_fprintf(FILE *f, nrm_msg_t *msg)
 	return 0;
 }
 
+int nrm_msg_is_reply(nrm_msg_t *msg)
+{
+	switch (msg->type) {
+	case NRM_MSG_TYPE_ACTUATE:
+		return 0;
+	default:
+		return 1;
+	}
+	return 0;
+}
+
 /*******************************************************************************
  * Broker Communication
  *******************************************************************************/

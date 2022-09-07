@@ -19,6 +19,7 @@
 struct nrm_client_s {
 	nrm_role_t *role;
 	nrm_client_event_listener_fn *user_fn;
+	nrm_client_actuate_listener_fn *actuate_fn;
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -325,6 +326,7 @@ int nrm_client_set_event_listener(nrm_client_t *client,
 	if (client == NULL || fn == NULL)
 		return -NRM_EINVAL;
 	client->user_fn = fn;
+	return 0;
 }
 
 int nrm_client_start_event_listener(const nrm_client_t *client,
@@ -335,6 +337,34 @@ int nrm_client_start_event_listener(const nrm_client_t *client,
 	nrm_role_register_sub_cb(client->role, nrm_client__sub_callback,
 	                         client);
 	nrm_role_sub(client->role, topic);
+	return 0;
+}
+
+int nrm_client__actuate_callback(nrm_msg_t *msg, void *arg)
+{
+	nrm_client_t *self = (nrm_client_t *)arg;
+	if (self->actuate_fn == NULL)
+		return 0;
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->actuate->uuid);
+	self->actuate_fn(uuid, msg->event->value);
+	return 0;
+}
+
+int nrm_client_set_actuate_listener(nrm_client_t *client,
+                                    nrm_client_actuate_listener_fn fn)
+{
+	if (client == NULL || fn == NULL)
+		return -NRM_EINVAL;
+	client->actuate_fn = fn;
+	return 0;
+}
+
+int nrm_client_start_actuate_listener(const nrm_client_t *client)
+{
+	if (client == NULL)
+		return -NRM_EINVAL;
+	nrm_role_register_cmd_cb(client->role, nrm_client__actuate_callback,
+	                         client);
 	return 0;
 }
 

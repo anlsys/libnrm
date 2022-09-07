@@ -21,6 +21,11 @@ struct nrm_client_sub_cb_s {
 	void *arg;
 };
 
+struct nrm_client_cmd_cb_s {
+	nrm_role_cmd_callback_fn *fn;
+	void *arg;
+};
+
 /* actor thread that takes care of actually communicating with the rest of the
  * NRM infrastructure.
  */
@@ -35,6 +40,8 @@ struct nrm_client_broker_s {
 	zloop_t *loop;
 	/* pointer to the sub callback */
 	struct nrm_client_sub_cb_s *sub_cb;
+	/* pointer to the cmd callback */
+	struct nrm_client_cmd_cb_s *cmd_cb;
 };
 
 struct nrm_client_broker_args {
@@ -46,11 +53,14 @@ struct nrm_client_broker_args {
 	int sub_port;
 	/* pointer to the sub callback */
 	struct nrm_client_sub_cb_s *sub_cb;
+	/* pointer to the cmd callback */
+	struct nrm_client_cmd_cb_s *cmd_cb;
 };
 
 struct nrm_role_client_s {
 	zactor_t *broker;
 	struct nrm_client_sub_cb_s sub_cb;
+	struct nrm_client_cmd_cb_s cmd_cb;
 };
 
 int nrm_client_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
@@ -94,7 +104,17 @@ int nrm_client_broker_rpc_handler(zloop_t *loop, zsock_t *socket, void *arg)
 
 	/* this should be a rpc answer, that we need to transmit to the pipe */
 	nrm_msg_t *msg = nrm_msg_recv(socket);
-	nrm_ctrlmsg_sendmsg(self->pipe, NRM_CTRLMSG_TYPE_RECV, msg, NULL);
+	nrm_log_debug("received rpc message\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	if (nrm_msg_is_reply(msg))
+		nrm_ctrlmsg_sendmsg(self->pipe, NRM_CTRLMSG_TYPE_RECV, msg,
+		                    NULL);
+	else {
+		if (self->cmd_cb->fn != NULL)
+			self->cmd_cb->fn(msg, self->cmd_cb->arg);
+		else
+			nrm_log_debug("no cmd callback to call\n");
+	}
 	return 0;
 }
 
@@ -138,6 +158,7 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	params = (struct nrm_client_broker_args *)args;
 
 	self->sub_cb = params->sub_cb;
+	self->cmd_cb = params->cmd_cb;
 
 	/* init network */
 	fprintf(stderr, "client: creating rpc socket\n");
@@ -201,6 +222,7 @@ nrm_role_client_create_fromparams(const char *uri, int sub_port, int rpc_port)
 	bargs.sub_port = sub_port;
 	bargs.rpc_port = rpc_port;
 	bargs.sub_cb = &(data->sub_cb);
+	bargs.cmd_cb = &(data->cmd_cb);
 
 	/* create broker */
 	data->broker = zactor_new(nrm_client_broker_fn, &bargs);
@@ -256,6 +278,16 @@ int nrm_role_client_register_sub_cb(const struct nrm_role_data *data,
 	return 0;
 }
 
+int nrm_role_client_register_cmd_cb(const struct nrm_role_data *data,
+                                    nrm_role_cmd_callback_fn *fn,
+                                    void *arg)
+{
+	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
+	client->cmd_cb.fn = fn;
+	client->cmd_cb.arg = arg;
+	return 0;
+}
+
 int nrm_role_client_sub(const struct nrm_role_data *data, nrm_string_t topic)
 {
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
@@ -268,5 +300,6 @@ struct nrm_role_ops nrm_role_client_ops = {
         NULL,
         nrm_role_client_register_sub_cb,
         nrm_role_client_sub,
+        nrm_role_client_register_cmd_cb,
         nrm_role_client_destroy,
 };

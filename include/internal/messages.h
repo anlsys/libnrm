@@ -91,6 +91,7 @@ int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes);
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
 int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid);
+int nrm_msg_is_reply(nrm_msg_t *msg);
 
 nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg);
 nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg);
