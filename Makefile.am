@@ -117,7 +117,9 @@ nrmd_SOURCES = src/binaries/nrmd.c
 nrmd_LDADD = libnrm.la
 nrmc_SOURCES = src/binaries/nrmc.c
 nrmc_LDADD = libnrm.la
-bin_PROGRAMS += nrmd nrmc
+nrm_dummy_extra_SOURCES = src/binaries/nrm-dummy-extra.c
+nrm_dummy_extra_LDADD = libnrm.la
+bin_PROGRAMS += nrmd nrmc nrm-dummy-extra
 endif
 
 dist_noinst_DATA = src/msg.proto

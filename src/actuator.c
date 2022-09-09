@@ -43,6 +43,7 @@ int nrm_actuator_set_choices(nrm_actuator_t *actuator,
 	if (actuator == NULL || nchoices == 0 || choices == NULL)
 		return -NRM_EINVAL;
 	nrm_vector_resize(actuator->choices, nchoices);
+	nrm_vector_clear(actuator->choices);
 	for (size_t i = 0; i < nchoices; i++)
 		nrm_vector_push_back(actuator->choices, &choices[i]);
 	return 0;
