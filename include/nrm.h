@@ -124,8 +124,7 @@ void nrm_msg_destroy(nrm_msg_t **msg);
  ******************************************************************************/
 
 struct nrm_actuator_s {
-	nrm_string_t name;
-	nrm_uuid_t *uuid;
+	nrm_string_t uuid;
 	nrm_uuid_t *clientid;
 	double value;
 	nrm_vector_t *choices;
@@ -133,7 +132,7 @@ struct nrm_actuator_s {
 
 typedef struct nrm_actuator_s nrm_actuator_t;
 
-nrm_actuator_t *nrm_actuator_create(char *name);
+nrm_actuator_t *nrm_actuator_create(const char *name);
 
 void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
@@ -143,8 +142,7 @@ void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
  ******************************************************************************/
 
 struct nrm_slice_s {
-	nrm_string_t name;
-	nrm_uuid_t *uuid;
+	nrm_string_t uuid;
 };
 
 typedef struct nrm_slice_s nrm_slice_t;
@@ -155,7 +153,7 @@ typedef struct nrm_slice_s nrm_slice_t;
  * @param name: char pointer to a name describing the slice
  * @return: a new NRM slice structure
  */
-nrm_slice_t *nrm_slice_create(char *name);
+nrm_slice_t *nrm_slice_create(const char *name);
 
 /**
  * Removes an NRM slice. Do this for each slice before an instrumented program
@@ -173,8 +171,7 @@ void nrm_slice_fprintf(FILE *out, nrm_slice_t *);
  ******************************************************************************/
 
 struct nrm_sensor_s {
-	nrm_string_t name;
-	nrm_uuid_t *uuid;
+	nrm_string_t uuid;
 };
 
 typedef struct nrm_sensor_s nrm_sensor_t;
@@ -184,7 +181,7 @@ typedef struct nrm_sensor_s nrm_sensor_t;
  * @param name: char pointer to a name describing the sensor
  * @return: a new NRM sensor structure
  */
-nrm_sensor_t *nrm_sensor_create(char *name);
+nrm_sensor_t *nrm_sensor_create(const char *name);
 
 /**
  * Removes an NRM sensor. Do this for each sensor before an instrumented program
@@ -218,7 +215,7 @@ typedef struct nrm_eventbase_s nrm_eventbase_t;
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
 
 int nrm_eventbase_push_event(
-        nrm_eventbase_t *, nrm_uuid_t *, nrm_scope_t *, nrm_time_t, double);
+        nrm_eventbase_t *, nrm_string_t, nrm_scope_t *, nrm_time_t, double);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 
@@ -231,7 +228,7 @@ void nrm_eventbase_destroy(nrm_eventbase_t **);
 
 typedef struct nrm_client_s nrm_client_t;
 
-typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
+typedef int(nrm_client_event_listener_fn)(nrm_string_t sensor_uuid,
                                           nrm_time_t time,
                                           nrm_scope_t *scope,
                                           double value);
@@ -251,6 +248,10 @@ int nrm_client_create(nrm_client_t **client,
                       const char *uri,
                       int pub_port,
                       int rpc_port);
+
+int nrm_client_actuate(const nrm_client_t *client,
+                       nrm_actuator_t *actuator,
+                       double value);
 
 int nrm_client_add_actuator(const nrm_client_t *client,
                             nrm_actuator_t *actuator);
@@ -277,15 +278,13 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
  * Find matching NRM objects within a client
  * @param client: NRM client
  * @param type: An NRM scope, sensor, or slice type
- * @param name: A sensor or type name?
- * @param uuid: A sensor uuid
+ * @param uuid: name/uuid of the object to find
  * @param results: NRM vector for containing results
  * @return 0 if successful, an error code otherwise
  */
 int nrm_client_find(const nrm_client_t *client,
                     int type,
-                    char *name,
-                    nrm_uuid_t *uuid,
+                    const char *uuid,
                     nrm_vector_t **results);
 
 int nrm_client_list_actuators(const nrm_client_t *client,
@@ -313,7 +312,7 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
  * Removes an NRM slice from a client
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid);
+int nrm_client_remove(const nrm_client_t *client, int type, nrm_string_t uuid);
 
 /**
  * Sends a measurement to the NRM daemon

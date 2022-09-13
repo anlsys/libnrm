@@ -38,7 +38,7 @@ void nrm_uuid_destroy(nrm_uuid_t **uuid)
 	if (uuid == NULL || *uuid == NULL)
 		return;
 
-	nrm_string_decref(*uuid);
+	nrm_string_decref(**uuid);
 	free(*uuid);
 	*uuid = NULL;
 }
@@ -71,7 +71,7 @@ nrm_string_t nrm_uuid_to_string(nrm_uuid_t *uuid)
 {
 	if (uuid == NULL)
 		return NULL;
-	nrm_string_incref(uuid);
+	nrm_string_incref(*uuid);
 	return *uuid;
 }
 

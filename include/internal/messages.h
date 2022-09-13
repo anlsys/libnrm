@@ -78,19 +78,18 @@ void nrm_msg_destroy(nrm_msg_t **msg);
 int nrm_msg_fill(nrm_msg_t *msg, int type);
 int nrm_msg_set_event(nrm_msg_t *msg,
                       nrm_time_t time,
-                      nrm_uuid_t *uuid,
+                      nrm_string_t sensor_uuid,
                       nrm_scope_t *scope,
                       double value);
-int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_uuid_t *uuid, double value);
+int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_string_t uuid, double value);
 int nrm_msg_set_add_actuator(nrm_msg_t *msg, nrm_actuator_t *actuator);
 int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope);
-int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
-int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid);
-int nrm_msg_set_list_actuators(nrm_msg_t *msg, nrm_vector_t *actuators);
+int nrm_msg_set_add_sensor(nrm_msg_t *msg, nrm_sensor_t *sensor);
+int nrm_msg_set_add_slice(nrm_msg_t *msg, nrm_slice_t *slice);
 int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes);
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
-int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid);
+int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_string_t uuid);
 int nrm_msg_is_reply(nrm_msg_t *msg);
 
 nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg);

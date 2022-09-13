@@ -147,7 +147,7 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	/* craft the message we want to send */
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
-	nrm_msg_set_add_slice(msg, slice->name, NULL);
+	nrm_msg_set_add_slice(msg, slice);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	nrm_role_send(client->role, msg, NULL);
@@ -173,7 +173,7 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	/* craft the message we want to send */
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_ADD);
-	nrm_msg_set_add_sensor(msg, sensor->name, NULL);
+	nrm_msg_set_add_sensor(msg, sensor);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	nrm_role_send(client->role, msg, NULL);
@@ -192,19 +192,14 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 
 int nrm_client_find(const nrm_client_t *client,
                     int type,
-                    char *name,
-                    nrm_uuid_t *uuid,
+                    const char *uuid,
                     nrm_vector_t **results)
 {
 	if (client == NULL || type < 0 || type >= NRM_MSG_TARGET_TYPE_MAX)
 		return -NRM_EINVAL;
 
 	/* we need one of those */
-	if (name == NULL && uuid == NULL)
-		return -NRM_EINVAL;
-
-	/* that doesn't really make sense, does it ? */
-	if (name && uuid)
+	if (uuid == NULL)
 		return -NRM_EINVAL;
 
 	int err;
@@ -264,8 +259,7 @@ int nrm_client_find(const nrm_client_t *client,
 			return err;
 
 		for (size_t i = 0; i < msg->list->scopes->n_scopes; i++) {
-			if (uuid != NULL &&
-			    strcmp(*uuid, msg->list->scopes->scopes[i]->uuid))
+			if (strcmp(uuid, msg->list->scopes->scopes[i]->uuid))
 				continue;
 			nrm_scope_t *s = nrm_scope_create_frommsg(
 			        msg->list->scopes->scopes[i]);
@@ -277,11 +271,7 @@ int nrm_client_find(const nrm_client_t *client,
 			return err;
 
 		for (size_t i = 0; i < msg->list->sensors->n_sensors; i++) {
-			if (uuid != NULL &&
-			    strcmp(*uuid, msg->list->sensors->sensors[i]->uuid))
-				continue;
-			if (name != NULL &&
-			    strcmp(name, msg->list->sensors->sensors[i]->name))
+			if (strcmp(uuid, msg->list->sensors->sensors[i]->uuid))
 				continue;
 			nrm_sensor_t *s = nrm_sensor_create_frommsg(
 			        msg->list->sensors->sensors[i]);
@@ -293,11 +283,7 @@ int nrm_client_find(const nrm_client_t *client,
 			return err;
 
 		for (size_t i = 0; i < msg->list->slices->n_slices; i++) {
-			if (uuid != NULL &&
-			    strcmp(*uuid, msg->list->slices->slices[i]->uuid))
-				continue;
-			if (name != NULL &&
-			    strcmp(name, msg->list->slices->slices[i]->name))
+			if (strcmp(uuid, msg->list->slices->slices[i]->uuid))
 				continue;
 			nrm_slice_t *s = nrm_slice_create_frommsg(
 			        msg->list->slices->slices[i]);
@@ -313,7 +299,7 @@ int nrm_client__sub_callback(nrm_msg_t *msg, void *arg)
 	nrm_client_t *self = (nrm_client_t *)arg;
 	if (self->user_fn == NULL)
 		return 0;
-	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->event->uuid);
+	nrm_string_t uuid = nrm_string_fromchar(msg->event->uuid);
 	nrm_time_t time = nrm_time_fromns(msg->event->time);
 	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->event->scope);
 	self->user_fn(uuid, time, scope, msg->event->value);
@@ -335,7 +321,7 @@ int nrm_client_start_event_listener(const nrm_client_t *client,
 	if (client == NULL)
 		return -NRM_EINVAL;
 	nrm_role_register_sub_cb(client->role, nrm_client__sub_callback,
-	                         client);
+	                         (void *)client);
 	nrm_role_sub(client->role, topic);
 	return 0;
 }
@@ -517,7 +503,7 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	return 0;
 }
 
-int nrm_client_remove(const nrm_client_t *client, int type, nrm_uuid_t *uuid)
+int nrm_client_remove(const nrm_client_t *client, int type, nrm_string_t uuid)
 {
 	if (client == NULL || uuid == NULL)
 		return -NRM_EINVAL;

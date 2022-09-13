@@ -68,7 +68,7 @@ int cmd_actuate(int argc, char **argv)
 	/* find actuator */
 	int err;
 	nrm_vector_t *results;
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_ACTUATOR, name, NULL,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_ACTUATOR, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -204,49 +204,14 @@ int cmd_add_sensor(int argc, char **argv)
 int cmd_find_actuator(int argc, char **argv)
 {
 
-	int err;
-	static int ask_uuid = 0;
-	static struct option cmd_run_long_options[] = {
-	        {"uuid", no_argument, &ask_uuid, 1},
-	        {0, 0, 0, 0},
-	};
-
-	static const char *cmd_run_short_options = ":u";
-
-	int c;
-	int option_index = 0;
-	while (1) {
-		c = getopt_long(argc, argv, cmd_run_short_options,
-		                cmd_run_long_options, &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'u':
-			ask_uuid = 1;
-			break;
-		case '?':
-			return EXIT_FAILURE;
-		default:
-			return EXIT_FAILURE;
-		}
-	}
-	/* remove the parsed part */
-	argc -= optind;
-	argv = &(argv[optind]);
-
-	if (argc < 1)
+	if (argc < 2)
 		return EXIT_FAILURE;
 
+	int err;
 	nrm_vector_t *results;
 	char *name = NULL;
-	nrm_uuid_t *uuid = NULL;
-	if (ask_uuid)
-		uuid = nrm_uuid_create_fromchar(argv[0]);
-	else
-		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_ACTUATOR, name, uuid,
+	name = argv[1];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_ACTUATOR, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -272,49 +237,14 @@ int cmd_find_actuator(int argc, char **argv)
 int cmd_find_scope(int argc, char **argv)
 {
 
-	int err;
-	static int ask_uuid = 0;
-	static struct option cmd_run_long_options[] = {
-	        {"uuid", no_argument, &ask_uuid, 1},
-	        {0, 0, 0, 0},
-	};
-
-	static const char *cmd_run_short_options = ":u";
-
-	int c;
-	int option_index = 0;
-	while (1) {
-		c = getopt_long(argc, argv, cmd_run_short_options,
-		                cmd_run_long_options, &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'u':
-			ask_uuid = 1;
-			break;
-		case '?':
-			return EXIT_FAILURE;
-		default:
-			return EXIT_FAILURE;
-		}
-	}
-	/* remove the parsed part */
-	argc -= optind;
-	argv = &(argv[optind]);
-
-	if (argc < 1)
+	if (argc < 2)
 		return EXIT_FAILURE;
 
+	int err;
 	nrm_vector_t *results;
 	char *name = NULL;
-	nrm_uuid_t *uuid = NULL;
-	if (ask_uuid)
-		uuid = nrm_uuid_create_fromchar(argv[0]);
-	else
-		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name, uuid,
+	name = argv[1];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -340,49 +270,14 @@ int cmd_find_scope(int argc, char **argv)
 int cmd_find_sensor(int argc, char **argv)
 {
 
-	int err;
-	static int ask_uuid = 0;
-	static struct option cmd_run_long_options[] = {
-	        {"uuid", no_argument, &ask_uuid, 1},
-	        {0, 0, 0, 0},
-	};
-
-	static const char *cmd_run_short_options = ":u";
-
-	int c;
-	int option_index = 0;
-	while (1) {
-		c = getopt_long(argc, argv, cmd_run_short_options,
-		                cmd_run_long_options, &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'u':
-			ask_uuid = 1;
-			break;
-		case '?':
-			return EXIT_FAILURE;
-		default:
-			return EXIT_FAILURE;
-		}
-	}
-	/* remove the parsed part */
-	argc -= optind;
-	argv = &(argv[optind]);
-
-	if (argc < 1)
+	if (argc < 2)
 		return EXIT_FAILURE;
 
+	int err;
 	nrm_vector_t *results;
 	char *name = NULL;
-	nrm_uuid_t *uuid = NULL;
-	if (ask_uuid)
-		uuid = nrm_uuid_create_fromchar(argv[0]);
-	else
-		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name, uuid,
+	name = argv[1];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -408,49 +303,14 @@ int cmd_find_sensor(int argc, char **argv)
 int cmd_find_slice(int argc, char **argv)
 {
 
-	int err;
-	static int ask_uuid = 0;
-	static struct option cmd_run_long_options[] = {
-	        {"uuid", no_argument, &ask_uuid, 1},
-	        {0, 0, 0, 0},
-	};
-
-	static const char *cmd_run_short_options = ":u";
-
-	int c;
-	int option_index = 0;
-	while (1) {
-		c = getopt_long(argc, argv, cmd_run_short_options,
-		                cmd_run_long_options, &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'u':
-			ask_uuid = 1;
-			break;
-		case '?':
-			return EXIT_FAILURE;
-		default:
-			return EXIT_FAILURE;
-		}
-	}
-	/* remove the parsed part */
-	argc -= optind;
-	argv = &(argv[optind]);
-
-	if (argc < 1)
+	if (argc < 2)
 		return EXIT_FAILURE;
 
+	int err;
 	nrm_vector_t *results;
 	char *name = NULL;
-	nrm_uuid_t *uuid = NULL;
-	if (ask_uuid)
-		uuid = nrm_uuid_create_fromchar(argv[0]);
-	else
-		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name, uuid,
+	name = argv[1];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -473,11 +333,15 @@ int cmd_find_slice(int argc, char **argv)
 	return 0;
 }
 
-int client_listen_callback(nrm_uuid_t uuid,
+int client_listen_callback(nrm_sensor_t *sensor,
                            nrm_time_t time,
                            nrm_scope_t scope,
                            double value)
 {
+	(void)sensor;
+	(void)time;
+	(void)scope;
+	(void)value;
 	nrm_log_debug("event\n");
 	return 0;
 }
@@ -631,15 +495,13 @@ int cmd_list_slices(int argc, char **argv)
 int cmd_remove_scope(int argc, char **argv)
 {
 	int err;
-	static int ask_uuid = 0;
 	static int ask_all = 0;
 	static struct option cmd_run_long_options[] = {
-	        {"uuid", no_argument, &ask_uuid, 1},
-	        {"all", no_argument, &ask_uuid, 1},
+	        {"all", no_argument, &ask_all, 1},
 	        {0, 0, 0, 0},
 	};
 
-	static const char *cmd_run_short_options = ":ua";
+	static const char *cmd_run_short_options = ":a";
 
 	int c;
 	int option_index = 0;
@@ -650,9 +512,6 @@ int cmd_remove_scope(int argc, char **argv)
 			break;
 		switch (c) {
 		case 0:
-			break;
-		case 'u':
-			ask_uuid = 1;
 			break;
 		case 'a':
 			ask_all = 1;
@@ -672,12 +531,8 @@ int cmd_remove_scope(int argc, char **argv)
 
 	nrm_vector_t *results;
 	char *name = NULL;
-	nrm_uuid_t *uuid = NULL;
-	if (ask_uuid)
-		uuid = nrm_uuid_create_fromchar(argv[0]);
-	else
-		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name, uuid,
+	name = argv[0];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SCOPE, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -706,15 +561,13 @@ int cmd_remove_scope(int argc, char **argv)
 int cmd_remove_sensor(int argc, char **argv)
 {
 	int err;
-	static int ask_uuid = 0;
 	static int ask_all = 0;
 	static struct option cmd_run_long_options[] = {
-	        {"uuid", no_argument, &ask_uuid, 1},
-	        {"all", no_argument, &ask_uuid, 1},
+	        {"all", no_argument, &ask_all, 1},
 	        {0, 0, 0, 0},
 	};
 
-	static const char *cmd_run_short_options = ":ua";
+	static const char *cmd_run_short_options = ":a";
 
 	int c;
 	int option_index = 0;
@@ -725,9 +578,6 @@ int cmd_remove_sensor(int argc, char **argv)
 			break;
 		switch (c) {
 		case 0:
-			break;
-		case 'u':
-			ask_uuid = 1;
 			break;
 		case 'a':
 			ask_all = 1;
@@ -747,12 +597,8 @@ int cmd_remove_sensor(int argc, char **argv)
 
 	nrm_vector_t *results;
 	char *name = NULL;
-	nrm_uuid_t *uuid = NULL;
-	if (ask_uuid)
-		uuid = nrm_uuid_create_fromchar(argv[0]);
-	else
-		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name, uuid,
+	name = argv[0];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -781,15 +627,13 @@ int cmd_remove_sensor(int argc, char **argv)
 int cmd_remove_slice(int argc, char **argv)
 {
 	int err;
-	static int ask_uuid = 0;
 	static int ask_all = 0;
 	static struct option cmd_run_long_options[] = {
-	        {"uuid", no_argument, &ask_uuid, 1},
-	        {"all", no_argument, &ask_uuid, 1},
+	        {"all", no_argument, &ask_all, 1},
 	        {0, 0, 0, 0},
 	};
 
-	static const char *cmd_run_short_options = ":ua";
+	static const char *cmd_run_short_options = ":a";
 
 	int c;
 	int option_index = 0;
@@ -800,9 +644,6 @@ int cmd_remove_slice(int argc, char **argv)
 			break;
 		switch (c) {
 		case 0:
-			break;
-		case 'u':
-			ask_uuid = 1;
 			break;
 		case 'a':
 			ask_all = 1;
@@ -822,12 +663,8 @@ int cmd_remove_slice(int argc, char **argv)
 
 	nrm_vector_t *results;
 	char *name = NULL;
-	nrm_uuid_t *uuid = NULL;
-	if (ask_uuid)
-		uuid = nrm_uuid_create_fromchar(argv[0]);
-	else
-		name = argv[0];
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name, uuid,
+	name = argv[1];
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SLICE, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");
@@ -864,7 +701,7 @@ int cmd_send_event(int argc, char **argv)
 	/* find sensor */
 	int err;
 	nrm_vector_t *results;
-	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name, NULL,
+	err = nrm_client_find(client, NRM_MSG_TARGET_TYPE_SENSOR, name,
 	                      &results);
 	if (err) {
 		nrm_log_error("error during client request\n");

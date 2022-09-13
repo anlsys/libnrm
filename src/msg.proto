@@ -32,18 +32,15 @@ message Event {
 }
 
 message Sensor {
-	string name = 1;
-	string uuid = 2;
+	string uuid = 1;
 }
 
 message Slice {
-	string name = 1;
-	string uuid = 2;
+	string uuid = 1;
 }
 
 message Actuator {
-	string name = 1;
-	string uuid = 2;
+	string uuid = 1;
 	string clientid = 3;
 	double value = 4;
 	repeated double choices = 5;
