@@ -287,11 +287,9 @@ int nrmd_handle_event_request(nrm_msg_event_t *msg)
 	return 0;
 }
 
-nrm_msg_t *nrmd_handle_actuate_request(nrm_msg_actuate_t *msg)
+nrm_msg_t *nrmd_handle_actuate_request(nrm_role_t *role, nrm_msg_actuate_t *msg)
 {
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
-	/* find the actuator */
-	nrm_actuator_t *actuator;
 	size_t len;
 	nrm_vector_length(my_daemon.state->actuators, &len);
 	for (size_t i = 0; i < len; i++) {
@@ -299,10 +297,14 @@ nrm_msg_t *nrmd_handle_actuate_request(nrm_msg_actuate_t *msg)
 		nrm_actuator_t *a;
 		nrm_vector_get(my_daemon.state->actuators, i, &p);
 		a = (nrm_actuator_t *)p;
-		if (!nrm_uuid_cmp(a->uuid, uuid)) {
+		if (!nrm_uuid_cmp(*a->uuid, *uuid)) {
 			/* found the actuator */
 			nrm_log_debug("actuating %s: %f\n", *a->uuid,
 			              msg->value);
+			nrm_msg_t *action = nrm_msg_create();
+			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
+			nrm_msg_set_actuate(action, a->uuid, msg->value);
+			nrm_role_send(role, action, a->clientid);
 			break;
 		}
 	}
@@ -326,7 +328,7 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	switch (msg->type) {
 	case NRM_MSG_TYPE_ACTUATE:
-		ret = nrmd_handle_actuate_request(msg->actuate);
+		ret = nrmd_handle_actuate_request(self, msg->actuate);
 		nrm_role_send(self, ret, uuid);
 		break;
 	case NRM_MSG_TYPE_LIST:

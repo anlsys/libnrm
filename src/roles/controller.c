@@ -75,8 +75,8 @@ int nrm_controller_broker_pipe_handler(zloop_t *loop,
 		/* returning -1 exits the loop */
 		return -1;
 	case NRM_CTRLMSG_TYPE_SEND:
-		nrm_log_info("received request to send to client\n");
 		NRM_CTRLMSG_2SENDTO(p, q, msg, uuid);
+		nrm_log_info("received request to send to client: %s\n", *uuid);
 		nrm_msg_sendto(self->rpc, msg, uuid);
 		break;
 	case NRM_CTRLMSG_TYPE_PUB:

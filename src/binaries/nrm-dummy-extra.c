@@ -54,7 +54,7 @@ void print_version()
 
 int nrm_dummy_extra_callback(nrm_uuid_t *uuid, double value)
 {
-	nrm_log_debug("action %d\n", value);
+	nrm_log_debug("action %f\n", value);
 	return 0;
 }
 
