@@ -81,7 +81,7 @@ int nrm_net_bind_2(zsock_t *socket, const char *uri, int port);
  ******************************************************************************/
 
 struct nrm_scope {
-	nrm_uuid_t *uuid;
+	nrm_string_t uuid;
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
 };
 

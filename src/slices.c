@@ -19,28 +19,22 @@
 
 #include "internal/nrmi.h"
 
-nrm_slice_t *nrm_slice_create(char *name)
+nrm_slice_t *nrm_slice_create(const char *name)
 {
 	nrm_slice_t *ret = calloc(1, sizeof(nrm_slice_t));
-	ret->name = nrm_string_fromchar(name);
-	ret->uuid = NULL;
+	ret->uuid = nrm_string_fromchar(name);
 	return ret;
 }
 
 json_t *nrm_slice_to_json(nrm_slice_t *slice)
 {
-	json_t *uuid = NULL;
-
-	if (slice->uuid != NULL)
-		uuid = nrm_uuid_to_json(slice->uuid);
-	return json_pack("{s:s, s:o*}", "name", slice->name, "uuid", uuid);
+	return json_pack("{s:s}", "uuid", slice->uuid);
 }
 
 void nrm_slice_destroy(nrm_slice_t **slice)
 {
 	if (slice == NULL || *slice == NULL)
 		return;
-	nrm_string_decref(&(*slice)->name);
-	nrm_uuid_destroy(&(*slice)->uuid);
+	nrm_string_decref((*slice)->uuid);
 	*slice = NULL;
 }

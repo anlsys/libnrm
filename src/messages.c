@@ -46,38 +46,34 @@ int nrm_msg_fill(nrm_msg_t *msg, int type)
 	return 0;
 }
 
-nrm_msg_actuate_t *nrm_msg_actuate_new(nrm_uuid_t *uuid, double value)
+nrm_msg_actuate_t *nrm_msg_actuate_new(nrm_string_t uuid, double value)
 {
 	nrm_msg_actuate_t *ret = calloc(1, sizeof(nrm_msg_actuate_t));
 	if (ret == NULL)
 		return ret;
 	nrm_msg_actuate_init(ret);
-	ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	ret->uuid = strdup(uuid);
 	ret->value = value;
 	return ret;
 }
 
-nrm_msg_sensor_t *nrm_msg_sensor_new(const char *name, nrm_uuid_t *uuid)
+nrm_msg_sensor_t *nrm_msg_sensor_new(const char *uuid)
 {
 	nrm_msg_sensor_t *ret = calloc(1, sizeof(nrm_msg_sensor_t));
 	if (ret == NULL)
 		return ret;
 	nrm_msg_sensor_init(ret);
-	ret->name = strdup(name);
-	if (uuid)
-		ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	ret->uuid = strdup(uuid);
 	return ret;
 }
 
-nrm_msg_slice_t *nrm_msg_slice_new(const char *name, nrm_uuid_t *uuid)
+nrm_msg_slice_t *nrm_msg_slice_new(const char *uuid)
 {
 	nrm_msg_slice_t *ret = calloc(1, sizeof(nrm_msg_slice_t));
 	if (ret == NULL)
 		return ret;
 	nrm_msg_slice_init(ret);
-	ret->name = strdup(name);
-	if (uuid)
-		ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	ret->uuid = strdup(uuid);
 	return ret;
 }
 
@@ -97,9 +93,7 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_actuator_init(ret);
-	ret->name = strdup(actuator->name);
-	if (actuator->uuid)
-		ret->uuid = strdup(nrm_uuid_to_char(actuator->uuid));
+	ret->uuid = strdup(actuator->uuid);
 	if (actuator->clientid)
 		ret->clientid = strdup(nrm_uuid_to_char(actuator->clientid));
 	ret->value = actuator->value;
@@ -122,8 +116,7 @@ nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_scope_init(ret);
-	if (scope->uuid)
-		ret->uuid = strdup(nrm_uuid_to_char(scope->uuid));
+	ret->uuid = strdup(scope->uuid);
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_CPU], &ret->n_cpus,
 	                    &ret->cpus);
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], &ret->n_numas,
@@ -133,25 +126,25 @@ nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 	return ret;
 }
 
-nrm_msg_event_t *nrm_msg_event_new(nrm_uuid_t *uuid)
+nrm_msg_event_t *nrm_msg_event_new(nrm_string_t uuid)
 {
 	nrm_msg_event_t *ret = calloc(1, sizeof(nrm_msg_event_t));
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_event_init(ret);
-	ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	ret->uuid = strdup(uuid);
 	return ret;
 }
 
 int nrm_msg_set_event(nrm_msg_t *msg,
                       nrm_time_t time,
-                      nrm_uuid_t *uuid,
+                      nrm_string_t sensor_uuid,
                       nrm_scope_t *scope,
                       double value)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
-	msg->event = nrm_msg_event_new(uuid);
+	msg->event = nrm_msg_event_new(sensor_uuid);
 	assert(msg->event);
 	msg->data_case = NRM__MESSAGE__DATA_EVENT;
 	msg->event->time = nrm_time_tons(&time);
@@ -161,7 +154,7 @@ int nrm_msg_set_event(nrm_msg_t *msg,
 	return 0;
 }
 
-int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_uuid_t *uuid, double value)
+int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_string_t uuid, double value)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
@@ -194,7 +187,7 @@ int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope)
 	return 0;
 }
 
-int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
+int nrm_msg_set_add_sensor(nrm_msg_t *msg, nrm_sensor_t *sensor)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
@@ -202,11 +195,11 @@ int nrm_msg_set_add_sensor(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
 	assert(msg->add);
 	msg->data_case = NRM__MESSAGE__DATA_ADD;
 	msg->add->data_case = NRM__ADD__DATA_SENSOR;
-	msg->add->sensor = nrm_msg_sensor_new(name, uuid);
+	msg->add->sensor = nrm_msg_sensor_new(sensor->uuid);
 	return 0;
 }
 
-int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
+int nrm_msg_set_add_slice(nrm_msg_t *msg, nrm_slice_t *slice)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
@@ -214,7 +207,7 @@ int nrm_msg_set_add_slice(nrm_msg_t *msg, char *name, nrm_uuid_t *uuid)
 	assert(msg->add);
 	msg->data_case = NRM__MESSAGE__DATA_ADD;
 	msg->add->data_case = NRM__ADD__DATA_SLICE;
-	msg->add->slice = nrm_msg_slice_new(name, uuid);
+	msg->add->slice = nrm_msg_slice_new(slice->uuid);
 	return 0;
 }
 
@@ -292,8 +285,8 @@ nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
 	for (size_t i = 0; i < ret->n_sensors; i++) {
 		nrm_vector_get(sensors, i, &p);
 		nrm_sensor_t *s = (nrm_sensor_t *)p;
-		nrm_log_debug("packed sensor %zu %s\n", i, s->name);
-		ret->sensors[i] = nrm_msg_sensor_new(s->name, s->uuid);
+		nrm_log_debug("packed sensor %zu %s\n", i, s->uuid);
+		ret->sensors[i] = nrm_msg_sensor_new(s->uuid);
 	}
 	return ret;
 }
@@ -316,8 +309,8 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 	for (size_t i = 0; i < ret->n_slices; i++) {
 		nrm_vector_get(slices, i, &p);
 		nrm_slice_t *s = (nrm_slice_t *)p;
-		nrm_log_debug("packed slice %zu %s\n", i, s->name);
-		ret->slices[i] = nrm_msg_slice_new(s->name, s->uuid);
+		nrm_log_debug("packed slice %zu %s\n", i, s->uuid);
+		ret->slices[i] = nrm_msg_slice_new(s->uuid);
 	}
 	return ret;
 }
@@ -370,18 +363,18 @@ int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices)
 	return 0;
 }
 
-nrm_msg_remove_t *nrm_msg_remove_new(int type, nrm_uuid_t *uuid)
+nrm_msg_remove_t *nrm_msg_remove_new(int type, nrm_string_t uuid)
 {
 	nrm_msg_remove_t *ret = calloc(1, sizeof(nrm_msg_remove_t));
 	if (ret == NULL)
 		return ret;
 	nrm_msg_remove_init(ret);
 	ret->type = type;
-	ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	ret->uuid = strdup(uuid);
 	return ret;
 }
 
-int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid)
+int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_string_t uuid)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
@@ -399,9 +392,7 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 {
 	if (msg == NULL)
 		return NULL;
-	nrm_actuator_t *ret = nrm_actuator_create(msg->name);
-	if (msg->uuid)
-		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	nrm_actuator_t *ret = nrm_actuator_create(msg->uuid);
 	if (msg->clientid)
 		ret->clientid = nrm_uuid_create_fromchar(msg->uuid);
 	ret->value = msg->value;
@@ -430,9 +421,7 @@ nrm_sensor_t *nrm_sensor_create_frommsg(nrm_msg_sensor_t *msg)
 {
 	if (msg == NULL)
 		return NULL;
-	nrm_sensor_t *ret = nrm_sensor_create(msg->name);
-	if (msg->uuid)
-		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	nrm_sensor_t *ret = nrm_sensor_create(msg->uuid);
 	return ret;
 }
 
@@ -440,9 +429,7 @@ nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg)
 {
 	if (msg == NULL)
 		return NULL;
-	nrm_slice_t *ret = nrm_slice_create(msg->name);
-	if (msg->uuid)
-		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	nrm_slice_t *ret = nrm_slice_create(msg->uuid);
 	return ret;
 }
 
@@ -452,9 +439,7 @@ int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
 	if (actuator == NULL || msg == NULL)
 		return -NRM_EINVAL;
 
-	actuator->name = nrm_string_fromchar(msg->name);
-	if (msg->uuid)
-		actuator->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	actuator->uuid = nrm_string_fromchar(msg->uuid);
 	if (msg->clientid)
 		actuator->clientid = nrm_uuid_create_fromchar(msg->clientid);
 	actuator->value = msg->value;
@@ -485,9 +470,6 @@ int nrm_sensor_update_frommsg(nrm_sensor_t *sensor, nrm_msg_sensor_t *msg)
 {
 	if (sensor == NULL || msg == NULL)
 		return -NRM_EINVAL;
-	sensor->name = nrm_string_fromchar(msg->name);
-	if (msg->uuid)
-		sensor->uuid = nrm_uuid_create_fromchar(msg->uuid);
 	return 0;
 }
 
@@ -495,9 +477,6 @@ int nrm_slice_update_frommsg(nrm_slice_t *slice, nrm_msg_slice_t *msg)
 {
 	if (slice == NULL || msg == NULL)
 		return -NRM_EINVAL;
-	slice->name = nrm_string_fromchar(msg->name);
-	if (msg->uuid)
-		slice->uuid = nrm_uuid_create_fromchar(msg->uuid);
 	return 0;
 }
 /*******************************************************************************
@@ -693,9 +672,9 @@ json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
 	json_t *ret;
 	json_t *choices;
 	choices = nrm_msg_darray_to_json(msg->n_choices, msg->choices);
-	ret = json_pack("{s:s, s:s?, s:s?, s:o, s:o}", "name", msg->name,
-	                "uuid", msg->uuid, "clientid", msg->clientid, "value",
-	                json_real(msg->value), "choices", choices);
+	ret = json_pack("{s:s, s:s?, s:o, s:o}", "uuid", msg->uuid, "clientid",
+	                msg->clientid, "value", json_real(msg->value),
+	                "choices", choices);
 	return ret;
 }
 
@@ -717,7 +696,7 @@ json_t *nrm_msg_scope_to_json(nrm_msg_scope_t *msg)
 	cpus = nrm_msg_bitmap_to_json(msg->n_cpus, msg->cpus);
 	numas = nrm_msg_bitmap_to_json(msg->n_numas, msg->numas);
 	gpus = nrm_msg_bitmap_to_json(msg->n_gpus, msg->gpus);
-	ret = json_pack("{s:s?, s:o, s:o, s:o}", "uuid", msg->uuid, "cpu", cpus,
+	ret = json_pack("{s:s, s:o, s:o, s:o}", "uuid", msg->uuid, "cpu", cpus,
 	                "numa", numas, "gpu", gpus);
 	return ret;
 }
@@ -736,7 +715,7 @@ json_t *nrm_msg_scopelist_to_json(nrm_msg_scopelist_t *msg)
 json_t *nrm_msg_sensor_to_json(nrm_msg_sensor_t *msg)
 {
 	json_t *ret;
-	ret = json_pack("{s:s, s:s?}", "name", msg->name, "uuid", msg->uuid);
+	ret = json_pack("{s:s}", "uuid", msg->uuid);
 	return ret;
 }
 
@@ -754,7 +733,7 @@ json_t *nrm_msg_sensorlist_to_json(nrm_msg_sensorlist_t *msg)
 json_t *nrm_msg_slice_to_json(nrm_msg_slice_t *msg)
 {
 	json_t *ret;
-	ret = json_pack("{s:s, s:s?}", "name", msg->name, "uuid", msg->uuid);
+	ret = json_pack("{s:s}", "uuid", msg->uuid);
 	return ret;
 }
 

@@ -109,7 +109,7 @@ int nrm_scope_from_json(nrm_scope_t *scope, json_t *json)
 		return -NRM_EINVAL;
 	}
 	if (uuid)
-		scope->uuid = nrm_uuid_create_fromchar(uuid);
+		scope->uuid = nrm_string_fromchar(uuid);
 	nrm_bitmap_from_json(&scope->maps[0], cpu);
 	nrm_bitmap_from_json(&scope->maps[1], numa);
 	nrm_bitmap_from_json(&scope->maps[2], gpu);

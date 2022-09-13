@@ -95,14 +95,14 @@ struct nrm_scope2ring_s *nrm_eventbase_add_scope(nrm_eventbase_t *eb,
 }
 
 struct nrm_sensor2scope_s *nrm_eventbase_add_sensor(nrm_eventbase_t *eb,
-                                                    nrm_uuid_t *sensor_uuid)
+                                                    nrm_string_t sensor_uuid)
 {
 	/* add a sensor2scope to the hash table */
 	struct nrm_sensor2scope_s *s;
 	s = calloc(1, sizeof(struct nrm_sensor2scope_s));
 	if (s == NULL)
 		return NULL;
-	s->uuid = nrm_uuid_to_string(sensor_uuid);
+	s->uuid = sensor_uuid;
 	s->list = NULL;
 	HASH_ADD_STR(eb->hash, uuid, s);
 	return s;
@@ -129,15 +129,14 @@ int nrm_eventbase_remove_sensor(nrm_eventbase_t *eb, nrm_uuid_t *sensor_uuid)
 }
 
 int nrm_eventbase_push_event(nrm_eventbase_t *eb,
-                             nrm_uuid_t *sensor_uuid,
+                             nrm_string_t sensor_uuid,
                              nrm_scope_t *scope,
                              nrm_time_t time,
                              double value)
 {
 	struct nrm_sensor2scope_s *s2s;
 	struct nrm_scope2ring_s *s2r;
-	char *uuid = nrm_uuid_to_char(sensor_uuid);
-	HASH_FIND_STR(eb->hash, uuid, s2s);
+	HASH_FIND_STR(eb->hash, sensor_uuid, s2s);
 	if (s2s == NULL)
 		s2s = nrm_eventbase_add_sensor(eb, sensor_uuid);
 	DL_FOREACH(s2s->list, s2r)
