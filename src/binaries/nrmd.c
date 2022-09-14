@@ -25,6 +25,24 @@ struct nrm_daemon_s {
 
 struct nrm_daemon_s my_daemon;
 
+nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
+{
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
+	size_t len;
+	nrm_vector_length(my_daemon.state->actuators, &len);
+	for (size_t i = 0; i < len; i++) {
+		nrm_actuator_t *s;
+		void *p;
+		nrm_vector_get(my_daemon.state->actuators, i, &p);
+		s = (nrm_actuator_t *)p;
+		if (!nrm_uuid_cmp(s->uuid, uuid))
+			nrm_vector_take(my_daemon.state->actuators, i, NULL);
+	}
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	return ret;
+}
+
 nrm_msg_t *nrmd_daemon_remove_scope(nrm_msg_remove_t *msg)
 {
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
@@ -83,6 +101,14 @@ nrm_msg_t *nrmd_daemon_remove_slice(nrm_msg_remove_t *msg)
 	return ret;
 }
 
+nrm_msg_t *nrmd_daemon_build_list_actuators()
+{
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
+	nrm_msg_set_list_actuators(ret, my_daemon.state->actuators);
+	return ret;
+}
+
 nrm_msg_t *nrmd_daemon_build_list_scopes()
 {
 	nrm_msg_t *ret = nrm_msg_create();
@@ -106,6 +132,22 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	nrm_msg_set_list_slices(ret, my_daemon.state->slices);
 	return ret;
 }
+
+nrm_msg_t *nrmd_daemon_add_actuator(nrm_uuid_t *clientid,
+                                    nrm_msg_actuator_t *actuator)
+{
+	nrm_actuator_t *newactuator = nrm_actuator_create_frommsg(actuator);
+	newactuator->uuid = nrm_uuid_create();
+	newactuator->clientid =
+	        nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
+	nrm_vector_push_back(my_daemon.state->actuators, newactuator);
+
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_actuator(ret, newactuator);
+	return ret;
+}
+
 nrm_msg_t *nrmd_daemon_add_scope(nrm_msg_scope_t *scope)
 {
 	nrm_scope_t *newscope = nrm_scope_create_frommsg(scope);
@@ -142,10 +184,15 @@ nrm_msg_t *nrmd_daemon_add_slice(const char *name)
 	return ret;
 }
 
-nrm_msg_t *nrmd_handle_add_request(nrm_msg_add_t *msg)
+nrm_msg_t *nrmd_handle_add_request(nrm_uuid_t *clientid, nrm_msg_add_t *msg)
 {
 	nrm_msg_t *ret = NULL;
 	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_log_info("adding an actuator\n");
+		ret = nrmd_daemon_add_actuator(clientid, msg->actuator);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("adding a slice\n");
 		ret = nrmd_daemon_add_slice(msg->slice->name);
@@ -172,6 +219,11 @@ nrm_msg_t *nrmd_handle_list_request(nrm_msg_list_t *msg)
 {
 	nrm_msg_t *ret = NULL;
 	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_log_info("building list of actuators\n");
+		ret = nrmd_daemon_build_list_actuators();
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("building list of slices\n");
 		ret = nrmd_daemon_build_list_slices();
@@ -198,6 +250,11 @@ nrm_msg_t *nrmd_handle_remove_request(nrm_msg_remove_t *msg)
 {
 	nrm_msg_t *ret = NULL;
 	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_log_info("removing an actuator\n");
+		ret = nrmd_daemon_remove_actuator(msg);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_log_info("removing a slice\n");
 		ret = nrmd_daemon_remove_slice(msg);
@@ -230,6 +287,32 @@ int nrmd_handle_event_request(nrm_msg_event_t *msg)
 	return 0;
 }
 
+nrm_msg_t *nrmd_handle_actuate_request(nrm_role_t *role, nrm_msg_actuate_t *msg)
+{
+	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
+	size_t len;
+	nrm_vector_length(my_daemon.state->actuators, &len);
+	for (size_t i = 0; i < len; i++) {
+		void *p;
+		nrm_actuator_t *a;
+		nrm_vector_get(my_daemon.state->actuators, i, &p);
+		a = (nrm_actuator_t *)p;
+		if (!nrm_uuid_cmp(*a->uuid, *uuid)) {
+			/* found the actuator */
+			nrm_log_debug("actuating %s: %f\n", *a->uuid,
+			              msg->value);
+			nrm_msg_t *action = nrm_msg_create();
+			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
+			nrm_msg_set_actuate(action, a->uuid, msg->value);
+			nrm_role_send(role, action, a->clientid);
+			break;
+		}
+	}
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	return ret;
+}
+
 int nrmd_shim_controller_read_callback(zloop_t *loop,
                                        zsock_t *socket,
                                        void *arg)
@@ -244,12 +327,16 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 	msg = nrm_role_recv(self, &uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	switch (msg->type) {
+	case NRM_MSG_TYPE_ACTUATE:
+		ret = nrmd_handle_actuate_request(self, msg->actuate);
+		nrm_role_send(self, ret, uuid);
+		break;
 	case NRM_MSG_TYPE_LIST:
 		ret = nrmd_handle_list_request(msg->list);
 		nrm_role_send(self, ret, uuid);
 		break;
 	case NRM_MSG_TYPE_ADD:
-		ret = nrmd_handle_add_request(msg->add);
+		ret = nrmd_handle_add_request(uuid, msg->add);
 		nrm_role_send(self, ret, uuid);
 		break;
 	case NRM_MSG_TYPE_EVENT:

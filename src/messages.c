@@ -46,6 +46,17 @@ int nrm_msg_fill(nrm_msg_t *msg, int type)
 	return 0;
 }
 
+nrm_msg_actuate_t *nrm_msg_actuate_new(nrm_uuid_t *uuid, double value)
+{
+	nrm_msg_actuate_t *ret = calloc(1, sizeof(nrm_msg_actuate_t));
+	if (ret == NULL)
+		return ret;
+	nrm_msg_actuate_init(ret);
+	ret->uuid = strdup((char *)nrm_uuid_to_char(uuid));
+	ret->value = value;
+	return ret;
+}
+
 nrm_msg_sensor_t *nrm_msg_sensor_new(const char *name, nrm_uuid_t *uuid)
 {
 	nrm_msg_sensor_t *ret = calloc(1, sizeof(nrm_msg_sensor_t));
@@ -80,6 +91,31 @@ nrm_msg_add_t *nrm_msg_add_new(int type)
 	return ret;
 }
 
+nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
+{
+	nrm_msg_actuator_t *ret = calloc(1, sizeof(nrm_msg_actuator_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_actuator_init(ret);
+	ret->name = strdup(actuator->name);
+	if (actuator->uuid)
+		ret->uuid = strdup(nrm_uuid_to_char(actuator->uuid));
+	if (actuator->clientid)
+		ret->clientid = strdup(nrm_uuid_to_char(actuator->clientid));
+	ret->value = actuator->value;
+	nrm_vector_length(actuator->choices, &ret->n_choices);
+	ret->choices = calloc(ret->n_choices, sizeof(double));
+	assert(ret->choices);
+	for (size_t i = 0; i < ret->n_choices; i++) {
+		void *p;
+		double *d;
+		nrm_vector_get(actuator->choices, i, &p);
+		d = (double *)p;
+		ret->choices[i] = *d;
+	}
+	return ret;
+}
+
 nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 {
 	nrm_msg_scope_t *ret = calloc(1, sizeof(nrm_msg_scope_t));
@@ -87,7 +123,7 @@ nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 		return NULL;
 	nrm_msg_scope_init(ret);
 	if (scope->uuid)
-		ret->uuid = strdup((char *)nrm_uuid_to_char(scope->uuid));
+		ret->uuid = strdup(nrm_uuid_to_char(scope->uuid));
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_CPU], &ret->n_cpus,
 	                    &ret->cpus);
 	nrm_bitmap_to_array(&scope->maps[NRM_SCOPE_TYPE_NUMA], &ret->n_numas,
@@ -122,6 +158,27 @@ int nrm_msg_set_event(nrm_msg_t *msg,
 	msg->event->value = value;
 	msg->event->scope = nrm_msg_scope_new(scope);
 	assert(msg->event->scope);
+	return 0;
+}
+
+int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_uuid_t *uuid, double value)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->data_case = NRM__MESSAGE__DATA_ACTUATE;
+	msg->actuate = nrm_msg_actuate_new(uuid, value);
+	return 0;
+}
+
+int nrm_msg_set_add_actuator(nrm_msg_t *msg, nrm_actuator_t *actuator)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->add = nrm_msg_add_new(NRM_MSG_TARGET_TYPE_ACTUATOR);
+	assert(msg->add);
+	msg->data_case = NRM__MESSAGE__DATA_ADD;
+	msg->add->data_case = NRM__ADD__DATA_ACTUATOR;
+	msg->add->actuator = nrm_msg_actuator_new(actuator);
 	return 0;
 }
 
@@ -168,6 +225,29 @@ static nrm_msg_list_t *nrm_msg_list_new(int type)
 		return NULL;
 	nrm_msg_list_init(ret);
 	ret->type = type;
+	return ret;
+}
+
+nrm_msg_actuatorlist_t *nrm_msg_actuatorlist_new(nrm_vector_t *actuators)
+{
+	void *p;
+	nrm_msg_actuatorlist_t *ret = calloc(1, sizeof(nrm_msg_actuatorlist_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_actuatorlist_init(ret);
+	if (actuators == NULL) {
+		ret->n_actuators = 0;
+		return ret;
+	}
+	nrm_vector_length(actuators, &ret->n_actuators);
+	nrm_log_debug("vector contains %zu\n", ret->n_actuators);
+	ret->actuators = calloc(ret->n_actuators, sizeof(nrm_msg_actuator_t *));
+	assert(ret->actuators);
+	for (size_t i = 0; i < ret->n_actuators; i++) {
+		nrm_vector_get(actuators, i, &p);
+		nrm_actuator_t *s = (nrm_actuator_t *)p;
+		ret->actuators[i] = nrm_msg_actuator_new(s);
+	}
 	return ret;
 }
 
@@ -242,6 +322,18 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 	return ret;
 }
 
+int nrm_msg_set_list_actuators(nrm_msg_t *msg, nrm_vector_t *actuators)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+	msg->list = nrm_msg_list_new(NRM_MSG_TARGET_TYPE_ACTUATOR);
+	assert(msg->list);
+	msg->data_case = NRM__MESSAGE__DATA_LIST;
+	msg->list->data_case = NRM__LIST__DATA_ACTUATORS;
+	msg->list->actuators = nrm_msg_actuatorlist_new(actuators);
+	return 0;
+}
+
 int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes)
 {
 	if (msg == NULL)
@@ -303,6 +395,23 @@ int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_uuid_t *uuid)
  * Protobuf Management: Parsing Messages
  *******************************************************************************/
 
+nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
+{
+	if (msg == NULL)
+		return NULL;
+	nrm_actuator_t *ret = nrm_actuator_create(msg->name);
+	if (msg->uuid)
+		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	if (msg->clientid)
+		ret->clientid = nrm_uuid_create_fromchar(msg->uuid);
+	ret->value = msg->value;
+	nrm_vector_resize(ret->choices, msg->n_choices);
+	nrm_vector_clear(ret->choices);
+	for (size_t i = 0; i < msg->n_choices; i++)
+		nrm_vector_push_back(ret->choices, &msg->choices[i]);
+	return ret;
+}
+
 nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg)
 {
 	if (msg == NULL)
@@ -335,6 +444,28 @@ nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg)
 	if (msg->uuid)
 		ret->uuid = nrm_uuid_create_fromchar(msg->uuid);
 	return ret;
+}
+
+int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
+                                nrm_msg_actuator_t *msg)
+{
+	if (actuator == NULL || msg == NULL)
+		return -NRM_EINVAL;
+
+	actuator->name = nrm_string_fromchar(msg->name);
+	if (msg->uuid)
+		actuator->uuid = nrm_uuid_create_fromchar(msg->uuid);
+	if (msg->clientid)
+		actuator->clientid = nrm_uuid_create_fromchar(msg->clientid);
+	actuator->value = msg->value;
+	if (actuator->choices)
+		nrm_vector_destroy(&actuator->choices);
+	nrm_vector_create(&actuator->choices, sizeof(double));
+	nrm_vector_resize(actuator->choices, msg->n_choices);
+	nrm_vector_clear(actuator->choices);
+	for (size_t i = 0; i < msg->n_choices; i++)
+		nrm_vector_push_back(actuator->choices, &msg->choices[i]);
+	return 0;
 }
 
 int nrm_scope_update_frommsg(nrm_scope_t *scope, nrm_msg_scope_t *msg)
@@ -512,12 +643,17 @@ struct nrm_msg_type_table_s {
 typedef struct nrm_msg_type_table_s nrm_msg_type_table_t;
 
 static const nrm_msg_type_table_t nrm_msg_type_table[] = {
-        {NRM_MSG_TYPE_ACK, "ACK"},     {NRM_MSG_TYPE_LIST, "LIST"},
-        {NRM_MSG_TYPE_ADD, "ADD"},     {NRM_MSG_TYPE_REMOVE, "REMOVE"},
-        {NRM_MSG_TYPE_EVENT, "EVENT"}, {0, NULL},
+        {NRM_MSG_TYPE_ACK, "ACK"},
+        {NRM_MSG_TYPE_LIST, "LIST"},
+        {NRM_MSG_TYPE_ADD, "ADD"},
+        {NRM_MSG_TYPE_REMOVE, "REMOVE"},
+        {NRM_MSG_TYPE_EVENT, "EVENT"},
+        {NRM_MSG_TYPE_ACTUATE, "ACTUATE"},
+        {0, NULL},
 };
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
+        {NRM_MSG_TARGET_TYPE_ACTUATOR, "ACTUATOR"},
         {NRM_MSG_TARGET_TYPE_SLICE, "SLICE"},
         {NRM_MSG_TARGET_TYPE_SENSOR, "SENSOR"},
         {NRM_MSG_TARGET_TYPE_SCOPE, "SCOPE"},
@@ -540,6 +676,37 @@ json_t *nrm_msg_bitmap_to_json(size_t nitems, int32_t *items)
 	ret = json_array();
 	for (size_t i = 0; i < nitems; i++)
 		json_array_append_new(ret, json_integer(items[i]));
+	return ret;
+}
+
+json_t *nrm_msg_darray_to_json(size_t nitems, double *items)
+{
+	json_t *ret;
+	ret = json_array();
+	for (size_t i = 0; i < nitems; i++)
+		json_array_append_new(ret, json_real(items[i]));
+	return ret;
+}
+
+json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
+{
+	json_t *ret;
+	json_t *choices;
+	choices = nrm_msg_darray_to_json(msg->n_choices, msg->choices);
+	ret = json_pack("{s:s, s:s?, s:s?, s:o, s:o}", "name", msg->name,
+	                "uuid", msg->uuid, "clientid", msg->clientid, "value",
+	                json_real(msg->value), "choices", choices);
+	return ret;
+}
+
+json_t *nrm_msg_actuatorlist_to_json(nrm_msg_actuatorlist_t *msg)
+{
+	json_t *ret;
+	ret = json_array();
+	for (size_t i = 0; i < msg->n_actuators; i++) {
+		json_array_append_new(
+		        ret, nrm_msg_actuator_to_json(msg->actuators[i]));
+	}
 	return ret;
 }
 
@@ -607,6 +774,9 @@ json_t *nrm_msg_add_to_json(nrm_msg_add_t *msg)
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		sub = nrm_msg_actuator_to_json(msg->actuator);
+		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		sub = nrm_msg_slice_to_json(msg->slice);
 		break;
@@ -631,6 +801,9 @@ json_t *nrm_msg_list_to_json(nrm_msg_list_t *msg)
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		sub = nrm_msg_actuatorlist_to_json(msg->actuators);
+		break;
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		sub = nrm_msg_slicelist_to_json(msg->slices);
 		break;
@@ -669,11 +842,21 @@ json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
 	return ret;
 }
 
+json_t *nrm_msg_actuate_to_json(nrm_msg_actuate_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:s, s:f}", "uuid", msg->uuid, "value", msg->value);
+	return ret;
+}
+
 json_t *nrm_msg_to_json(nrm_msg_t *msg)
 {
 	json_t *ret;
 	json_t *sub;
 	switch (msg->type) {
+	case NRM_MSG_TYPE_ACTUATE:
+		sub = nrm_msg_actuate_to_json(msg->actuate);
+		break;
 	case NRM_MSG_TYPE_ADD:
 		sub = nrm_msg_add_to_json(msg->add);
 		break;
@@ -703,6 +886,17 @@ int nrm_msg_fprintf(FILE *f, nrm_msg_t *msg)
 	char *s = json_dumps(json, 0);
 	fprintf(f, "%s\n", s);
 	json_decref(json);
+	return 0;
+}
+
+int nrm_msg_is_reply(nrm_msg_t *msg)
+{
+	switch (msg->type) {
+	case NRM_MSG_TYPE_ACTUATE:
+		return 0;
+	default:
+		return 1;
+	}
 	return 0;
 }
 

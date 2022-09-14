@@ -120,6 +120,25 @@ typedef struct _Nrm__Message nrm_msg_t;
 void nrm_msg_destroy(nrm_msg_t **msg);
 
 /*******************************************************************************
+ * Actuator: something capable of actions on the system
+ ******************************************************************************/
+
+struct nrm_actuator_s {
+	nrm_string_t name;
+	nrm_uuid_t *uuid;
+	nrm_uuid_t *clientid;
+	double value;
+	nrm_vector_t *choices;
+};
+
+typedef struct nrm_actuator_s nrm_actuator_t;
+
+nrm_actuator_t *nrm_actuator_create(char *name);
+
+void nrm_actuator_destroy(nrm_actuator_t **);
+void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
+
+/*******************************************************************************
  * Slice: a resource arbitration unit
  ******************************************************************************/
 
@@ -178,6 +197,7 @@ void nrm_sensor_destroy(nrm_sensor_t **);
  ******************************************************************************/
 
 struct nrm_state_s {
+	nrm_vector_t *actuators;
 	nrm_vector_t *slices;
 	nrm_vector_t *sensors;
 	nrm_vector_t *scopes;
@@ -215,6 +235,7 @@ typedef int(nrm_client_event_listener_fn)(nrm_uuid_t *uuid,
                                           nrm_time_t time,
                                           nrm_scope_t *scope,
                                           double value);
+typedef int(nrm_client_actuate_listener_fn)(nrm_uuid_t *uuid, double value);
 
 /**
  * Creates a new NRM Client.
@@ -230,6 +251,9 @@ int nrm_client_create(nrm_client_t **client,
                       const char *uri,
                       int pub_port,
                       int rpc_port);
+
+int nrm_client_add_actuator(const nrm_client_t *client,
+                            nrm_actuator_t *actuator);
 
 /**
  * Adds an NRM scope to an NRM client.
@@ -263,6 +287,9 @@ int nrm_client_find(const nrm_client_t *client,
                     char *name,
                     nrm_uuid_t *uuid,
                     nrm_vector_t **results);
+
+int nrm_client_list_actuators(const nrm_client_t *client,
+                              nrm_vector_t **actuators);
 
 /**
  * Lists an NRM client's registered scopes into a vector
@@ -323,6 +350,10 @@ int nrm_client_set_event_listener(nrm_client_t *client,
 int nrm_client_start_event_listener(const nrm_client_t *client,
                                     nrm_string_t topic);
 
+int nrm_client_set_actuate_listener(nrm_client_t *client,
+                                    nrm_client_actuate_listener_fn fn);
+int nrm_client_start_actuate_listener(const nrm_client_t *client);
+
 /**
  * Removes an NRM client. Do this for each client before an instrumented program
  * exits.
@@ -340,6 +371,7 @@ void nrm_client_destroy(nrm_client_t **client);
 
 typedef struct nrm_role_s nrm_role_t;
 typedef int(nrm_role_sub_callback_fn)(nrm_msg_t *msg, void *arg);
+typedef int(nrm_role_cmd_callback_fn)(nrm_msg_t *msg, void *arg);
 
 nrm_role_t *nrm_role_monitor_create_fromenv();
 
@@ -352,6 +384,9 @@ nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from);
 int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg);
 int nrm_role_register_sub_cb(const nrm_role_t *role,
                              nrm_role_sub_callback_fn *fn,
+                             void *arg);
+int nrm_role_register_cmd_cb(const nrm_role_t *role,
+                             nrm_role_cmd_callback_fn *fn,
                              void *arg);
 int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
 
