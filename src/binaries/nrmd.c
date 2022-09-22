@@ -17,10 +17,12 @@
 #include "internal/messages.h"
 #include "internal/nrmi.h"
 #include "internal/roles.h"
+#include "internal/control.h"
 
 struct nrm_daemon_s {
 	nrm_state_t *state;
 	nrm_eventbase_t *events;
+	nrm_control_t *control;
 };
 
 struct nrm_daemon_s my_daemon;
@@ -349,29 +351,6 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 	return 0;
 }
 
-typedef struct {
-	nrm_string_t sensor_uuid;
-	nrm_string_t scope_uuid;
-	double value;
-} nrm_control_input_t;
-
-typedef struct {
-	nrm_string_t actuator_uuid;
-	double value;
-} nrm_control_output_t;
-
-typedef struct {
-	nrm_string_t name;
-	double value;
-} nrm_control_arg_t;
-
-int nrmd_do_control(nrm_vector_t *inputs, nrm_vector_t *outputs, nrm_vector_t
-		    *args)
-{
-	return 0;
-}
-
-
 int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 {
 	(void)loop;
@@ -398,53 +377,15 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_role_pub(self, topic, msg);
 	
 	/* control loop: build vector of inputs */
+	if (my_daemon.control == NULL)
+		return 0;
+
 	nrm_vector_t *inputs;
 	nrm_vector_t *outputs;
-	nrm_vector_t *args;
-	nrm_vector_create(&inputs, sizeof(nrm_control_input_t));
-	nrm_vector_create(&outputs, sizeof(nrm_control_output_t));
-	nrm_vector_create(&args, sizeof(nrm_control_arg_t));
-
-	// TODO: fill real value from eventbase
-
-	nrm_control_input_t in;
-	in.sensor_uuid = nrm_string_fromchar("nrm.sensor.rapl");
-	in.scope_uuid = nrm_string_fromchar("nrm.scope.package.0");
-	in.value = 0.0;
-	nrm_vector_push_back(inputs, &in);
-	in.sensor_uuid = nrm_string_fromchar("nrm.sensor.progress");
-	in.scope_uuid = nrm_string_fromchar("nrm.scope.package.0");
-	in.value = 0.0;
-	nrm_vector_push_back(inputs, &in);
-	nrm_control_output_t out;
-	out.actuator_uuid = nrm_string_fromchar("nrm.actuator.rapl");
-	out.value = 0.0;
-	nrm_vector_push_back(outputs, &out);
-	nrm_control_arg_t param;
-	param.name = nrm_string_fromchar("a");
-	param.value = 0.0;
-	nrm_vector_push_back(args, &param);
-	param.name = nrm_string_fromchar("a");
-	param.value = 0.0;
-	nrm_vector_push_back(args, &param);
-	param.name = nrm_string_fromchar("b");
-	param.value = 0.0;
-	nrm_vector_push_back(args, &param);
-	param.name = nrm_string_fromchar("alpha");
-	param.value = 0.0;
-	nrm_vector_push_back(args, &param);
-	param.name = nrm_string_fromchar("beta");
-	param.value = 0.0;
-	nrm_vector_push_back(args, &param);
-	param.name = nrm_string_fromchar("K");
-	param.value = 0.0;
-	nrm_vector_push_back(args, &param);
-	param.name = nrm_string_fromchar("pmax");
-	param.value = 0.0;
-	nrm_vector_push_back(args, &param);
-
+	nrm_control_getargs(my_daemon.control, &inputs, &outputs);
+	
 	/* launch control */
-	nrmd_do_control(inputs, outputs, args);
+	nrm_control_action(my_daemon.control, inputs, outputs);
 
 	/* update actuators */
 	// TODO: send actuation
@@ -520,18 +461,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if (argc == 0) {
-		print_help();
-		exit(EXIT_FAILURE);
-	}
-
-	assert(!strcmp(argv[0], "fromenv"));
-	/* create a monitor:
-	 *  - this is a broker that listen to incoming messages
-	 *  - we have our own loop to listen to it, no on a different thread
-	 *  though, as we only have this to take care of
-	 */
-
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmd");
 	nrm_log_setlevel(NRM_LOG_DEBUG);
@@ -540,6 +469,28 @@ int main(int argc, char *argv[])
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(5);
 
+	/* configuration */
+	if (argc == 0) {
+		nrm_log_info("no configuration given, skipping control config");
+		goto start;
+	}
+
+	json_error_t jerror;
+	int err;
+	FILE *config = fopen(argv[0], "r");
+	assert(config != NULL);
+	json_t *jconfig = json_loadf(config, 0, &jerror);
+	assert(jconfig != NULL);
+	json_t *control_config;
+	err = json_unpack_ex(jconfig, &jerror, 0, "{s?:o}", "control",
+			     &control_config);
+	if(!err && control_config) {
+		nrm_control_create(&my_daemon.control, control_config);
+	}
+
+start:
+	nrm_log_info("daemon initialized\n");
+	/* networking */
 	nrm_role_t *controller = nrm_role_controller_create_fromparams(
 	        NRM_DEFAULT_UPSTREAM_URI, NRM_DEFAULT_UPSTREAM_PUB_PORT,
 	        NRM_DEFAULT_UPSTREAM_RPC_PORT);

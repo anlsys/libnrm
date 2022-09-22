@@ -69,6 +69,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \
+		 include/internal/control.h \
 		 include/internal/nrmi.h \
 		 include/internal/messages.h \
 		 include/internal/roles.h \
@@ -91,6 +92,8 @@ libnrm_la_SOURCES = \
 		 src/nrm.c \
 		 src/messages.c \
 		 src/log.c \
+		 src/control/control.c \
+		 src/control/europar19.c \
 		 src/roles/client.c \
 		 src/roles/controller.c \
 		 src/roles/role.c \
