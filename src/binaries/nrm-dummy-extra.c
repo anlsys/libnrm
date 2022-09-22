@@ -24,6 +24,7 @@ static char *upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
 static int pub_port = NRM_DEFAULT_UPSTREAM_PUB_PORT;
 static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 static nrm_client_t *client;
+static double freq = 10;
 
 static struct option long_options[] = {
         {"help", no_argument, &ask_help, 1},
@@ -31,6 +32,7 @@ static struct option long_options[] = {
         {"uri", required_argument, NULL, 'u'},
         {"rpc-port", required_argument, NULL, 'r'},
         {"pub-port", required_argument, NULL, 'p'},
+        {"frequency", required_argument, NULL, 'f'},
         {0, 0, 0, 0},
 };
 
@@ -70,6 +72,16 @@ int main(int argc, char *argv[])
 			break;
 		switch (c) {
 		case 0:
+			break;
+		case 'f':
+			errno = 0;
+			freq = strtod(optarg, NULL);
+			if (errno != 0 || freq == 0.0) {
+				fprintf(stderr,
+				        "nrm-dummy-extra: wrong argument: %d\n:",
+				        errno);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case 'h':
 			ask_help = 1;
@@ -169,7 +181,17 @@ int main(int argc, char *argv[])
 		nrm_time_t time;
 		nrm_time_gettime(&time);
 		nrm_client_send_event(client, time, sensor, scope, counter++);
-		sleep(1);
+
+		/* sleep */
+		double sleeptime = 1 / freq;
+		struct timespec req, rem;
+		req.tv_sec = ceil(sleeptime);
+		req.tv_nsec = sleeptime * 1e9 - ceil(sleeptime) * 1e9;
+		/* possible signal interrupt here */
+		do {
+			err = nanosleep(&req, &rem);
+			req = rem;
+		} while (err == -1 && errno == EINTR);
 	}
 
 	nrm_client_destroy(&client);

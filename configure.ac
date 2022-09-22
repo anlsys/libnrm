@@ -96,6 +96,8 @@ PKG_CHECK_MODULES([CHECK],[check],,
 		  AC_MSG_ERROR([unable to find check]))
 
 
+AC_CHECK_LIB(m, ceil,,[AC_MSG_ERROR([unable to find libm])])
+
 # protobuf-c
 ##############
 
