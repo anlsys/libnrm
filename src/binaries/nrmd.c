@@ -349,6 +349,29 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 	return 0;
 }
 
+typedef struct {
+	nrm_string_t sensor_uuid;
+	nrm_string_t scope_uuid;
+	double value;
+} nrm_control_input_t;
+
+typedef struct {
+	nrm_string_t actuator_uuid;
+	double value;
+} nrm_control_output_t;
+
+typedef struct {
+	nrm_string_t name;
+	double value;
+} nrm_control_arg_t;
+
+int nrmd_do_control(nrm_vector_t *inputs, nrm_vector_t *outputs, nrm_vector_t
+		    *args)
+{
+	return 0;
+}
+
+
 int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 {
 	(void)loop;
@@ -373,6 +396,58 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending event\n");
 	nrm_role_pub(self, topic, msg);
+	
+	/* control loop: build vector of inputs */
+	nrm_vector_t *inputs;
+	nrm_vector_t *outputs;
+	nrm_vector_t *args;
+	nrm_vector_create(&inputs, sizeof(nrm_control_input_t));
+	nrm_vector_create(&outputs, sizeof(nrm_control_output_t));
+	nrm_vector_create(&args, sizeof(nrm_control_arg_t));
+
+	// TODO: fill real value from eventbase
+
+	nrm_control_input_t in;
+	in.sensor_uuid = nrm_string_fromchar("nrm.sensor.rapl");
+	in.scope_uuid = nrm_string_fromchar("nrm.scope.package.0");
+	in.value = 0.0;
+	nrm_vector_push_back(inputs, &in);
+	in.sensor_uuid = nrm_string_fromchar("nrm.sensor.progress");
+	in.scope_uuid = nrm_string_fromchar("nrm.scope.package.0");
+	in.value = 0.0;
+	nrm_vector_push_back(inputs, &in);
+	nrm_control_output_t out;
+	out.actuator_uuid = nrm_string_fromchar("nrm.actuator.rapl");
+	out.value = 0.0;
+	nrm_vector_push_back(outputs, &out);
+	nrm_control_arg_t param;
+	param.name = nrm_string_fromchar("a");
+	param.value = 0.0;
+	nrm_vector_push_back(args, &param);
+	param.name = nrm_string_fromchar("a");
+	param.value = 0.0;
+	nrm_vector_push_back(args, &param);
+	param.name = nrm_string_fromchar("b");
+	param.value = 0.0;
+	nrm_vector_push_back(args, &param);
+	param.name = nrm_string_fromchar("alpha");
+	param.value = 0.0;
+	nrm_vector_push_back(args, &param);
+	param.name = nrm_string_fromchar("beta");
+	param.value = 0.0;
+	nrm_vector_push_back(args, &param);
+	param.name = nrm_string_fromchar("K");
+	param.value = 0.0;
+	nrm_vector_push_back(args, &param);
+	param.name = nrm_string_fromchar("pmax");
+	param.value = 0.0;
+	nrm_vector_push_back(args, &param);
+
+	/* launch control */
+	nrmd_do_control(inputs, outputs, args);
+
+	/* update actuators */
+	// TODO: send actuation
 	return 0;
 }
 
