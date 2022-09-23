@@ -60,9 +60,9 @@ int nrm_control_destroy(nrm_control_t **control);
  * Known control methods
  ******************************************************************************/
 
-int nrm_control_europar19_create(nrm_control_t **control, json_t *config);
+int nrm_control_europar21_create(nrm_control_t **control, json_t *config);
 
-extern struct nrm_control_ops nrm_control_europar19_ops;
+extern struct nrm_control_ops nrm_control_europar21_ops;
 
 #ifdef __cplusplus
 }

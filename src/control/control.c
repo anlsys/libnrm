@@ -13,6 +13,7 @@
 #include "nrm.h"
 
 #include "internal/nrmi.h"
+
 #include "internal/control.h"
 
 struct nrm_control_method {
@@ -21,8 +22,8 @@ struct nrm_control_method {
 };
 
 struct nrm_control_method nrm_control_methods[] = {
-	{"europar19", nrm_control_europar19_create},
-	{0,0},
+        {"europar21", nrm_control_europar21_create},
+        {0, 0},
 };
 
 int nrm_control_create(nrm_control_t **control, json_t *config)

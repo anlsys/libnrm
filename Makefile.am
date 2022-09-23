@@ -93,7 +93,7 @@ libnrm_la_SOURCES = \
 		 src/messages.c \
 		 src/log.c \
 		 src/control/control.c \
-		 src/control/europar19.c \
+		 src/control/europar21.c \
 		 src/roles/client.c \
 		 src/roles/controller.c \
 		 src/roles/role.c \
