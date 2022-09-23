@@ -14,10 +14,11 @@
 
 #include "nrm.h"
 
-#include "internal/messages.h"
 #include "internal/nrmi.h"
-#include "internal/roles.h"
+
 #include "internal/control.h"
+#include "internal/messages.h"
+#include "internal/roles.h"
 
 struct nrm_daemon_s {
 	nrm_state_t *state;
