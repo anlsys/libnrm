@@ -362,8 +362,7 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	/* create an event */
 	nrm_time_t now;
 	nrm_time_gettime(&now);
-	nrm_scope_t *scope = nrm_scope_create();
-	scope->uuid = nrm_string_fromchar("nrm.scope.all");
+	nrm_scope_t *scope = nrm_scope_create("nrm.scope.all");
 	nrm_scope_threadprivate(scope);
 	nrm_sensor_t *sensor = nrm_sensor_create("daemon.tick");
 

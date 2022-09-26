@@ -25,7 +25,7 @@ typedef struct nrm_scope nrm_scope_t;
 /**
  * Creates and returns a new NRM scope
  */
-nrm_scope_t *nrm_scope_create(void);
+nrm_scope_t *nrm_scope_create(const char *name);
 
 #define NRM_SCOPE_TYPE_CPU 0
 #define NRM_SCOPE_TYPE_NUMA 1

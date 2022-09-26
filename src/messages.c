@@ -407,7 +407,7 @@ nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg)
 {
 	if (msg == NULL)
 		return NULL;
-	nrm_scope_t *ret = nrm_scope_create();
+	nrm_scope_t *ret = nrm_scope_create(msg->uuid);
 	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_CPU], msg->n_cpus,
 	                      msg->cpus);
 	nrm_bitmap_from_array(&ret->maps[NRM_SCOPE_TYPE_NUMA], msg->n_numas,
