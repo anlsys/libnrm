@@ -138,15 +138,15 @@ int cmd_add_scope(int argc, char **argv)
 {
 
 	/* no matter the arguments, only one extra parameter */
-	if (argc != 2)
+	if (argc != 3)
 		return EXIT_FAILURE;
 
 	int err;
 	nrm_scope_t *scope;
 	json_t *param;
 	json_error_t json_error;
-	param = json_loads(argv[1], 0, &json_error);
-	scope = nrm_scope_create();
+	param = json_loads(argv[2], 0, &json_error);
+	scope = nrm_scope_create(argv[1]);
 	err = nrm_scope_from_json(scope, param);
 	if (err)
 		return EXIT_FAILURE;
@@ -693,10 +693,11 @@ int cmd_remove_slice(int argc, char **argv)
 int cmd_send_event(int argc, char **argv)
 {
 	/* no options at this time */
-	if (argc < 2)
+	if (argc < 3)
 		return EXIT_FAILURE;
 
 	char *name = argv[1];
+	char *scope_name = argv[2];
 
 	/* find sensor */
 	int err;
@@ -718,7 +719,7 @@ int cmd_send_event(int argc, char **argv)
 	s = (nrm_sensor_t *)p;
 
 	nrm_log_info("sending event\n");
-	nrm_scope_t *scope = nrm_scope_create();
+	nrm_scope_t *scope = nrm_scope_create(scope_name);
 	nrm_scope_threadprivate(scope);
 	nrm_time_t time;
 	nrm_time_gettime(&time);

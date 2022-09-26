@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 	}
 
 	nrm_log_info("creating dummy scope\n");
-	scope = nrm_scope_create();
+	scope = nrm_scope_create("nrm.scope.package.0");
 	nrm_scope_threadprivate(scope);
 	err = nrm_client_add_scope(client, scope);
 	if (err) {

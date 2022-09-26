@@ -19,9 +19,11 @@
 
 #include "internal/nrmi.h"
 
-nrm_scope_t *nrm_scope_create()
+nrm_scope_t *nrm_scope_create(const char *name)
 {
-	return calloc(1, sizeof(nrm_scope_t));
+	nrm_scope_t *ret = calloc(1, sizeof(nrm_scope_t));
+	ret->uuid = nrm_string_fromchar(name);
+	return ret;
 }
 
 int nrm_scope_add(nrm_scope_t *s, unsigned int type, unsigned int num)
@@ -47,7 +49,7 @@ int nrm_scope_destroy(nrm_scope_t *s)
 
 nrm_scope_t *nrm_scope_dup(nrm_scope_t *s)
 {
-	nrm_scope_t *ret = nrm_scope_create();
+	nrm_scope_t *ret = nrm_scope_create(s->uuid);
 	for (size_t i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
 		nrm_bitmap_copy(&ret->maps[i], &s->maps[i]);
 	return ret;
