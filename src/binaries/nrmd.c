@@ -352,6 +352,21 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 	return 0;
 }
 
+double nrmd_actuator_value(nrm_string_t uuid, nrm_vector_t *vec)
+{
+	size_t size;
+	nrm_vector_length(vec, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_actuator_t *a;
+		nrm_vector_get(vec, i, &p);
+		a = (nrm_actuator_t *)p;
+		if (!nrm_string_cmp(a->uuid, uuid))
+			return a->value;
+	}
+	return 0.0;
+}
+
 int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 {
 	(void)loop;
@@ -384,8 +399,28 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_vector_t *inputs;
 	nrm_vector_t *outputs;
 	nrm_control_getargs(my_daemon.control, &inputs, &outputs);
-	
-	/* launch control */
+
+	size_t size;
+	nrm_vector_length(inputs, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_control_input_t *in;
+		nrm_vector_get(inputs, i, &p);
+		in = (nrm_control_input_t *)p;
+		nrm_eventbase_last_value(my_daemon.events, in->sensor_uuid,
+		                         in->scope_uuid, &in->value);
+	}
+
+	nrm_vector_length(outputs, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_control_output_t *out;
+		nrm_vector_get(outputs, i, &p);
+		out = (nrm_control_output_t *)p;
+		out->value = nrmd_actuator_value(out->actuator_uuid,
+		                                 my_daemon.state->actuators);
+	}
+	/* launch control: fill inputs and outputs first */
 	nrm_control_action(my_daemon.control, inputs, outputs);
 
 	/* update actuators */
