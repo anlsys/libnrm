@@ -367,13 +367,37 @@ double nrmd_actuator_value(nrm_string_t uuid, nrm_vector_t *vec)
 	return 0.0;
 }
 
+int nrmd_actuate(nrm_role_t *role,
+                 nrm_string_t uuid,
+                 double value,
+                 nrm_vector_t *vec)
+{
+	size_t len;
+	nrm_vector_length(vec, &len);
+	for (size_t i = 0; i < len; i++) {
+		void *p;
+		nrm_actuator_t *a;
+		nrm_vector_get(my_daemon.state->actuators, i, &p);
+		a = (nrm_actuator_t *)p;
+		if (!nrm_string_cmp(a->uuid, uuid)) {
+			/* found the actuator */
+			nrm_log_debug("actuating %s: %f\n", a->uuid, value);
+			nrm_msg_t *action = nrm_msg_create();
+			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
+			nrm_msg_set_actuate(action, a->uuid, value);
+			nrm_role_send(role, action, a->clientid);
+			break;
+		}
+	}
+	return 0;
+}
+
 int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 {
 	(void)loop;
 	(void)timerid;
 	nrm_log_info("global timer wakeup\n");
 	nrm_role_t *self = (nrm_role_t *)arg;
-	(void)self;
 
 	nrm_string_t topic = nrm_string_fromchar("DAEMON");
 
@@ -430,7 +454,15 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_control_action(my_daemon.control, inputs, outputs);
 
 	/* update actuators */
-	// TODO: send actuation
+	nrm_vector_length(outputs, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_control_output_t *out;
+		nrm_vector_get(outputs, i, &p);
+		out = (nrm_control_output_t *)p;
+		nrmd_actuate(self, out->actuator_uuid, out->value,
+		             my_daemon.state->actuators);
+	}
 	return 0;
 }
 
