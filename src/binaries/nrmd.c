@@ -10,9 +10,8 @@
 
 #include "config.h"
 
-#include <getopt.h>
-
 #include "nrm.h"
+#include <getopt.h>
 
 #include "internal/nrmi.h"
 
@@ -557,8 +556,8 @@ int main(int argc, char *argv[])
 	assert(jconfig != NULL);
 	json_t *control_config;
 	err = json_unpack_ex(jconfig, &jerror, 0, "{s?:o}", "control",
-			     &control_config);
-	if(!err && control_config) {
+	                     &control_config);
+	if (!err && control_config) {
 		nrm_control_create(&my_daemon.control, control_config);
 	}
 

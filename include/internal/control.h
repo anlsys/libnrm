@@ -36,8 +36,12 @@ struct nrm_control_data;
 
 struct nrm_control_ops {
 	int (*create)(nrm_control_t **control, json_t *config);
-	int (*getargs)(nrm_control_t *control, nrm_vector_t **inputs, nrm_vector_t **outputs);
-	int (*action)(nrm_control_t *control, nrm_vector_t *inputs, nrm_vector_t *outputs);
+	int (*getargs)(nrm_control_t *control,
+	               nrm_vector_t **inputs,
+	               nrm_vector_t **outputs);
+	int (*action)(nrm_control_t *control,
+	              nrm_vector_t *inputs,
+	              nrm_vector_t *outputs);
 	int (*destroy)(nrm_control_t **control);
 };
 
@@ -46,11 +50,13 @@ struct nrm_control_s {
 	struct nrm_control_data *data;
 };
 
-int nrm_control_getargs(nrm_control_t *control, nrm_vector_t **inputs,
-			nrm_vector_t **outputs);
+int nrm_control_getargs(nrm_control_t *control,
+                        nrm_vector_t **inputs,
+                        nrm_vector_t **outputs);
 
-int nrm_control_action(nrm_control_t *control, nrm_vector_t *inputs,
-		       nrm_vector_t *outputs);
+int nrm_control_action(nrm_control_t *control,
+                       nrm_vector_t *inputs,
+                       nrm_vector_t *outputs);
 
 int nrm_control_create(nrm_control_t **control, json_t *config);
 
