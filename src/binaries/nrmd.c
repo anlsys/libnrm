@@ -377,7 +377,7 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 
 	nrm_string_t topic = nrm_string_fromchar("DAEMON");
 
-	/* create an event */
+	/* create a ticking event */
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 	nrm_scope_t *scope = nrm_scope_create("nrm.scope.all");
@@ -391,8 +391,13 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending event\n");
 	nrm_role_pub(self, topic, msg);
-	
+
+	/* tick the event base */
+	nrm_log_debug("eventbase tick\n");
+	nrm_eventbase_tick(my_daemon.events, now);
+
 	/* control loop: build vector of inputs */
+	nrm_log_debug("control loop tick\n");
 	if (my_daemon.control == NULL)
 		return 0;
 
@@ -421,6 +426,7 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 		                                 my_daemon.state->actuators);
 	}
 	/* launch control: fill inputs and outputs first */
+	nrm_log_debug("control action\n");
 	nrm_control_action(my_daemon.control, inputs, outputs);
 
 	/* update actuators */

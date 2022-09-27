@@ -70,6 +70,19 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 	return 0;
 }
 
+int nrm_eventbase_tick(nrm_eventbase_t *eb, nrm_time_t time)
+{
+	struct nrm_sensor2scope_s *s2s;
+	for (s2s = eb->hash; s2s != NULL; s2s = s2s->hh.next) {
+		struct nrm_scope2ring_s *s2r;
+		DL_FOREACH(s2s->list, s2r)
+		{
+			nrm_eventbase_new_period(s2r, time);
+		}
+	}
+	return 0;
+}
+
 int nrm_eventbase_add_event(struct nrm_scope2ring_s *s,
                             nrm_time_t time,
                             double val)
