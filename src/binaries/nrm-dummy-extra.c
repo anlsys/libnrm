@@ -24,7 +24,7 @@ static char *upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
 static int pub_port = NRM_DEFAULT_UPSTREAM_PUB_PORT;
 static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 static nrm_client_t *client;
-static double freq = 10;
+static double freq = 1.0;
 
 static struct option long_options[] = {
         {"help", no_argument, &ask_help, 1},
@@ -36,7 +36,7 @@ static struct option long_options[] = {
         {0, 0, 0, 0},
 };
 
-static const char *short_options = "+hVu:r:p:";
+static const char *short_options = "+hVu:r:p:f:";
 
 static const char *help[] = {"Usage: nrm-dummy-extra [options]\n\n",
                              "Allowed options:\n",
