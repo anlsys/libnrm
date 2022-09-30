@@ -11,7 +11,6 @@
 #include "config.h"
 
 #include <getopt.h>
-#include <sys/_types/_ssize_t.h>
 #include <sys/signalfd.h>
 
 #include "nrm.h"
@@ -419,7 +418,7 @@ void print_version()
 
 int main(int argc, char *argv[])
 {
-	int c, sfd;
+	int c, sfd, retval;
 	int option_index = 0;
 
 	while (1) {
