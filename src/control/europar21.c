@@ -17,18 +17,19 @@
 #include "internal/control.h"
 
 typedef struct europar21_data {
-	double a, b, alpha, beta, Kl, t;
+	double a, b, alpha, beta, Kl, t, e, max;
+	double prev_e;
 	nrm_vector_t *inputs;
 	nrm_vector_t *outputs;
 } nrm_control_europar21_data_t;
 
 static inline double
-pcapL(double pcap, double a, double b, double alpha, double beta)
+pcap_raw2L(double pcap, double a, double b, double alpha, double beta)
 {
 	return -exp(-alpha * (a * pcap + b - beta));
 }
 
-static inline double progressL(double progress, double Kl)
+static inline double progress_raw2L(double progress, double Kl)
 {
 	return progress - Kl;
 }
@@ -107,7 +108,8 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 	err = json_unpack_ex(object, &error, 0,
 	                     "{s:f, s:f, s:f, s:f, s:f, s:f}", "a", &data->a,
 	                     "b", &data->b, "alpha", &data->alpha, "beta",
-	                     &data->beta, "Kl", &data->Kl, "t", &data->t);
+	                     &data->beta, "Kl", &data->Kl, "t", &data->t, "e",
+	                     &data->e, "max", &data->max);
 	assert(!err);
 	*control = ret;
 	return 0;
@@ -128,6 +130,39 @@ int nrm_control_europar21_action(nrm_control_t *control,
                                  nrm_vector_t *inputs,
                                  nrm_vector_t *outputs)
 {
+	void *p;
+	nrm_control_input_t *in;
+	nrm_control_output_t *out;
+	double prog, pow, pcap;
+	nrm_control_europar21_data_t *data;
+	data = (nrm_control_europar21_data_t *)control->data;
+
+	nrm_vector_get(inputs, 0, &p);
+	in = (nrm_control_input_t *)p;
+	if (in == NULL)
+		return -NRM_EINVAL;
+
+	prog = in->value;
+	nrm_vector_get(inputs, 1, &p);
+	in = (nrm_control_input_t *)p;
+	if (in == NULL)
+		return -NRM_EINVAL;
+	pow = in->value;
+	nrm_vector_get(outputs, 0, &p);
+	out = (nrm_control_input_t *)p;
+	if (out == NULL)
+		return -NRM_EINVAL;
+	pcap = out->value;
+
+	double progL, pcapL, newe, act;
+	progL = progress_raw2L(prog, data->Kl);
+	pcapL = pcap_raw2L(pcap, data->a, data->b, data->alpha, data->beta);
+	newe = error(data->e, data->max, progL);
+	act = action(1.0 / (data->Kl * data->t), 1, 1.0 / (data->Kl * data->t),
+	             newe, data->prev_e, pcapL);
+
+	data->prev_e = newe;
+	out->value = act;
 	return 0;
 }
 
