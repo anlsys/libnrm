@@ -29,6 +29,8 @@ int nrm_ringbuffer_get(const nrm_ringbuffer_t *ringbuffer,
                        size_t index,
                        void **out);
 
+int nrm_ringbuffer_back(const nrm_ringbuffer_t *ringbuffer, void **out);
+
 int nrm_ringbuffer_push_back(nrm_ringbuffer_t *ringbuffer, const void *element);
 
 int nrm_ringbuffer_create(nrm_ringbuffer_t **ringbuffer,
