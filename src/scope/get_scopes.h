@@ -77,9 +77,9 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
         {
             nrm_scope_t *this_scope = nrm_scope_create(object->name);
             nrm_scope_add(this_scope, 2, counter);
-				counter++;
+			counter++;
 #ifdef debug
-				char tmp[128];
+			char tmp[128];
             nrm_scope_snprintf(tmp, sizeof(tmp), this_scope);
             printf("Printing scope from NRM function  : %s\n", tmp);
 #endif
@@ -88,15 +88,14 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
         {
             nrm_scope_t *this_scope = nrm_scope_create(object->name);
             nrm_scope_add(this_scope, 2, counter);
-				counter++;
+			counter++;
 #ifdef debug
-				char tmp[128];
+			char tmp[128];
             nrm_scope_snprintf(tmp, sizeof(tmp), this_scope);
             printf("Printing scope from NRM function  : %s\n", tmp);
 #endif
         }
     }
-
     hwloc_topology_destroy(topology);
     return 0;
 }
