@@ -59,7 +59,7 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
 #ifdef debug
                 char tmp[128];
                 nrm_scope_snprintf(tmp, sizeof(tmp), this_scope);
-                printf("printing scope from NRM function  : %s\n", tmp);
+                printf("Printing scope from NRM function  : %s\n", tmp);
 #endif
             }
         }
@@ -68,17 +68,32 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
     depth_of_osdev = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_OS_DEVICE);
     // Iterating over OS objects
     // OS objects don't have cpusets/nodesets, see https://www.open-mpi.org/projects/hwloc/doc/v2.5.0/a00363.php
-    for (int i = 0; i < depth_of_osdev; i++)
+    int counter = 0;
+	 for (int i = 0; i < depth_of_osdev; i++)
     {
         hwloc_obj_t object = hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
         assert(object->cpuset == NULL);
         if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_GPU)
         {
-            printf("Found GPU\n");
+            nrm_scope_t *this_scope = nrm_scope_create(object->name);
+            nrm_scope_add(this_scope, 2, counter);
+				counter++;
+#ifdef debug
+				char tmp[128];
+            nrm_scope_snprintf(tmp, sizeof(tmp), this_scope);
+            printf("Printing scope from NRM function  : %s\n", tmp);
+#endif
         }
         else if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_COPROC)
         {
-            printf("Found OpenCL\n");
+            nrm_scope_t *this_scope = nrm_scope_create(object->name);
+            nrm_scope_add(this_scope, 2, counter);
+				counter++;
+#ifdef debug
+				char tmp[128];
+            nrm_scope_snprintf(tmp, sizeof(tmp), this_scope);
+            printf("Printing scope from NRM function  : %s\n", tmp);
+#endif
         }
     }
 
