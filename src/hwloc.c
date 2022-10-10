@@ -21,7 +21,7 @@ int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
 	int depth_of_osdev;
 	char buffer[128];
 	char *namespace = "nrm.hwloc.";
-	char concat[256];
+	char scope_name[256];
 	hwloc_topology_t topology;
 
 	hwloc_topology_init(&topology);
@@ -32,41 +32,33 @@ int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
 	depth_of_machine = hwloc_topology_get_depth(topology);
 	// Iterating over Machine objects
 	for (int i = 0; i < depth_of_machine; i++) {
-		nrm_scope_t *this_scope = NULL;
 		int number_of_elements_in_depth =
 		        hwloc_get_nbobjs_by_depth(topology, i);
 		for (int j = 0; j < number_of_elements_in_depth; j++) {
-			hwloc_obj_type_snprintf(
-			        buffer, sizeof(buffer),
-			        hwloc_get_obj_by_depth(topology, i, j), 0);
+			nrm_scope_t *this_scope = NULL;
 			hwloc_obj_t object =
 			        hwloc_get_obj_by_depth(topology, i, j);
+			hwloc_obj_type_snprintf(buffer, sizeof(buffer), object,
+			                        0);
 
 			// Warning: HWLoc only provides physical numerotation in
 			// bitmaps
-			if ((strcmp(buffer, "L2") == 0) ||
-			    (strcmp(buffer, "L1d") == 0)) {
+			if (!strcmp(buffer, "L2") || !strcmp(buffer, "L1d"))
 				continue;
-			} else {
-				concat[0] = '\0';
-				strcat(concat, namespace);
-				strcat(concat, buffer);
-				snprintf(buffer, sizeof(buffer), ".%u",
-				         object->logical_index);
-				strcat(concat, buffer);
-				this_scope = nrm_scope_create(concat);
-				unsigned bit, bit2;
-				// Nodeset
-				hwloc_bitmap_foreach_begin(bit, object->nodeset)
-				        nrm_scope_add(this_scope, 1, bit);
-				hwloc_bitmap_foreach_end();
-				// Cpuset
-				hwloc_bitmap_foreach_begin(bit2, object->cpuset)
-				        nrm_scope_add(this_scope, 0, bit2);
-				hwloc_bitmap_foreach_end();
-			}
-			if (this_scope != NULL)
-				nrm_vector_push_back(hwloc_scopes, this_scope);
+
+			snprintf(scope_name, sizeof(scope_name), "%s%s.%u",
+			         namespace, buffer, object->logical_index);
+			this_scope = nrm_scope_create(scope_name);
+			unsigned int bit;
+			// Nodeset
+			hwloc_bitmap_foreach_begin(bit, object->nodeset)
+			        nrm_scope_add(this_scope, 1, bit);
+			hwloc_bitmap_foreach_end();
+			// Cpuset
+			hwloc_bitmap_foreach_begin(bit, object->cpuset)
+			        nrm_scope_add(this_scope, 0, bit);
+			hwloc_bitmap_foreach_end();
+			nrm_vector_push_back(hwloc_scopes, this_scope);
 		}
 	}
 
@@ -75,27 +67,20 @@ int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
 	// Iterating over OS objects
 	// OS objects don't have cpusets/nodesets, see
 	// https://www.open-mpi.org/projects/hwloc/doc/v2.5.0/a00363.php
-	int counter = 0;
-	for (int i = 0; i < depth_of_osdev; i++) {
-		nrm_scope_t *this_scope = NULL;
+	for (int i = 0, counter = 0; i < depth_of_osdev; i++) {
 		hwloc_obj_t object =
 		        hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
 		assert(object->cpuset == NULL);
-		if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_GPU) {
-			strcat(concat, namespace);
-			strcat(concat, object->name);
-			this_scope = nrm_scope_create(concat);
+		if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_GPU ||
+		    object->attr->osdev.type == HWLOC_OBJ_OSDEV_COPROC) {
+			nrm_scope_t *this_scope = NULL;
+			snprintf(scope_name, sizeof(scope_name), "%s%s",
+			         namespace, object->name);
+			this_scope = nrm_scope_create(scope_name);
 			nrm_scope_add(this_scope, 2, counter);
 			counter++;
-		} else if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_COPROC) {
-			strcat(concat, namespace);
-			strcat(concat, object->name);
-			this_scope = nrm_scope_create(concat);
-			nrm_scope_add(this_scope, 2, counter);
-			counter++;
-		}
-		if (this_scope != NULL)
 			nrm_vector_push_back(hwloc_scopes, this_scope);
+		}
 	}
 	hwloc_topology_destroy(topology);
 	return 0;
