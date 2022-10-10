@@ -15,13 +15,13 @@ AM_CFLAGS = $(LIBZMQ_CFLAGS) \
 	    $(LIBCZMQ_CFLAGS) \
 	    $(JANSSON_CFLAGS) \
 	    $(LIBPROTOC_CFLAGS) \
-		 $(HWLOC_CFLAGS)
+	    $(HWLOC_CFLAGS)
 
 AM_LDFLAGS = $(LIBZMQ_LIBS) \
 	     $(LIBCZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
 	     $(LIBPROTOC_LIBS) \
-		  $(HWLOC_LIBS)
+	     $(HWLOC_LIBS)
 
 EXTRA_DIST += autogen.sh libnrm.pc README.md LICENSE CONTRIBUTING.markdown
 
