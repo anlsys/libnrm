@@ -83,6 +83,9 @@ AC_SEARCH_LIBS([dlsym], [dl dld], [], [
 
 # dependencies
 ##############
+PKG_CHECK_MODULES([HWLOC],[hwloc],,
+		  AC_MSG_ERROR([unable to find libhwloc]))
+
 PKG_CHECK_MODULES([LIBZMQ],[libzmq],,
 		  AC_MSG_ERROR([unable to find libzmq]))
 

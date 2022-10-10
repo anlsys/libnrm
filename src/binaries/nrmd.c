@@ -541,6 +541,7 @@ int main(int argc, char *argv[])
 	/* init state */
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(5);
+	nrm_scope_hwloc_scopes(my_daemon.state->scopes);
 
 	/* configuration */
 	if (argc == 0) {
