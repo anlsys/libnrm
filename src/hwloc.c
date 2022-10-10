@@ -51,7 +51,8 @@ int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
 				concat[0] = '\0';
 				strcat(concat, namespace);
 				strcat(concat, buffer);
-				snprintf(buffer, sizeof(buffer), ".%u", object->logical_index);
+				snprintf(buffer, sizeof(buffer), ".%u",
+				         object->logical_index);
 				strcat(concat, buffer);
 				this_scope = nrm_scope_create(concat);
 				unsigned bit, bit2;
