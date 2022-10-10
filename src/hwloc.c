@@ -8,20 +8,20 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
+#include "nrm.h"
 #include <hwloc.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define debug 1
-
-int get_scopes(struct nrm_daemon_s *my_daemon)
+int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
 {
 	int depth_of_machine;
 	int depth_of_osdev;
 	char buffer[128];
-
+	char *namespace = "nrm.hwloc.";
+	char concat[256];
 	hwloc_topology_t topology;
 
 	hwloc_topology_init(&topology);
@@ -32,6 +32,7 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
 	depth_of_machine = hwloc_topology_get_depth(topology);
 	// Iterating over Machine objects
 	for (int i = 0; i < depth_of_machine; i++) {
+		nrm_scope_t *this_scope = NULL;
 		int number_of_elements_in_depth =
 		        hwloc_get_nbobjs_by_depth(topology, i);
 		for (int j = 0; j < number_of_elements_in_depth; j++) {
@@ -47,8 +48,12 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
 			    (strcmp(buffer, "L1d") == 0)) {
 				continue;
 			} else {
-				nrm_scope_t *this_scope =
-				        nrm_scope_create(buffer);
+				concat[0] = '\0';
+				strcat(concat, namespace);
+				strcat(concat, buffer);
+				snprintf(buffer, sizeof(buffer), ".%u", object->logical_index);
+				strcat(concat, buffer);
+				this_scope = nrm_scope_create(concat);
 				unsigned bit, bit2;
 				// Nodeset
 				hwloc_bitmap_foreach_begin(bit, object->nodeset)
@@ -58,14 +63,9 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
 				hwloc_bitmap_foreach_begin(bit2, object->cpuset)
 				        nrm_scope_add(this_scope, 0, bit2);
 				hwloc_bitmap_foreach_end();
-#ifdef debug
-				char tmp[128];
-				nrm_scope_snprintf(tmp, sizeof(tmp),
-				                   this_scope);
-				printf("Printing scope from NRM function  : %s\n",
-				       tmp);
-#endif
 			}
+			if (this_scope != NULL)
+				nrm_vector_push_back(hwloc_scopes, this_scope);
 		}
 	}
 
@@ -76,30 +76,25 @@ int get_scopes(struct nrm_daemon_s *my_daemon)
 	// https://www.open-mpi.org/projects/hwloc/doc/v2.5.0/a00363.php
 	int counter = 0;
 	for (int i = 0; i < depth_of_osdev; i++) {
+		nrm_scope_t *this_scope = NULL;
 		hwloc_obj_t object =
 		        hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
 		assert(object->cpuset == NULL);
 		if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_GPU) {
-			nrm_scope_t *this_scope =
-			        nrm_scope_create(object->name);
+			strcat(concat, namespace);
+			strcat(concat, object->name);
+			this_scope = nrm_scope_create(concat);
 			nrm_scope_add(this_scope, 2, counter);
 			counter++;
-#ifdef debug
-			char tmp[128];
-			nrm_scope_snprintf(tmp, sizeof(tmp), this_scope);
-			printf("Printing scope from NRM function  : %s\n", tmp);
-#endif
 		} else if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_COPROC) {
-			nrm_scope_t *this_scope =
-			        nrm_scope_create(object->name);
+			strcat(concat, namespace);
+			strcat(concat, object->name);
+			this_scope = nrm_scope_create(concat);
 			nrm_scope_add(this_scope, 2, counter);
 			counter++;
-#ifdef debug
-			char tmp[128];
-			nrm_scope_snprintf(tmp, sizeof(tmp), this_scope);
-			printf("Printing scope from NRM function  : %s\n", tmp);
-#endif
 		}
+		if (this_scope != NULL)
+			nrm_vector_push_back(hwloc_scopes, this_scope);
 	}
 	hwloc_topology_destroy(topology);
 	return 0;

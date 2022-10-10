@@ -27,8 +27,6 @@ struct nrm_daemon_s {
 
 struct nrm_daemon_s my_daemon;
 
-#include "../scope/get_scopes.h"
-
 nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
 {
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
@@ -543,7 +541,7 @@ int main(int argc, char *argv[])
 	/* init state */
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(5);
-	get_scopes(&my_daemon);
+	nrm_scope_hwloc_scopes(my_daemon.state->scopes);
 
 	/* configuration */
 	if (argc == 0) {
