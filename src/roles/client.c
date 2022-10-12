@@ -152,7 +152,7 @@ int nrm_client_broker_signal_callback(zloop *loop, zmq_pollitem_t *poller, void 
 
 void nrm_client_broker_fn(zsock_t *pipe, void *args)
 {
-	int err;
+	int err, sfd;
 	setset_t sigmask;
 	struct nrm_client_broker_s *self;
 	struct nrm_client_broker_args *params;
