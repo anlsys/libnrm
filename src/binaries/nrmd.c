@@ -506,9 +506,7 @@ int main(int argc, char *argv[])
 	/* register signal handler callback */
 	zloop_poller(loop, &signal_poller, nrmd_signal_callback, NULL);
 
-	do {
-		retval = zloop_start(loop);
-	} while (!retval);
+	retval = zloop_start(loop);
 
 	return 0;
 }

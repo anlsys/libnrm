@@ -9,12 +9,15 @@
  ******************************************************************************/
 
 #include "config.h"
+#include <sys/signalfd.h>
 
 #include "nrm.h"
 
 #include "internal/messages.h"
 #include "internal/nrmi.h"
 #include "internal/roles.h"
+
+int signo;
 
 struct nrm_client_sub_cb_s {
 	nrm_role_sub_callback_fn *fn;
@@ -137,9 +140,20 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	return 0;
 }
 
+int nrm_client_broker_signal_callback(zloop *loop, zmq_pollitem_t *poller, void *arg)
+{
+	struct signalfd_siginfo fdsi;
+	ssize_t s = read(poller->fd, &fdsi, sizeof(struct signalfd_siginfo));
+	assert(s == sizeof(struct signalfd_siginfo));
+	signo = fdsi.ssi_signo;
+	nrm_log_info("Caught SIGINT\n");
+	return -1;
+}
+
 void nrm_client_broker_fn(zsock_t *pipe, void *args)
 {
 	int err;
+	setset_t sigmask;
 	struct nrm_client_broker_s *self;
 	struct nrm_client_broker_args *params;
 
@@ -179,6 +193,15 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	fprintf(stderr, "client: finishing setup\n");
 	self->loop = zloop_new();
 	assert(self->loop != NULL);
+
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGINT);
+	sfd = signalfd(-1, &sigmask, 0);
+	assert(sfd != -1);
+
+	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN};
+	/* register signal handler callback */
+	zloop_poller(self->loop, &signal_poller, nrm_client_broker_signal_callback, NULL);
 
 	zloop_reader(self->loop, self->pipe,
 	             (zloop_reader_fn *)nrm_client_broker_pipe_handler,
