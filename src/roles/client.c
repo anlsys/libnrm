@@ -140,7 +140,7 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	return 0;
 }
 
-int nrm_client_broker_signal_callback(zloop *loop, zmq_pollitem_t *poller, void *arg)
+int nrm_client_broker_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
 {
 	struct signalfd_siginfo fdsi;
 	ssize_t s = read(poller->fd, &fdsi, sizeof(struct signalfd_siginfo));
@@ -153,7 +153,7 @@ int nrm_client_broker_signal_callback(zloop *loop, zmq_pollitem_t *poller, void 
 void nrm_client_broker_fn(zsock_t *pipe, void *args)
 {
 	int err, sfd;
-	setset_t sigmask;
+	sigset_t sigmask;
 	struct nrm_client_broker_s *self;
 	struct nrm_client_broker_args *params;
 
