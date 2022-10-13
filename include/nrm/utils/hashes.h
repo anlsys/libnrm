@@ -166,7 +166,7 @@ nrm_hash_t *nrm_hash_iterator_get(nrm_hash_iterator_t *iterator);
 #define nrm_hash_iter(el, hash_table, iter, tmp)                               \
 	for (el = hash_table,                                                  \
 	    (hash_table != NULL) ? nrm_hash_iterator_next(&iter, hash_table) : \
-	                            NULL,                                       \
+	                           NULL,                                       \
 	    tmp = (hash_table != NULL) ? nrm_hash_iterator_get(iter) : NULL;   \
 	     el != NULL; el = tmp,                                             \
 	    (tmp != NULL) ? nrm_hash_iterator_next(&iter, tmp) : NULL,         \
