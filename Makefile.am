@@ -68,6 +68,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/timers.h \
 			    include/nrm/utils/uuids.h \
 			    include/nrm/utils/vectors.h \
+			    include/nrm/utils/hashes.h \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \
@@ -105,6 +106,7 @@ libnrm_la_SOURCES = \
 		 src/state.c \
 		 src/utils/bitmaps.c \
 		 src/utils/error.c \
+		 src/utils/hashes.c \
 		 src/utils/ringbuffer.c \
 		 src/utils/scopes.c \
 		 src/utils/strings.c \

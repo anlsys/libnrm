@@ -34,6 +34,7 @@ extern "C" {
 #include "nrm/utils/timers.h"
 #include "nrm/utils/uuids.h"
 #include "nrm/utils/vectors.h"
+#include "nrm/utils/hashes.h"
 #include "nrm/utils/version.h"
 
 /*******************************************************************************
