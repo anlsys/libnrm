@@ -25,6 +25,7 @@ extern "C" {
 #include <stdio.h>
 #include <time.h>
 
+// clang-format off
 #include "nrm/utils/alloc.h"
 #include "nrm/utils/bitmaps.h"
 #include "nrm/utils/error.h"
@@ -36,7 +37,8 @@ extern "C" {
 #include "nrm/utils/vectors.h"
 #include "nrm/utils/hashes.h"
 #include "nrm/utils/version.h"
-
+// clang-format on
+//
 /*******************************************************************************
  * Library Init/Fini
  ******************************************************************************/
