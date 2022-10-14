@@ -9,6 +9,7 @@
  ******************************************************************************/
 
 #include "config.h"
+
 #include <sys/signalfd.h>
 
 #include "nrm.h"
@@ -140,7 +141,9 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	return 0;
 }
 
-int nrm_client_broker_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
+int nrm_client_broker_signal_callback(zloop_t *loop,
+                                      zmq_pollitem_t *poller,
+                                      void *arg)
 {
 	struct signalfd_siginfo fdsi;
 	ssize_t s = read(poller->fd, &fdsi, sizeof(struct signalfd_siginfo));
@@ -201,7 +204,8 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 
 	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN};
 	/* register signal handler callback */
-	zloop_poller(self->loop, &signal_poller, (zloop_fn *)nrm_client_broker_signal_callback, NULL);
+	zloop_poller(self->loop, &signal_poller,
+	             (zloop_fn *)nrm_client_broker_signal_callback, NULL);
 
 	zloop_reader(self->loop, self->pipe,
 	             (zloop_reader_fn *)nrm_client_broker_pipe_handler,
