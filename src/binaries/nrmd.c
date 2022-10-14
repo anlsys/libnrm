@@ -10,18 +10,20 @@
 
 #include "config.h"
 
+#include "nrm.h"
 #include <getopt.h>
 #include <sys/signalfd.h>
 
-#include "nrm.h"
-
-#include "internal/messages.h"
 #include "internal/nrmi.h"
+
+#include "internal/control.h"
+#include "internal/messages.h"
 #include "internal/roles.h"
 
 struct nrm_daemon_s {
 	nrm_state_t *state;
 	nrm_eventbase_t *events;
+	nrm_control_t *control;
 };
 
 int signo;
@@ -351,17 +353,56 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 	return 0;
 }
 
+double nrmd_actuator_value(nrm_string_t uuid, nrm_vector_t *vec)
+{
+	size_t size;
+	nrm_vector_length(vec, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_actuator_t *a;
+		nrm_vector_get(vec, i, &p);
+		a = (nrm_actuator_t *)p;
+		if (!nrm_string_cmp(a->uuid, uuid))
+			return a->value;
+	}
+	return 0.0;
+}
+
+int nrmd_actuate(nrm_role_t *role,
+                 nrm_string_t uuid,
+                 double value,
+                 nrm_vector_t *vec)
+{
+	size_t len;
+	nrm_vector_length(vec, &len);
+	for (size_t i = 0; i < len; i++) {
+		void *p;
+		nrm_actuator_t *a;
+		nrm_vector_get(my_daemon.state->actuators, i, &p);
+		a = (nrm_actuator_t *)p;
+		if (!nrm_string_cmp(a->uuid, uuid)) {
+			/* found the actuator */
+			nrm_log_debug("actuating %s: %f\n", a->uuid, value);
+			nrm_msg_t *action = nrm_msg_create();
+			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
+			nrm_msg_set_actuate(action, a->uuid, value);
+			nrm_role_send(role, action, a->clientid);
+			break;
+		}
+	}
+	return 0;
+}
+
 int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 {
 	(void)loop;
 	(void)timerid;
 	nrm_log_info("global timer wakeup\n");
 	nrm_role_t *self = (nrm_role_t *)arg;
-	(void)self;
 
 	nrm_string_t topic = nrm_string_fromchar("DAEMON");
 
-	/* create an event */
+	/* create a ticking event */
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 	nrm_scope_t *scope = nrm_scope_create("nrm.scope.all");
@@ -375,6 +416,54 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending event\n");
 	nrm_role_pub(self, topic, msg);
+
+	/* tick the event base */
+	nrm_log_debug("eventbase tick\n");
+	nrm_eventbase_tick(my_daemon.events, now);
+
+	/* control loop: build vector of inputs */
+	nrm_log_debug("control loop tick\n");
+	if (my_daemon.control == NULL)
+		return 0;
+
+	nrm_vector_t *inputs;
+	nrm_vector_t *outputs;
+	nrm_control_getargs(my_daemon.control, &inputs, &outputs);
+
+	size_t size;
+	nrm_vector_length(inputs, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_control_input_t *in;
+		nrm_vector_get(inputs, i, &p);
+		in = (nrm_control_input_t *)p;
+		nrm_eventbase_last_value(my_daemon.events, in->sensor_uuid,
+		                         in->scope_uuid, &in->value);
+	}
+
+	nrm_vector_length(outputs, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_control_output_t *out;
+		nrm_vector_get(outputs, i, &p);
+		out = (nrm_control_output_t *)p;
+		out->value = nrmd_actuator_value(out->actuator_uuid,
+		                                 my_daemon.state->actuators);
+	}
+	/* launch control: fill inputs and outputs first */
+	nrm_log_debug("control action\n");
+	nrm_control_action(my_daemon.control, inputs, outputs);
+
+	/* update actuators */
+	nrm_vector_length(outputs, &size);
+	for (size_t i = 0; i < size; i++) {
+		void *p;
+		nrm_control_output_t *out;
+		nrm_vector_get(outputs, i, &p);
+		out = (nrm_control_output_t *)p;
+		nrmd_actuate(self, out->actuator_uuid, out->value,
+		             my_daemon.state->actuators);
+	}
 	return 0;
 }
 
@@ -458,18 +547,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if (argc == 0) {
-		print_help();
-		exit(EXIT_FAILURE);
-	}
-
-	assert(!strcmp(argv[0], "fromenv"));
-	/* create a monitor:
-	 *  - this is a broker that listen to incoming messages
-	 *  - we have our own loop to listen to it, no on a different thread
-	 *  though, as we only have this to take care of
-	 */
-
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmd");
 	nrm_log_setlevel(NRM_LOG_DEBUG);
@@ -477,7 +554,30 @@ int main(int argc, char *argv[])
 	/* init state */
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(5);
+	nrm_scope_hwloc_scopes(my_daemon.state->scopes);
 
+	/* configuration */
+	if (argc == 0) {
+		nrm_log_info("no configuration given, skipping control config");
+		goto start;
+	}
+
+	json_error_t jerror;
+	int err;
+	FILE *config = fopen(argv[0], "r");
+	assert(config != NULL);
+	json_t *jconfig = json_loadf(config, 0, &jerror);
+	assert(jconfig != NULL);
+	json_t *control_config;
+	err = json_unpack_ex(jconfig, &jerror, 0, "{s?:o}", "control",
+	                     &control_config);
+	if (!err && control_config) {
+		nrm_control_create(&my_daemon.control, control_config);
+	}
+
+start:
+	nrm_log_info("daemon initialized\n");
+	/* networking */
 	nrm_role_t *controller = nrm_role_controller_create_fromparams(
 	        NRM_DEFAULT_UPSTREAM_URI, NRM_DEFAULT_UPSTREAM_PUB_PORT,
 	        NRM_DEFAULT_UPSTREAM_RPC_PORT);

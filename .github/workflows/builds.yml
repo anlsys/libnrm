@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0

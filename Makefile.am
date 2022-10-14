@@ -14,12 +14,14 @@ AM_CPPFLAGS = \
 AM_CFLAGS = $(LIBZMQ_CFLAGS) \
 	    $(LIBCZMQ_CFLAGS) \
 	    $(JANSSON_CFLAGS) \
-	    $(LIBPROTOC_CFLAGS)
+	    $(LIBPROTOC_CFLAGS) \
+	    $(HWLOC_CFLAGS)
 
 AM_LDFLAGS = $(LIBZMQ_LIBS) \
 	     $(LIBCZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
-	     $(LIBPROTOC_LIBS)
+	     $(LIBPROTOC_LIBS) \
+	     $(HWLOC_LIBS)
 
 EXTRA_DIST += autogen.sh libnrm.pc README.md LICENSE CONTRIBUTING.markdown
 
@@ -69,6 +71,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \
+		 include/internal/control.h \
 		 include/internal/nrmi.h \
 		 include/internal/messages.h \
 		 include/internal/roles.h \
@@ -91,6 +94,9 @@ libnrm_la_SOURCES = \
 		 src/nrm.c \
 		 src/messages.c \
 		 src/log.c \
+		 src/control/control.c \
+		 src/control/europar21.c \
+		 src/hwloc.c \
 		 src/roles/client.c \
 		 src/roles/controller.c \
 		 src/roles/role.c \

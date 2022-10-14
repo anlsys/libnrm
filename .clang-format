@@ -52,8 +52,10 @@ IncludeCategories:
   - Regex:           'test.*'
     Priority:        1
   - Regex:           'nrm\.h'
+    Priority:        2
+  - Regex:           'nrmi\.h'
     Priority:        3
-  - Regex:           'internal-.*'
+  - Regex:           'internal/.*'
     Priority:        4
   - Regex:           '^<.*\.h>'
     Priority:        2

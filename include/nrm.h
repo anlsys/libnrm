@@ -217,6 +217,13 @@ nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
 int nrm_eventbase_push_event(
         nrm_eventbase_t *, nrm_string_t, nrm_scope_t *, nrm_time_t, double);
 
+int nrm_eventbase_tick(nrm_eventbase_t *, nrm_time_t);
+
+int nrm_eventbase_last_value(nrm_eventbase_t *,
+                             nrm_string_t,
+                             nrm_string_t,
+                             double *);
+
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 
 /*******************************************************************************

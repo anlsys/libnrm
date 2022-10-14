@@ -83,6 +83,9 @@ AC_SEARCH_LIBS([dlsym], [dl dld], [], [
 
 # dependencies
 ##############
+PKG_CHECK_MODULES([HWLOC],[hwloc],,
+		  AC_MSG_ERROR([unable to find libhwloc]))
+
 PKG_CHECK_MODULES([LIBZMQ],[libzmq],,
 		  AC_MSG_ERROR([unable to find libzmq]))
 
@@ -95,6 +98,8 @@ PKG_CHECK_MODULES([JANSSON],[jansson],,
 PKG_CHECK_MODULES([CHECK],[check],,
 		  AC_MSG_ERROR([unable to find check]))
 
+
+AC_CHECK_LIB(m, ceil,,[AC_MSG_ERROR([unable to find libm])])
 
 # protobuf-c
 ##############

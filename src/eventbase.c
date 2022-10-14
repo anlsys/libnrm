@@ -70,6 +70,19 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 	return 0;
 }
 
+int nrm_eventbase_tick(nrm_eventbase_t *eb, nrm_time_t time)
+{
+	struct nrm_sensor2scope_s *s2s;
+	for (s2s = eb->hash; s2s != NULL; s2s = s2s->hh.next) {
+		struct nrm_scope2ring_s *s2r;
+		DL_FOREACH(s2s->list, s2r)
+		{
+			nrm_eventbase_new_period(s2r, time);
+		}
+	}
+	return 0;
+}
+
 int nrm_eventbase_add_event(struct nrm_scope2ring_s *s,
                             nrm_time_t time,
                             double val)
@@ -150,6 +163,29 @@ int nrm_eventbase_push_event(nrm_eventbase_t *eb,
 	s2r = nrm_eventbase_add_scope(eb, scope);
 	nrm_eventbase_add_event(s2r, time, value);
 	return 0;
+}
+
+int nrm_eventbase_last_value(nrm_eventbase_t *eb,
+                             nrm_string_t sensor_uuid,
+                             nrm_string_t scope_uuid,
+                             double *value)
+{
+	struct nrm_sensor2scope_s *s2s;
+	struct nrm_scope2ring_s *s2r;
+	HASH_FIND_STR(eb->hash, sensor_uuid, s2s);
+	if (s2s == NULL) {
+		*value = 0.0;
+		return -NRM_EINVAL;
+	}
+	DL_FOREACH(s2s->list, s2r)
+	{
+		if (!nrm_string_cmp(scope_uuid, s2r->scope->uuid)) {
+			nrm_ringbuffer_back(s2r->past, &value);
+			return 0;
+		}
+	}
+	*value = 0.0;
+	return -NRM_EINVAL;
 }
 
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods)
