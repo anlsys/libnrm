@@ -10,12 +10,12 @@
 
 #include "config.h"
 
+#include "nrm.h"
 #include <sys/signalfd.h>
 
-#include "nrm.h"
+#include "internal/nrmi.h"
 
 #include "internal/messages.h"
-#include "internal/nrmi.h"
 #include "internal/roles.h"
 
 int signo;
