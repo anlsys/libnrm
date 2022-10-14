@@ -13,7 +13,7 @@
 #include "internal/uthash.h"
 
 struct nrm_hash_s {
-	nrm_uuid_t *uuid;
+	nrm_string_t *uuid;
 	void *ptr;
 	UT_hash_handle hh;
 };
@@ -31,14 +31,6 @@ int nrm_hash_create_element(nrm_hash_t **element)
 	if (tmp_element == NULL)
 		return -NRM_ENOMEM;
 	*element = tmp_element;
-	return NRM_SUCCESS;
-}
-
-int nrm_hash_set_uuid(nrm_hash_t **element, nrm_string_t *uuid)
-{
-	if ((*element) == NULL)
-		return -NRM_EINVAL;
-	(*element)->uuid = uuid;
 	return NRM_SUCCESS;
 }
 
@@ -60,24 +52,30 @@ int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t *uuid)
 	return NRM_SUCCESS;
 }
 
-int nrm_hash_delete_element(nrm_hash_t *hash_table, nrm_hash_t *element)
+int nrm_hash_delete_element(nrm_hash_t **hash_table, nrm_string_t *uuid)
 {
-	if (hash_table == NULL || element == NULL)
+	if (*hash_table == NULL || uuid == NULL)
 		return -NRM_EINVAL;
-	HASH_DEL(hash_table, element);
-	free(element);
+	nrm_hash_t *tmp;
+	HASH_FIND(hh, (*hash_table), &uuid, sizeof(&uuid), tmp);
+	if (tmp == NULL)
+		return -NRM_EINVAL;
+	else
+		printf("found\n");
+	HASH_DEL(*hash_table, tmp);
+	free(tmp);
 	return NRM_SUCCESS;
 }
 
-int nrm_hash_delete_table(nrm_hash_t *hash_table)
+int nrm_hash_delete_table(nrm_hash_t **hash_table)
 {
 	if (hash_table == NULL)
 		return -NRM_EINVAL;
 	nrm_hash_t *iterator = NULL;
 	nrm_hash_t *tmp = NULL;
-	HASH_ITER(hh, hash_table, iterator, tmp)
+	HASH_ITER(hh, *hash_table, iterator, tmp)
 	{
-		HASH_DEL(hash_table, iterator);
+		HASH_DEL(*hash_table, iterator);
 	}
 	free(iterator);
 	free(tmp);
@@ -86,21 +84,32 @@ int nrm_hash_delete_table(nrm_hash_t *hash_table)
 
 int nrm_hash_find(nrm_hash_t *hash_table,
                   nrm_hash_t **element,
-                  nrm_string_t *uuid_key)
+                  nrm_string_t *uuid_key,
+                  void **ptr)
 {
-	if (hash_table == NULL || uuid_key == NULL)
+	if (hash_table == NULL)
+		return -NRM_EINVAL;
+	if (uuid_key == NULL && ptr == NULL)
 		return -NRM_EINVAL;
 	nrm_hash_t *tmp = NULL;
-	HASH_FIND(hh, hash_table, &uuid_key, sizeof(&uuid_key), tmp);
+	if (ptr == NULL)
+		HASH_FIND(hh, hash_table, &uuid_key, sizeof(&uuid_key), tmp);
+	else if (uuid_key == NULL)
+		HASH_FIND(hh, hash_table, &ptr, sizeof(&ptr), tmp);
+	else
+		HASH_FIND(hh, hash_table, &uuid_key, sizeof(&uuid_key), tmp);
+	if (tmp == NULL)
+		return -NRM_ENOMEM;
 	*element = tmp;
 	return NRM_SUCCESS;
 }
 
-int nrm_hash_size(nrm_hash_t *hash_table)
+int nrm_hash_size(nrm_hash_t *hash_table, size_t **len)
 {
 	if (hash_table == NULL)
 		return -NRM_EINVAL;
-	return HASH_COUNT(hash_table);
+	*len = HASH_COUNT(hash_table);
+	return NRM_SUCCESS;
 }
 
 int nrm_hash_iterator_create(nrm_hash_iterator_t **iterator)
@@ -120,16 +129,13 @@ int nrm_hash_iterator_begin(nrm_hash_iterator_t **iterator,
 	return NRM_SUCCESS;
 }
 
-int nrm_hash_iterator_next(nrm_hash_iterator_t **iterator,
-                           nrm_hash_t *hash_table)
+int nrm_hash_iterator_next(nrm_hash_iterator_t **iterator)
 {
-	if (hash_table == NULL)
-		return -NRM_EINVAL;
-	(*iterator)->element = (hash_table)->hh.next;
+	(*iterator)->element = ((*iterator)->element)->hh.next;
 	return NRM_SUCCESS;
 }
 
-nrm_hash_t *nrm_hash_iterator_get(nrm_hash_iterator_t *iterator)
+void *nrm_hash_iterator_get(nrm_hash_iterator_t *iterator)
 {
 	return (iterator)->element;
 }

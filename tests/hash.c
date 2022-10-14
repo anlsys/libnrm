@@ -24,25 +24,35 @@ int main(void)
 	nrm_hash_add(&hash_table, "b");
 	nrm_hash_add(&hash_table, "c");
 
-	printf("Hash table of size: %d\n", nrm_hash_size(hash_table));
+	size_t **len;
+	nrm_hash_size(hash_table, &len);
+	printf("Hash table size: %zu\n", len);
 
 	nrm_hash_t *wanted = NULL;
 
-	nrm_hash_find(hash_table, &wanted, "second");
+	printf("Searching for `second` element\n");
+	nrm_hash_find(hash_table, &wanted, "second", NULL);
 	nrm_hash_print_uuid(wanted);
-	nrm_hash_set_uuid(&wanted, "newsecond");
-	nrm_hash_delete_element(hash_table, wanted);
 
 	nrm_hash_iterator_t *iter = NULL;
 	nrm_hash_iterator_create(&iter);
 	nrm_hash_t *tmp = NULL;
-	nrm_hash_t *el = NULL;
-	nrm_hash_iter(el, hash_table, iter, tmp)
+	printf("##############################################\n");
+	nrm_hash_iter(hash_table, iter, tmp)
 	{
-		nrm_hash_print_uuid(el);
+		nrm_hash_print_uuid(tmp);
 	}
 
-	nrm_hash_delete_table(hash_table);
+	printf("Deleting an element...\n");
+	nrm_hash_delete_element(&hash_table, "second");
+	nrm_hash_size(hash_table, &len);
+	printf("Hash table new size: %zu\n", len);
+
+	nrm_hash_iter(hash_table, iter, tmp)
+	{
+		nrm_hash_print_uuid(tmp);
+	}
+	nrm_hash_delete_table(&hash_table);
 
 	nrm_finalize();
 

@@ -45,16 +45,6 @@ typedef struct nrm_hash_iterator_s nrm_hash_iterator_t;
 int nrm_hash_create_element(nrm_hash_t **element);
 
 /**
- * Set UUID for a given hash table element.
- *
- * @param[in] element: an initialized hash structure.
- * @param[in] uuid: the UUID to set.
- * @return NRM_SUCCESS on success.
- * @return NRM_EINVAL on failure, i.e. `element` is NULL.
- **/
-int nrm_hash_set_uuid(nrm_hash_t **element, nrm_string_t *uuid);
-
-/**
  * Print the UUID for a given hash table element.
  *
  * @param[in] element: an initialized element of hash structure.
@@ -77,11 +67,12 @@ int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t *uuid);
  * Delete an element from a hash table.
  *
  * @param[in] hash_table: an initialized hash structure.
- * @param[in] element: an initialized element of hash structure.
+ * @param[in] uuid: the UUID of the element to delete.
  * @return NRM_SUCCESS on success.
- * @return NRM_EINVAL on failure, i.e. `hash_table` or `element` is NULL.
+ * @return NRM_EINVAL on failure, i.e. `hash_table` or `uuid` is NULL, or if the
+ *UUID isn't found in `hash_table`.
  **/
-int nrm_hash_delete_element(nrm_hash_t *hash_table, nrm_hash_t *element);
+int nrm_hash_delete_element(nrm_hash_t **hash_table, nrm_string_t *uuid);
 
 /**
  * Delete a hash table.
@@ -90,7 +81,7 @@ int nrm_hash_delete_element(nrm_hash_t *hash_table, nrm_hash_t *element);
  * @return NRM_SUCCESS on success.
  * @return NRM_EINVAL on failure, i.e. `hash_table` is NULL.
  **/
-int nrm_hash_delete_table(nrm_hash_t *hash_table);
+int nrm_hash_delete_table(nrm_hash_t **hash_table);
 
 /**
  * Find an element in a hash table.
@@ -98,21 +89,26 @@ int nrm_hash_delete_table(nrm_hash_t *hash_table);
  * @param[in] hash_table: an initialized hash structure.
  * @param[in] element: an initialized element of hash structure.
  * @param[in] uuid: the UUID of the element to find.
+ * @param[in] ptr: the pointer to the content of the element to find.
  * @return NRM_SUCCESS on success.
- * @return NRM_EINVAL on failure, i.e. `hash_table` or `uuid` is NULL.
+ * @return NRM_EINVAL on failure, i.e. `hash_table` or `uuid` and `ptr` are
+ *NULL.
  **/
 int nrm_hash_find(nrm_hash_t *hash_table,
                   nrm_hash_t **element,
-                  nrm_string_t *uuid);
+                  nrm_string_t *uuid,
+                  void **ptr);
 
 /**
  * Get the number of elements in a hash table.
  *
  * @param[in] hash_table: an initialized hash structure.
- * @return the number of elements in `hash_table` on success.
+ * @param[in] len: a size_t variable.
+ * @param[out] len: a size_t variable containing the number of elements in
+ *`hash_table`.
  * @return NRM_EINVAL on failure, i.e. `hash_table` is NULL.
  **/
-int nrm_hash_size(nrm_hash_t *hash_table);
+int nrm_hash_size(nrm_hash_t *hash_table, size_t **len);
 
 /**
  * Creates an iterator object of struct nrm_hash_iterator_t.
@@ -142,35 +138,30 @@ int nrm_hash_iterator_begin(nrm_hash_iterator_t **iterator,
  * @return NRM_SUCCESS on success.
  * @return NRM_EINVAL on failure, i.e. `hash_table` is NULL.
  **/
-int nrm_hash_iterator_next(nrm_hash_iterator_t **iterator,
-                           nrm_hash_t *hash_table);
+int nrm_hash_iterator_next(nrm_hash_iterator_t **iterator);
 
 /**
  * Get the nrm_hash_t element that the iterator is pointing to.
  *
  * @param[in] iterator: an iterator element of struct nrm_hash_iterator_t.
- * @return an nrm_hash_t object.
+ * @return a void object.
  **/
-nrm_hash_t *nrm_hash_iterator_get(nrm_hash_iterator_t *iterator);
+void *nrm_hash_iterator_get(nrm_hash_iterator_t *iterator);
 
 /**
  * Start a for loop iterating over the content of a hash table.
  *
- * @param[in] el: an initialized element of hash structure.
  * @param[in] hash_table: an initialized hash structure.
  * @param[in] iter: an initialized element of hash iterator structure.
  * @param[in] tmp: an initialized element of hash structure.
  * @param[out] el: an initialized element of hash structure containing the
  *selected element from the iteration over `hash_table`.
  **/
-#define nrm_hash_iter(el, hash_table, iter, tmp)                               \
-	for (el = hash_table,                                                  \
-	    (hash_table != NULL) ? nrm_hash_iterator_next(&iter, hash_table) : \
-                                   NULL,                                       \
-	    tmp = (hash_table != NULL) ? nrm_hash_iterator_get(iter) : NULL;   \
-	     el != NULL; el = tmp,                                             \
-	    (tmp != NULL) ? nrm_hash_iterator_next(&iter, tmp) : NULL,         \
-	    tmp = (tmp != NULL) ? nrm_hash_iterator_get(iter) : NULL)
+#define nrm_hash_iter(hash_table, iter, tmp)                                   \
+	for (nrm_hash_iterator_begin(&iter, hash_table),                       \
+	     tmp = nrm_hash_iterator_get(iter);                                \
+	     tmp != NULL;                                                      \
+	     nrm_hash_iterator_next(&iter), tmp = nrm_hash_iterator_get(iter))
 
 /**
  * @}
