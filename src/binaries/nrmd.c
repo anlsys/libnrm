@@ -468,7 +468,7 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 }
 
 /* most logic from https://gist.github.com/mhaberler/8426050 */
-int nrmd_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
+static int nrmd_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
 {
 	struct signalfd_siginfo fdsi;
 	ssize_t s = read(poller->fd, &fdsi, sizeof(struct signalfd_siginfo));
