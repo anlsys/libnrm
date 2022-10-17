@@ -612,7 +612,7 @@ start:
 
 	/* teardown zloop */
 	zloop_destroy(&loop);
-	assert (loop == NULL);
+	assert(loop == NULL);
 	nrm_log_debug("Loop destroyed\n");
 
 	/* teardown NRM */
