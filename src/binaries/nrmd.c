@@ -474,7 +474,7 @@ int nrmd_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
 	ssize_t s = read(poller->fd, &fdsi, sizeof(struct signalfd_siginfo));
 	assert(s == sizeof(struct signalfd_siginfo));
 	signo = fdsi.ssi_signo;
-	nrm_log_info("Caught SIGINT\n");
+	nrm_log_debug("Caught SIGINT\n");
 	return -1;
 }
 
@@ -606,7 +606,19 @@ start:
 	/* register signal handler callback */
 	zloop_poller(loop, &signal_poller, nrmd_signal_callback, NULL);
 
+	/* start loop, returns when context terminated,
+	process interrupted, or event handler returns -1 */
 	retval = zloop_start(loop);
 
-	return 0;
+	/* teardown zloop */
+	zloop_destroy(&loop);
+	assert (loop == NULL);
+	nrm_log_debug("Loop destroyed\n");
+
+	/* teardown NRM */
+	nrm_eventbase_destroy(my_daemon.events);
+	nrm_state_destroy(my_daemon.state);
+	nrm_role_destroy(&controller);
+
+	exit(EXIT_SUCCESS);
 }
