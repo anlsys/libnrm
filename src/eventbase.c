@@ -114,6 +114,7 @@ struct nrm_sensor2scope_s *nrm_eventbase_add_sensor(nrm_eventbase_t *eb,
 	if (s == NULL)
 		return NULL;
 	s->uuid = sensor_uuid;
+	nrm_string_incref(sensor_uuid);
 	s->list = NULL;
 	HASH_ADD_STR(eb->hash, uuid, s);
 	return s;

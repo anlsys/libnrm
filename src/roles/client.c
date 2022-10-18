@@ -131,6 +131,7 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	 * callback */
 	nrm_string_t topic;
 	nrm_msg_t *msg = nrm_msg_sub(socket, &topic);
+	nrm_string_incref(topic);
 	nrm_log_debug("received subscribed message\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	if (self->sub_cb == NULL || self->sub_cb->fn == NULL) {
