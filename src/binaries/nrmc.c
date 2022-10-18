@@ -10,12 +10,12 @@
 
 #include "config.h"
 
+#include "nrm.h"
 #include <getopt.h>
 
-#include "nrm.h"
+#include "internal/nrmi.h"
 
 #include "internal/messages.h"
-#include "internal/nrmi.h"
 #include "internal/roles.h"
 
 static int ask_help = 0;
@@ -80,9 +80,7 @@ int cmd_actuate(int argc, char **argv)
 
 	assert(len == 1);
 	nrm_actuator_t *a;
-	void *p;
-	nrm_vector_get(results, 0, &p);
-	a = (nrm_actuator_t *)p;
+	nrm_get_element_from_vector(nrm_actuator_t, results, 0, a);
 
 	nrm_log_info("sending actuation\n");
 	nrm_client_actuate(client, a, value);
@@ -224,9 +222,7 @@ int cmd_find_actuator(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_actuator_t *a;
-		void *p;
-		nrm_vector_get(results, i, &p);
-		a = (nrm_actuator_t *)p;
+		nrm_get_element_from_vector(nrm_actuator_t, results, i, a);
 		json_t *json = nrm_actuator_to_json(a);
 		json_array_append_new(array, json);
 	}
@@ -257,9 +253,7 @@ int cmd_find_scope(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_scope_t *s;
-		void *p;
-		nrm_vector_get(results, i, &p);
-		s = (nrm_scope_t *)p;
+		nrm_get_element_from_vector(nrm_scope_t, results, i, s);
 		json_t *json = nrm_scope_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -290,9 +284,7 @@ int cmd_find_sensor(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_sensor_t *s;
-		void *p;
-		nrm_vector_get(results, i, &p);
-		s = (nrm_sensor_t *)p;
+		nrm_get_element_from_vector(nrm_sensor_t, results, i, s);
 		json_t *json = nrm_sensor_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -323,9 +315,7 @@ int cmd_find_slice(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_slice_t *s;
-		void *p;
-		nrm_vector_get(results, i, &p);
-		s = (nrm_slice_t *)p;
+		nrm_get_element_from_vector(nrm_slice_t, results, i, s);
 		json_t *json = nrm_slice_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -387,9 +377,7 @@ int cmd_list_actuators(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_actuator_t *r;
-		void *p;
-		nrm_vector_get(actuators, i, &p);
-		r = (nrm_actuator_t *)p;
+		nrm_get_element_from_vector(nrm_actuator_t, actuators, i, r);
 		json_t *json = nrm_actuator_to_json(r);
 		json_array_append_new(array, json);
 	}
@@ -418,9 +406,7 @@ int cmd_list_scopes(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_scope_t *s;
-		void *p;
-		nrm_vector_get(scopes, i, &p);
-		s = (nrm_scope_t *)p;
+		nrm_get_element_from_vector(nrm_scope_t, scopes, i, s);
 		json_t *json = nrm_scope_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -450,9 +436,7 @@ int cmd_list_sensors(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_sensor_t *s;
-		void *p;
-		nrm_vector_get(sensors, i, &p);
-		s = (nrm_sensor_t *)p;
+		nrm_get_element_from_vector(nrm_sensor_t, sensors, i, s);
 		json_t *json = nrm_sensor_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -482,9 +466,7 @@ int cmd_list_slices(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_slice_t *s;
-		void *p;
-		nrm_vector_get(slices, i, &p);
-		s = (nrm_slice_t *)p;
+		nrm_get_element_from_vector(nrm_slice_t, slices, i, s);
 		json_t *json = nrm_slice_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -547,9 +529,7 @@ int cmd_remove_scope(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_scope_t *s;
-		void *p;
-		nrm_vector_get(results, i, &p);
-		s = (nrm_scope_t *)p;
+		nrm_get_element_from_vector(nrm_scope_t, results, i, s);
 		json_t *json = nrm_scope_to_json(s);
 		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SCOPE, s->uuid);
 		json_array_append_new(array, json);
@@ -613,9 +593,7 @@ int cmd_remove_sensor(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_sensor_t *s;
-		void *p;
-		nrm_vector_get(results, i, &p);
-		s = (nrm_sensor_t *)p;
+		nrm_get_element_from_vector(nrm_sensor_t, results, i, s);
 		json_t *json = nrm_sensor_to_json(s);
 		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SENSOR, s->uuid);
 		json_array_append_new(array, json);
@@ -679,9 +657,7 @@ int cmd_remove_slice(int argc, char **argv)
 	json_t *array = json_array();
 	for (size_t i = 0; i < len; i++) {
 		nrm_slice_t *s;
-		void *p;
-		nrm_vector_get(results, i, &p);
-		s = (nrm_slice_t *)p;
+		nrm_get_element_from_vector(nrm_slice_t, results, i, s);
 		json_t *json = nrm_slice_to_json(s);
 		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SLICE, s->uuid);
 		json_array_append_new(array, json);
@@ -714,9 +690,7 @@ int cmd_send_event(int argc, char **argv)
 
 	assert(len == 1);
 	nrm_sensor_t *s;
-	void *p;
-	nrm_vector_get(results, 0, &p);
-	s = (nrm_sensor_t *)p;
+	nrm_get_element_from_vector(nrm_sensor_t, results, 0, s);
 
 	nrm_log_info("sending event\n");
 	nrm_scope_t *scope = nrm_scope_create(scope_name);

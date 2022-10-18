@@ -10,12 +10,12 @@
 
 #include "config.h"
 
+#include "nrm.h"
 #include <assert.h>
 
-#include "nrm.h"
+#include "internal/nrmi.h"
 
 #include "internal/messages.h"
-#include "internal/nrmi.h"
 
 /*******************************************************************************
  * Protobuf Management: Creating Messages
@@ -101,10 +101,8 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	ret->choices = calloc(ret->n_choices, sizeof(double));
 	assert(ret->choices);
 	for (size_t i = 0; i < ret->n_choices; i++) {
-		void *p;
 		double *d;
-		nrm_vector_get(actuator->choices, i, &p);
-		d = (double *)p;
+		nrm_get_element_from_vector(double, actuator->choices, i, d);
 		ret->choices[i] = *d;
 	}
 	return ret;
@@ -223,7 +221,6 @@ static nrm_msg_list_t *nrm_msg_list_new(int type)
 
 nrm_msg_actuatorlist_t *nrm_msg_actuatorlist_new(nrm_vector_t *actuators)
 {
-	void *p;
 	nrm_msg_actuatorlist_t *ret = calloc(1, sizeof(nrm_msg_actuatorlist_t));
 	if (ret == NULL)
 		return NULL;
@@ -237,8 +234,8 @@ nrm_msg_actuatorlist_t *nrm_msg_actuatorlist_new(nrm_vector_t *actuators)
 	ret->actuators = calloc(ret->n_actuators, sizeof(nrm_msg_actuator_t *));
 	assert(ret->actuators);
 	for (size_t i = 0; i < ret->n_actuators; i++) {
-		nrm_vector_get(actuators, i, &p);
-		nrm_actuator_t *s = (nrm_actuator_t *)p;
+		nrm_actuator_t *s;
+		nrm_get_element_from_vector(nrm_actuator_t, actuators, i, s);
 		ret->actuators[i] = nrm_msg_actuator_new(s);
 	}
 	return ret;
@@ -246,7 +243,6 @@ nrm_msg_actuatorlist_t *nrm_msg_actuatorlist_new(nrm_vector_t *actuators)
 
 nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
 {
-	void *p;
 	nrm_msg_scopelist_t *ret = calloc(1, sizeof(nrm_msg_scopelist_t));
 	if (ret == NULL)
 		return NULL;
@@ -260,8 +256,8 @@ nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
 	ret->scopes = calloc(ret->n_scopes, sizeof(nrm_msg_scope_t *));
 	assert(ret->scopes);
 	for (size_t i = 0; i < ret->n_scopes; i++) {
-		nrm_vector_get(scopes, i, &p);
-		nrm_scope_t *s = (nrm_scope_t *)p;
+		nrm_scope_t *s;
+		nrm_get_element_from_vector(nrm_scope_t, scopes, i, s);
 		ret->scopes[i] = nrm_msg_scope_new(s);
 	}
 	return ret;
@@ -269,7 +265,6 @@ nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
 
 nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
 {
-	void *p;
 	nrm_msg_sensorlist_t *ret = calloc(1, sizeof(nrm_msg_sensorlist_t));
 	if (ret == NULL)
 		return NULL;
@@ -283,8 +278,8 @@ nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
 	ret->sensors = calloc(ret->n_sensors, sizeof(nrm_msg_sensor_t *));
 	assert(ret->sensors);
 	for (size_t i = 0; i < ret->n_sensors; i++) {
-		nrm_vector_get(sensors, i, &p);
-		nrm_sensor_t *s = (nrm_sensor_t *)p;
+		nrm_sensor_t *s;
+		nrm_get_element_from_vector(nrm_sensor_t, sensors, i, s);
 		nrm_log_debug("packed sensor %zu %s\n", i, s->uuid);
 		ret->sensors[i] = nrm_msg_sensor_new(s->uuid);
 	}
@@ -293,7 +288,6 @@ nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
 
 nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 {
-	void *p;
 	nrm_msg_slicelist_t *ret = calloc(1, sizeof(nrm_msg_slicelist_t));
 	if (ret == NULL)
 		return NULL;
@@ -307,8 +301,8 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 	ret->slices = calloc(ret->n_slices, sizeof(nrm_msg_slice_t *));
 	assert(ret->slices);
 	for (size_t i = 0; i < ret->n_slices; i++) {
-		nrm_vector_get(slices, i, &p);
-		nrm_slice_t *s = (nrm_slice_t *)p;
+		nrm_slice_t *s;
+		nrm_get_element_from_vector(nrm_slice_t, slices, i, s);
 		nrm_log_debug("packed slice %zu %s\n", i, s->uuid);
 		ret->slices[i] = nrm_msg_slice_new(s->uuid);
 	}

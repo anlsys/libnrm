@@ -436,20 +436,17 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	size_t size;
 	nrm_vector_length(inputs, &size);
 	for (size_t i = 0; i < size; i++) {
-		void *p;
 		nrm_control_input_t *in;
-		nrm_vector_get(inputs, i, &p);
-		in = (nrm_control_input_t *)p;
+		nrm_get_element_from_vector(nrm_control_input_t, inputs, i, in);
 		nrm_eventbase_last_value(my_daemon.events, in->sensor_uuid,
 		                         in->scope_uuid, &in->value);
 	}
 
 	nrm_vector_length(outputs, &size);
 	for (size_t i = 0; i < size; i++) {
-		void *p;
 		nrm_control_output_t *out;
-		nrm_vector_get(outputs, i, &p);
-		out = (nrm_control_output_t *)p;
+		nrm_get_element_from_vector(nrm_control_output_t, outputs, i,
+		                            out);
 		out->value = nrmd_actuator_value(out->actuator_uuid);
 	}
 	/* launch control: fill inputs and outputs first */
@@ -459,10 +456,9 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	/* update actuators */
 	nrm_vector_length(outputs, &size);
 	for (size_t i = 0; i < size; i++) {
-		void *p;
 		nrm_control_output_t *out;
-		nrm_vector_get(outputs, i, &p);
-		out = (nrm_control_output_t *)p;
+		nrm_get_element_from_vector(nrm_control_output_t, outputs, i,
+		                            out);
 		nrmd_actuate(self, out->actuator_uuid, out->value);
 	}
 	return 0;
