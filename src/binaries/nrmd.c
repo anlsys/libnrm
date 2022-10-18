@@ -617,8 +617,8 @@ start:
 	nrm_log_debug("Loop destroyed\n");
 
 	/* teardown NRM */
-	nrm_eventbase_destroy(my_daemon.events);
-	nrm_state_destroy(my_daemon.state);
+	nrm_eventbase_destroy(&my_daemon.events);
+	nrm_state_destroy(&my_daemon.state);
 	nrm_role_destroy(&controller);
 
 	exit(EXIT_SUCCESS);

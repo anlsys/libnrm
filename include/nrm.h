@@ -204,6 +204,8 @@ typedef struct nrm_state_s nrm_state_t;
 
 nrm_state_t *nrm_state_create(void);
 
+void nrm_state_destroy(nrm_state_t **);
+
 /*******************************************************************************
  * EventBase: a timeseries in-memory database
  ******************************************************************************/
