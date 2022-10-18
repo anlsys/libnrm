@@ -12,6 +12,7 @@
 
 #include "nrm.h"
 #include <getopt.h>
+#include <sys/signalfd.h>
 
 #include "internal/nrmi.h"
 
@@ -25,6 +26,7 @@ struct nrm_daemon_s {
 	nrm_control_t *control;
 };
 
+int signo;
 struct nrm_daemon_s my_daemon;
 
 nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
@@ -465,6 +467,18 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	return 0;
 }
 
+/* most logic from https://gist.github.com/mhaberler/8426050 */
+static int
+nrmd_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
+{
+	struct signalfd_siginfo fdsi;
+	ssize_t s = read(poller->fd, &fdsi, sizeof(struct signalfd_siginfo));
+	assert(s == sizeof(struct signalfd_siginfo));
+	signo = fdsi.ssi_signo;
+	nrm_log_debug("Caught SIGINT\n");
+	return -1;
+}
+
 static int ask_help = 0;
 static int ask_version = 0;
 
@@ -494,7 +508,7 @@ void print_version()
 
 int main(int argc, char *argv[])
 {
-	int c;
+	int c, sfd, retval;
 	int option_index = 0;
 
 	while (1) {
@@ -573,13 +587,39 @@ start:
 	zloop_t *loop = zloop_new();
 	assert(loop != NULL);
 
+	/* prepare set of signal handlers for zloop */
+	sigset_t sigmask;
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGINT);
+	// sigaddset(&sigmask, SIGKILL); // SIGKILL is ignored by signalfd
+
+	sfd = signalfd(-1, &sigmask, 0);
+	assert(sfd != -1);
+
+	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN};
+
 	nrm_role_controller_register_recvcallback(
 	        controller, loop, nrmd_shim_controller_read_callback,
 	        controller);
 
 	/* add a periodic wake up to generate metrics */
 	zloop_timer(loop, 1000, 0, nrmd_timer_callback, controller);
-	zloop_start(loop);
+	/* register signal handler callback */
+	zloop_poller(loop, &signal_poller, nrmd_signal_callback, NULL);
 
-	return 0;
+	/* start loop, returns when context terminated,
+	process interrupted, or event handler returns -1 */
+	retval = zloop_start(loop);
+
+	/* teardown zloop */
+	zloop_destroy(&loop);
+	assert(loop == NULL);
+	nrm_log_debug("Loop destroyed\n");
+
+	/* teardown NRM */
+	nrm_eventbase_destroy(&my_daemon.events);
+	nrm_state_destroy(&my_daemon.state);
+	nrm_role_destroy(&controller);
+
+	exit(EXIT_SUCCESS);
 }
