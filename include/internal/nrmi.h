@@ -102,7 +102,7 @@ json_t *nrm_sensor_to_json(nrm_sensor_t *);
 json_t *nrm_slice_to_json(nrm_slice_t *);
 json_t *nrm_time_to_json(nrm_time_t *);
 
-int nrm_scope_hwloc_scopes(nrm_vector_t *scopes);
+int nrm_scope_hwloc_scopes(nrm_hash_t **tmp_scopes);
 
 #ifdef __cplusplus
 }

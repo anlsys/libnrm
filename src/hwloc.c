@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
+int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 {
 	int depth_of_machine;
 	int depth_of_osdev;
@@ -58,7 +58,8 @@ int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
 			hwloc_bitmap_foreach_begin(bit, object->cpuset)
 			        nrm_scope_add(this_scope, 0, bit);
 			hwloc_bitmap_foreach_end();
-			nrm_vector_push_back(hwloc_scopes, this_scope);
+			nrm_hash_add(scopes, nrm_scope_get_uuid(this_scope),
+			             this_scope);
 		}
 	}
 
@@ -79,7 +80,8 @@ int nrm_scope_hwloc_scopes(nrm_vector_t *hwloc_scopes)
 			this_scope = nrm_scope_create(scope_name);
 			nrm_scope_add(this_scope, 2, counter);
 			counter++;
-			nrm_vector_push_back(hwloc_scopes, this_scope);
+			nrm_hash_add(scopes, nrm_scope_get_uuid(this_scope),
+			             this_scope);
 		}
 	}
 	hwloc_topology_destroy(topology);

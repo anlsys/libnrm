@@ -17,12 +17,12 @@ int main(void)
 
 	nrm_hash_t *hash_table = NULL;
 
-	nrm_hash_add(&hash_table, "first");
-	nrm_hash_add(&hash_table, "second");
-	nrm_hash_add(&hash_table, "third");
-	nrm_hash_add(&hash_table, "a");
-	nrm_hash_add(&hash_table, "b");
-	nrm_hash_add(&hash_table, "c");
+	nrm_hash_add(&hash_table, "first", NULL);
+	nrm_hash_add(&hash_table, "second", NULL);
+	nrm_hash_add(&hash_table, "third", NULL);
+	nrm_hash_add(&hash_table, "a", NULL);
+	nrm_hash_add(&hash_table, "b", NULL);
+	nrm_hash_add(&hash_table, "c", NULL);
 
 	size_t **len;
 	nrm_hash_size(hash_table, &len);
@@ -31,7 +31,7 @@ int main(void)
 	nrm_hash_t *wanted = NULL;
 
 	printf("Searching for `second` element\n");
-	nrm_hash_find(hash_table, &wanted, "second", NULL);
+	nrm_hash_find(hash_table, &wanted, "second");
 	nrm_hash_print_uuid(wanted);
 
 	nrm_hash_iterator_t *iter = NULL;

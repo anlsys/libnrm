@@ -45,23 +45,33 @@ typedef struct nrm_hash_iterator_s nrm_hash_iterator_t;
 int nrm_hash_create_element(nrm_hash_t **element);
 
 /**
- * Print the UUID for a given hash table element.
+ * Get the UUID for a given hash table element.
  *
  * @param[in] element: an initialized element of hash structure.
- * @return NRM_SUCCESS on success.
+ * @return the UUID of the element.
  * @return NRM_EINVAL on failure, i.e. `element` is NULL.
  **/
-int nrm_hash_print_uuid(nrm_hash_t *element);
+void *nrm_hash_get_uuid(nrm_hash_t *element);
+
+/**
+ * Get the pointer content of a given hash table element.
+ *
+ * @param[in] element: an initialized element of hash structure.
+ * @return the pointer content of the element.
+ * @return NRM_EINVAL on failure, i.e. `element` is NULL.
+ **/
+void *nrm_hash_get_ptr(nrm_hash_t *element);
 
 /**
  * Add an element to a hash table using the UUID.
  *
  * @param[in] hash_table: an initialized hash structure.
  * @param[in] uuid: the UUID of the new element to add.
+ * @param[in] ptr: the pointer for the content of the new element to add.
  * @return NRM_SUCCESS on success.
  * @return NRM_ENOMEM on failure.
  **/
-int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t *uuid);
+int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t *uuid, void *ptr);
 
 /**
  * Delete an element from a hash table.
@@ -89,15 +99,14 @@ int nrm_hash_delete_table(nrm_hash_t **hash_table);
  * @param[in] hash_table: an initialized hash structure.
  * @param[in] element: an initialized element of hash structure.
  * @param[in] uuid: the UUID of the element to find.
- * @param[in] ptr: the pointer to the content of the element to find.
+ * @param[out] element: the element found in `hash_table`.
  * @return NRM_SUCCESS on success.
  * @return NRM_EINVAL on failure, i.e. `hash_table` or `uuid` and `ptr` are
  *NULL.
  **/
 int nrm_hash_find(nrm_hash_t *hash_table,
                   nrm_hash_t **element,
-                  nrm_string_t *uuid,
-                  void **ptr);
+                  nrm_string_t *uuid);
 
 /**
  * Get the number of elements in a hash table.
@@ -109,6 +118,15 @@ int nrm_hash_find(nrm_hash_t *hash_table,
  * @return NRM_EINVAL on failure, i.e. `hash_table` is NULL.
  **/
 int nrm_hash_size(nrm_hash_t *hash_table, size_t **len);
+
+/**
+ * Copy the content of a hash table inside another one.
+ *
+ * @param[in] hash_table: an initialized empty hash structure.
+ * @param[in] tmp_table: an initialized hash structure.
+ * @return NRM_SUCCESS on success.
+ **/
+int nrm_hash_cpy(nrm_hash_t **hash_table, nrm_hash_t *tmp_table);
 
 /**
  * Creates an iterator object of struct nrm_hash_iterator_t.

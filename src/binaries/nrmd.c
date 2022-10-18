@@ -30,16 +30,7 @@ struct nrm_daemon_s my_daemon;
 nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
 {
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
-	size_t len;
-	nrm_vector_length(my_daemon.state->actuators, &len);
-	for (size_t i = 0; i < len; i++) {
-		nrm_actuator_t *s;
-		void *p;
-		nrm_vector_get(my_daemon.state->actuators, i, &p);
-		s = (nrm_actuator_t *)p;
-		if (!nrm_uuid_cmp(s->uuid, uuid))
-			nrm_vector_take(my_daemon.state->actuators, i, NULL);
-	}
+	nrm_hash_delete_element(my_daemon.state->actuators, uuid);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -48,16 +39,7 @@ nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
 nrm_msg_t *nrmd_daemon_remove_scope(nrm_msg_remove_t *msg)
 {
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
-	size_t len;
-	nrm_vector_length(my_daemon.state->scopes, &len);
-	for (size_t i = 0; i < len; i++) {
-		nrm_scope_t *s;
-		void *p;
-		nrm_vector_get(my_daemon.state->scopes, i, &p);
-		s = (nrm_scope_t *)p;
-		if (!nrm_string_cmp(s->uuid, uuid))
-			nrm_vector_take(my_daemon.state->scopes, i, NULL);
-	}
+	nrm_hash_delete_element(my_daemon.state->scopes, uuid);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -66,16 +48,7 @@ nrm_msg_t *nrmd_daemon_remove_scope(nrm_msg_remove_t *msg)
 nrm_msg_t *nrmd_daemon_remove_sensor(nrm_msg_remove_t *msg)
 {
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
-	size_t len;
-	nrm_vector_length(my_daemon.state->sensors, &len);
-	for (size_t i = 0; i < len; i++) {
-		nrm_sensor_t *s;
-		void *p;
-		nrm_vector_get(my_daemon.state->sensors, i, &p);
-		s = (nrm_sensor_t *)p;
-		if (!nrm_string_cmp(s->uuid, uuid))
-			nrm_vector_take(my_daemon.state->sensors, i, NULL);
-	}
+	nrm_hash_delete_element(my_daemon.state->sensors, uuid);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -84,18 +57,7 @@ nrm_msg_t *nrmd_daemon_remove_sensor(nrm_msg_remove_t *msg)
 nrm_msg_t *nrmd_daemon_remove_slice(nrm_msg_remove_t *msg)
 {
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
-	size_t len;
-	nrm_vector_length(my_daemon.state->slices, &len);
-	for (size_t i = 0; i < len; i++) {
-		nrm_slice_t *s;
-		void *p;
-		nrm_vector_get(my_daemon.state->slices, i, &p);
-		s = (nrm_slice_t *)p;
-		if (!nrm_string_cmp(s->uuid, uuid)) {
-			nrm_vector_take(my_daemon.state->slices, i, NULL);
-			break;
-		}
-	}
+	nrm_hash_delete_element(my_daemon.state->slices, uuid);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -105,7 +67,21 @@ nrm_msg_t *nrmd_daemon_build_list_actuators()
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_actuators(ret, my_daemon.state->actuators);
+
+	nrm_vector_t *actuators_vector = NULL;
+	nrm_vector_create(&actuators_vector, sizeof(nrm_actuator_t));
+	nrm_hash_iterator_t *iter = NULL;
+	nrm_hash_t *tmp_hash_element = NULL;
+	nrm_hash_iterator_create(&iter);
+
+	nrm_hash_iter(my_daemon.state->actuators, iter, tmp_hash_element)
+	{
+		nrm_actuator_t *tmp_actuator =
+		        nrm_hash_get_ptr(tmp_hash_element);
+		nrm_vector_push_back(actuators_vector, tmp_actuator);
+	}
+
+	nrm_msg_set_list_actuators(ret, actuators_vector);
 	return ret;
 }
 
@@ -113,7 +89,20 @@ nrm_msg_t *nrmd_daemon_build_list_scopes()
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_scopes(ret, my_daemon.state->scopes);
+
+	nrm_vector_t *scopes_vector = NULL;
+	nrm_vector_create(&scopes_vector, sizeof(nrm_scope_t));
+	nrm_hash_iterator_t *iter = NULL;
+	nrm_hash_t *tmp_hash_element = NULL;
+	nrm_hash_iterator_create(&iter);
+
+	nrm_hash_iter(my_daemon.state->scopes, iter, tmp_hash_element)
+	{
+		nrm_actuator_t *tmp_scope = nrm_hash_get_ptr(tmp_hash_element);
+		nrm_vector_push_back(scopes_vector, tmp_scope);
+	}
+
+	nrm_msg_set_list_scopes(ret, scopes_vector);
 	return ret;
 }
 
@@ -121,7 +110,20 @@ nrm_msg_t *nrmd_daemon_build_list_sensors()
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_sensors(ret, my_daemon.state->sensors);
+
+	nrm_vector_t *sensors_vector = NULL;
+	nrm_vector_create(&sensors_vector, sizeof(nrm_sensor_t));
+	nrm_hash_iterator_t *iter = NULL;
+	nrm_hash_t *tmp_hash_element = NULL;
+	nrm_hash_iterator_create(&iter);
+
+	nrm_hash_iter(my_daemon.state->sensors, iter, tmp_hash_element)
+	{
+		nrm_actuator_t *tmp_sensor = nrm_hash_get_ptr(tmp_hash_element);
+		nrm_vector_push_back(sensors_vector, tmp_sensor);
+	}
+
+	nrm_msg_set_list_sensors(ret, sensors_vector);
 	return ret;
 }
 
@@ -129,7 +131,20 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);
-	nrm_msg_set_list_slices(ret, my_daemon.state->slices);
+
+	nrm_vector_t *slices_vector = NULL;
+	nrm_vector_create(&slices_vector, sizeof(nrm_slice_t));
+	nrm_hash_iterator_t *iter = NULL;
+	nrm_hash_t *tmp_hash_element = NULL;
+	nrm_hash_iterator_create(&iter);
+
+	nrm_hash_iter(my_daemon.state->slices, iter, tmp_hash_element)
+	{
+		nrm_actuator_t *tmp_slice = nrm_hash_get_ptr(tmp_hash_element);
+		nrm_vector_push_back(slices_vector, tmp_slice);
+	}
+
+	nrm_msg_set_list_slices(ret, slices_vector);
 	return ret;
 }
 
@@ -140,7 +155,9 @@ nrm_msg_t *nrmd_daemon_add_actuator(nrm_uuid_t *clientid,
 	newactuator->uuid = nrm_uuid_create();
 	newactuator->clientid =
 	        nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
-	nrm_vector_push_back(my_daemon.state->actuators, newactuator);
+
+	nrm_hash_add(my_daemon.state->actuators, newactuator->uuid,
+	             newactuator);
 
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
@@ -151,7 +168,8 @@ nrm_msg_t *nrmd_daemon_add_actuator(nrm_uuid_t *clientid,
 nrm_msg_t *nrmd_daemon_add_scope(nrm_msg_scope_t *scope)
 {
 	nrm_scope_t *newscope = nrm_scope_create_frommsg(scope);
-	nrm_vector_push_back(my_daemon.state->scopes, newscope);
+
+	nrm_hash_add(my_daemon.state->scopes, newscope->uuid, newscope);
 
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
@@ -162,7 +180,8 @@ nrm_msg_t *nrmd_daemon_add_scope(nrm_msg_scope_t *scope)
 nrm_msg_t *nrmd_daemon_add_sensor(const char *name)
 {
 	nrm_sensor_t *newsensor = nrm_sensor_create(name);
-	nrm_vector_push_back(my_daemon.state->sensors, newsensor);
+
+	nrm_hash_add(my_daemon.state->sensors, newsensor->uuid, newsensor);
 
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
@@ -173,7 +192,8 @@ nrm_msg_t *nrmd_daemon_add_sensor(const char *name)
 nrm_msg_t *nrmd_daemon_add_slice(const char *name)
 {
 	nrm_slice_t *newslice = nrm_slice_create(name);
-	nrm_vector_push_back(my_daemon.state->slices, newslice);
+
+	nrm_hash_add(my_daemon.state->slices, newslice->uuid, newslice);
 
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
@@ -287,24 +307,19 @@ int nrmd_handle_event_request(nrm_msg_event_t *msg)
 nrm_msg_t *nrmd_handle_actuate_request(nrm_role_t *role, nrm_msg_actuate_t *msg)
 {
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
-	size_t len;
-	nrm_vector_length(my_daemon.state->actuators, &len);
-	for (size_t i = 0; i < len; i++) {
-		void *p;
-		nrm_actuator_t *a;
-		nrm_vector_get(my_daemon.state->actuators, i, &p);
-		a = (nrm_actuator_t *)p;
-		if (!nrm_uuid_cmp(*a->uuid, *uuid)) {
-			/* found the actuator */
-			nrm_log_debug("actuating %s: %f\n", *a->uuid,
-			              msg->value);
-			nrm_msg_t *action = nrm_msg_create();
-			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
-			nrm_msg_set_actuate(action, a->uuid, msg->value);
-			nrm_role_send(role, action, a->clientid);
-			break;
-		}
+	nrm_actuator_t *a;
+	nrm_hash_t *tmp_actuator = NULL;
+	nrm_hash_find(my_daemon.state->actuators, &tmp_actuator, uuid);
+	if (tmp_actuator != NULL) {
+		/* found the actuator */
+		a = nrm_hash_get_ptr(tmp_actuator);
+		nrm_log_debug("actuating %s: %f\n", *a->uuid, msg->value);
+		nrm_msg_t *action = nrm_msg_create();
+		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
+		nrm_msg_set_actuate(action, a->uuid, msg->value);
+		nrm_role_send(role, action, a->clientid);
 	}
+
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -351,42 +366,32 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 	return 0;
 }
 
-double nrmd_actuator_value(nrm_string_t uuid, nrm_vector_t *vec)
+double nrmd_actuator_value(nrm_string_t uuid)
 {
-	size_t size;
-	nrm_vector_length(vec, &size);
-	for (size_t i = 0; i < size; i++) {
-		void *p;
-		nrm_actuator_t *a;
-		nrm_vector_get(vec, i, &p);
-		a = (nrm_actuator_t *)p;
-		if (!nrm_string_cmp(a->uuid, uuid))
-			return a->value;
+	nrm_actuator_t *a;
+	nrm_hash_t *tmp_actuator = NULL;
+	nrm_hash_find(my_daemon.state->actuators, tmp_actuator, uuid);
+	if (tmp_actuator != NULL) {
+		/* found the actuator */
+		a = nrm_hash_get_ptr(tmp_actuator);
+		return a->value;
 	}
 	return 0.0;
 }
 
-int nrmd_actuate(nrm_role_t *role,
-                 nrm_string_t uuid,
-                 double value,
-                 nrm_vector_t *vec)
+int nrmd_actuate(nrm_role_t *role, nrm_string_t uuid, double value)
 {
-	size_t len;
-	nrm_vector_length(vec, &len);
-	for (size_t i = 0; i < len; i++) {
-		void *p;
-		nrm_actuator_t *a;
-		nrm_vector_get(my_daemon.state->actuators, i, &p);
-		a = (nrm_actuator_t *)p;
-		if (!nrm_string_cmp(a->uuid, uuid)) {
-			/* found the actuator */
-			nrm_log_debug("actuating %s: %f\n", a->uuid, value);
-			nrm_msg_t *action = nrm_msg_create();
-			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
-			nrm_msg_set_actuate(action, a->uuid, value);
-			nrm_role_send(role, action, a->clientid);
-			break;
-		}
+	nrm_actuator_t *a;
+	nrm_hash_t *tmp_actuator = NULL;
+	nrm_hash_find(my_daemon.state->actuators, tmp_actuator, uuid);
+	if (tmp_actuator != NULL) {
+		/* found the actuator */
+		a = nrm_hash_get_ptr(tmp_actuator);
+		nrm_log_debug("actuating %s: %f\n", a->uuid, value);
+		nrm_msg_t *action = nrm_msg_create();
+		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
+		nrm_msg_set_actuate(action, a->uuid, value);
+		nrm_role_send(role, action, a->clientid);
 	}
 	return 0;
 }
@@ -445,8 +450,7 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 		nrm_control_output_t *out;
 		nrm_vector_get(outputs, i, &p);
 		out = (nrm_control_output_t *)p;
-		out->value = nrmd_actuator_value(out->actuator_uuid,
-		                                 my_daemon.state->actuators);
+		out->value = nrmd_actuator_value(out->actuator_uuid);
 	}
 	/* launch control: fill inputs and outputs first */
 	nrm_log_debug("control action\n");
@@ -459,8 +463,7 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 		nrm_control_output_t *out;
 		nrm_vector_get(outputs, i, &p);
 		out = (nrm_control_output_t *)p;
-		nrmd_actuate(self, out->actuator_uuid, out->value,
-		             my_daemon.state->actuators);
+		nrmd_actuate(self, out->actuator_uuid, out->value);
 	}
 	return 0;
 }
@@ -541,7 +544,7 @@ int main(int argc, char *argv[])
 	/* init state */
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(5);
-	nrm_scope_hwloc_scopes(my_daemon.state->scopes);
+	nrm_scope_hwloc_scopes(&my_daemon.state->scopes);
 
 	/* configuration */
 	if (argc == 0) {

@@ -26,7 +26,6 @@ int nrm_hash_create_element(nrm_hash_t **element)
 {
 	nrm_hash_t *tmp_element = (nrm_hash_t *)malloc(sizeof(nrm_hash_t));
 	tmp_element->uuid = malloc(sizeof(nrm_string_t *));
-	;
 	tmp_element->ptr = malloc(sizeof(void *));
 	if (tmp_element == NULL)
 		return -NRM_ENOMEM;
@@ -34,21 +33,29 @@ int nrm_hash_create_element(nrm_hash_t **element)
 	return NRM_SUCCESS;
 }
 
-int nrm_hash_print_uuid(nrm_hash_t *element)
+void *nrm_hash_get_uuid(nrm_hash_t *element)
 {
 	if (element == NULL)
 		return -NRM_EINVAL;
-	printf("UUID: %s\n", element->uuid);
-	return NRM_SUCCESS;
+	return element->uuid;
 }
 
-int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t *uuid)
+void *nrm_hash_get_ptr(nrm_hash_t *element)
+{
+	if (element == NULL)
+		return -NRM_EINVAL;
+	return element->ptr;
+}
+
+int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t *uuid, void *ptr)
 {
 	nrm_hash_t *local = NULL;
 	int ret = nrm_hash_create_element(&local);
+	if (ret != NRM_SUCCESS)
+		return -NRM_ENOMEM;
 	local->uuid = uuid;
-	local->ptr = NULL;
-	HASH_ADD(hh, *hash_table, uuid, sizeof(uuid), local);
+	local->ptr = ptr;
+	HASH_ADD(hh, (*hash_table), uuid, sizeof(uuid), local);
 	return NRM_SUCCESS;
 }
 
@@ -57,11 +64,9 @@ int nrm_hash_delete_element(nrm_hash_t **hash_table, nrm_string_t *uuid)
 	if (*hash_table == NULL || uuid == NULL)
 		return -NRM_EINVAL;
 	nrm_hash_t *tmp;
-	HASH_FIND(hh, (*hash_table), &uuid, sizeof(&uuid), tmp);
+	HASH_FIND(hh, (*hash_table), &uuid, sizeof(uuid), tmp);
 	if (tmp == NULL)
 		return -NRM_EINVAL;
-	else
-		printf("found\n");
 	HASH_DEL(*hash_table, tmp);
 	free(tmp);
 	return NRM_SUCCESS;
@@ -84,20 +89,12 @@ int nrm_hash_delete_table(nrm_hash_t **hash_table)
 
 int nrm_hash_find(nrm_hash_t *hash_table,
                   nrm_hash_t **element,
-                  nrm_string_t *uuid_key,
-                  void **ptr)
+                  nrm_string_t *uuid_key)
 {
-	if (hash_table == NULL)
-		return -NRM_EINVAL;
-	if (uuid_key == NULL && ptr == NULL)
+	if (hash_table == NULL || uuid_key == NULL)
 		return -NRM_EINVAL;
 	nrm_hash_t *tmp = NULL;
-	if (ptr == NULL)
-		HASH_FIND(hh, hash_table, &uuid_key, sizeof(&uuid_key), tmp);
-	else if (uuid_key == NULL)
-		HASH_FIND(hh, hash_table, &ptr, sizeof(&ptr), tmp);
-	else
-		HASH_FIND(hh, hash_table, &uuid_key, sizeof(&uuid_key), tmp);
+	HASH_FIND(hh, hash_table, &uuid_key, sizeof(uuid_key), tmp);
 	if (tmp == NULL)
 		return -NRM_ENOMEM;
 	*element = tmp;
@@ -109,6 +106,19 @@ int nrm_hash_size(nrm_hash_t *hash_table, size_t **len)
 	if (hash_table == NULL)
 		return -NRM_EINVAL;
 	*len = HASH_COUNT(hash_table);
+	return NRM_SUCCESS;
+}
+
+int nrm_hash_cpy(nrm_hash_t **hash_table, nrm_hash_t *tmp_table)
+{
+	nrm_hash_iterator_t *iter = NULL;
+	nrm_hash_iterator_create(&iter);
+	nrm_hash_t *tmp = NULL;
+	assert(tmp_table != NULL);
+	nrm_hash_iter(tmp_table, iter, tmp)
+	{
+		nrm_hash_add(hash_table, tmp->uuid, tmp->ptr);
+	}
 	return NRM_SUCCESS;
 }
 
