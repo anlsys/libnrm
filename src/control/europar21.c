@@ -136,21 +136,26 @@ int nrm_control_europar21_action(nrm_control_t *control,
 	nrm_control_europar21_data_t *data;
 	data = (nrm_control_europar21_data_t *)control->data;
 
-	nrm_get_element_from_vector(nrm_control_input_t, inputs, 0, in);
+	{
+		nrm_get_element_from_vector(nrm_control_input_t, inputs, 0, in);
+	}
 	if (in == NULL)
 		return -NRM_EINVAL;
 
 	prog = in->value;
-	nrm_get_element_from_vector(nrm_control_input_t, inputs, 1, in);
+	{
+		nrm_get_element_from_vector(nrm_control_input_t, inputs, 1, in);
+	}
 	if (in == NULL)
 		return -NRM_EINVAL;
 	pow = in->value;
-	nrm_get_element_from_vector(nrm_control_output_t, outputs, 0,
-	                            in); // FIXME: see the 2 commented lines
-	                                 // below: casting 'nrm_control_input_t'
-	                                 // on 'out'
-	                                 //  which is defined line 134 as
-	                                 //  'nrm_control_output_t': typo?
+	{
+		nrm_get_element_from_vector(nrm_control_output_t, outputs, 0,
+		                            in);
+	}
+	// FIXME: see the 2 commented lines below: casting 'nrm_control_input_t'
+	// on 'out'
+	//  which is defined line 134 as 'nrm_control_output_t': typo?
 	// nrm_vector_get(outputs, 0, &p);
 	// out = (nrm_control_input_t *)p;
 	if (out == NULL)
