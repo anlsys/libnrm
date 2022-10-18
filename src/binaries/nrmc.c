@@ -10,13 +10,13 @@
 
 #include "config.h"
 
+// clang-format off
 #include "nrm.h"
 #include <getopt.h>
-
-#include "internal/nrmi.h"
-
 #include "internal/messages.h"
+#include "internal/nrmi.h"
 #include "internal/roles.h"
+// clang-format on
 
 static int ask_help = 0;
 static int ask_version = 0;

@@ -10,12 +10,12 @@
 
 #include "config.h"
 
-#include "nrm.h"
 #include <assert.h>
-
-#include "internal/nrmi.h"
-
+// clang-format off
+#include "nrm.h"
 #include "internal/messages.h"
+#include "internal/nrmi.h"
+// clang-format on
 
 /*******************************************************************************
  * Protobuf Management: Creating Messages
