@@ -204,5 +204,14 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	nrm_eventbase_t *s = *eventbase;
 	(void)s;
 	/* TODO: iterate over the hash and destroy sub structures. */
+	/* del eventbase->maxperiods
+	   iterate over eventbase->hash
+			del hash->uuid
+			iterate over hash->list
+				del list->scope
+				del list->past
+				del list->events
+				
+
 	*eventbase = NULL;
 }

@@ -247,7 +247,7 @@ int nrm_client_find(const nrm_client_t *client,
 
 		for (size_t i = 0; i < msg->list->actuators->n_actuators; i++) {
 			if (uuid != NULL &&
-			    strcmp(*uuid,
+			    strcmp(uuid,
 			           msg->list->actuators->actuators[i]->uuid))
 				continue;
 			nrm_actuator_t *s = nrm_actuator_create_frommsg(
