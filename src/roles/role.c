@@ -11,6 +11,7 @@
 #include "nrm.h"
 
 #include "internal/nrmi.h"
+
 #include "internal/roles.h"
 
 int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg, nrm_uuid_t *to)
