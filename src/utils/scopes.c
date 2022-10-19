@@ -85,7 +85,7 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *s)
 	return 0;
 }
 
-void *nrm_scope_get_uuid(nrm_scope_t *scope)
+nrm_string_t nrm_scope_uuid(nrm_scope_t *scope)
 {
 	if (scope == NULL)
 		return NRM_FAILURE;

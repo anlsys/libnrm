@@ -38,7 +38,7 @@ int main(void)
 	nrm_hash_iterator_create(&iter);
 	nrm_hash_t *tmp = NULL;
 	printf("##############################################\n");
-	nrm_hash_iter(hash_table, iter, tmp)
+	nrm_hash_iter(hash_table, iter, void)
 	{
 		nrm_hash_print_uuid(tmp);
 	}
@@ -48,7 +48,7 @@ int main(void)
 	nrm_hash_size(hash_table, &len);
 	printf("Hash table new size: %zu\n", len);
 
-	nrm_hash_iter(hash_table, iter, tmp)
+	nrm_hash_iter(hash_table, iter, void)
 	{
 		nrm_hash_print_uuid(tmp);
 	}

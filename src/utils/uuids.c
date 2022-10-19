@@ -10,12 +10,11 @@
 
 #include "config.h"
 
+#include "nrm.h"
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "nrm.h"
 
 #include "internal/nrmi.h"
 
@@ -43,13 +42,13 @@ void nrm_uuid_destroy(nrm_uuid_t **uuid)
 	*uuid = NULL;
 }
 
-nrm_uuid_t *nrm_uuid_create_fromchar(char *s)
+nrm_string_t nrm_uuid_create_fromchar(char *s)
 {
-	nrm_uuid_t *ret;
+	nrm_string_t ret;
 	ret = calloc(1, sizeof(nrm_uuid_t));
 	if (ret == NULL)
 		return NULL;
-	*ret = nrm_string_fromchar(s);
+	ret = nrm_string_fromchar(s);
 	return ret;
 }
 

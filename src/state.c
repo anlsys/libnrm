@@ -29,9 +29,24 @@ void nrm_state_destroy(nrm_state_t **state)
 	if (state == NULL || *state == NULL)
 		return;
 	nrm_state_t *s = *state;
-	nrm_vector_destroy(&s->actuators);
-	nrm_vector_destroy(&s->slices);
-	nrm_vector_destroy(&s->sensors);
-	nrm_vector_destroy(&s->scopes);
+	nrm_hash_iterator_t *iter = NULL;
+	nrm_hash_iterator_create(&iter);
+	nrm_hash_t *array_of_hashes[4] = {s->actuators, s->slices, s->sensors,
+	                                  s->scopes};
+	for (int i = 0; i < 4; i++) {
+		nrm_hash_iter(array_of_hashes[i], iter, nrm_actuator_t)
+		{
+			nrm_string_t uuid = nrm_hash_iterator_get_uuid(iter);
+			nrm_actuator_t *ptr = nrm_hash_iterator_get(iter);
+			nrm_hash_remove(&array_of_hashes[i], uuid,
+			                (void *)&ptr);
+		}
+		nrm_hash_destroy(&array_of_hashes[i]);
+	}
+
+	// nrm_hash_destroy(&s->actuators);
+	// nrm_hash_destroy(&s->slices);
+	// nrm_hash_destroy(&s->sensors);
+	// nrm_hash_destroy(&s->scopes);
 	*state = NULL;
 }

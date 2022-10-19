@@ -29,8 +29,10 @@ struct nrm_daemon_s my_daemon;
 
 nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
 {
-	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
-	nrm_hash_delete_element(my_daemon.state->actuators, uuid);
+	nrm_string_t uuid = nrm_uuid_create_fromchar(msg->uuid);
+	nrm_actuator_t *actuator = NULL;
+	nrm_hash_remove(&my_daemon.state->actuators, uuid, (void *)&actuator);
+	nrm_actuator_destroy(&actuator);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -39,7 +41,9 @@ nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
 nrm_msg_t *nrmd_daemon_remove_scope(nrm_msg_remove_t *msg)
 {
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
-	nrm_hash_delete_element(my_daemon.state->scopes, uuid);
+	nrm_scope_t *scope = NULL;
+	nrm_hash_remove(&my_daemon.state->scopes, uuid, (void *)&scope);
+	nrm_scope_destroy(scope);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -48,7 +52,9 @@ nrm_msg_t *nrmd_daemon_remove_scope(nrm_msg_remove_t *msg)
 nrm_msg_t *nrmd_daemon_remove_sensor(nrm_msg_remove_t *msg)
 {
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
-	nrm_hash_delete_element(my_daemon.state->sensors, uuid);
+	nrm_sensor_t *sensor = NULL;
+	nrm_hash_remove(&my_daemon.state->sensors, uuid, (void *)&sensor);
+	nrm_sensor_destroy(&sensor);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -57,7 +63,9 @@ nrm_msg_t *nrmd_daemon_remove_sensor(nrm_msg_remove_t *msg)
 nrm_msg_t *nrmd_daemon_remove_slice(nrm_msg_remove_t *msg)
 {
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
-	nrm_hash_delete_element(my_daemon.state->slices, uuid);
+	nrm_slice_t *slice = NULL;
+	nrm_hash_remove(&my_daemon.state->slices, uuid, (void *)&slice);
+	nrm_slice_destroy(&slice);
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
 	return ret;
@@ -74,10 +82,11 @@ nrm_msg_t *nrmd_daemon_build_list_actuators()
 	nrm_hash_t *tmp_hash_element = NULL;
 	nrm_hash_iterator_create(&iter);
 
-	nrm_hash_iter(my_daemon.state->actuators, iter, tmp_hash_element)
+	nrm_hash_iter(my_daemon.state->actuators, iter, nrm_actuator_t)
 	{
-		nrm_actuator_t *tmp_actuator =
-		        nrm_hash_get_ptr(tmp_hash_element);
+		nrm_string_t uuid = nrm_hash_iterator_get_uuid(iter);
+		nrm_actuator_t *tmp_actuator = nrm_hash_find(
+		        my_daemon.state->actuators, &tmp_hash_element, uuid);
 		nrm_vector_push_back(actuators_vector, tmp_actuator);
 	}
 
@@ -96,9 +105,11 @@ nrm_msg_t *nrmd_daemon_build_list_scopes()
 	nrm_hash_t *tmp_hash_element = NULL;
 	nrm_hash_iterator_create(&iter);
 
-	nrm_hash_iter(my_daemon.state->scopes, iter, tmp_hash_element)
+	nrm_hash_iter(my_daemon.state->scopes, iter, nrm_scope_t)
 	{
-		nrm_actuator_t *tmp_scope = nrm_hash_get_ptr(tmp_hash_element);
+		nrm_string_t uuid = nrm_hash_iterator_get_uuid(iter);
+		nrm_scope_t *tmp_scope = nrm_hash_find(my_daemon.state->scopes,
+		                                       &tmp_hash_element, uuid);
 		nrm_vector_push_back(scopes_vector, tmp_scope);
 	}
 
@@ -117,9 +128,11 @@ nrm_msg_t *nrmd_daemon_build_list_sensors()
 	nrm_hash_t *tmp_hash_element = NULL;
 	nrm_hash_iterator_create(&iter);
 
-	nrm_hash_iter(my_daemon.state->sensors, iter, tmp_hash_element)
+	nrm_hash_iter(my_daemon.state->sensors, iter, nrm_sensor_t)
 	{
-		nrm_actuator_t *tmp_sensor = nrm_hash_get_ptr(tmp_hash_element);
+		nrm_string_t uuid = nrm_hash_iterator_get_uuid(iter);
+		nrm_sensor_t *tmp_sensor = nrm_hash_find(
+		        my_daemon.state->sensors, &tmp_hash_element, uuid);
 		nrm_vector_push_back(sensors_vector, tmp_sensor);
 	}
 
@@ -138,9 +151,11 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	nrm_hash_t *tmp_hash_element = NULL;
 	nrm_hash_iterator_create(&iter);
 
-	nrm_hash_iter(my_daemon.state->slices, iter, tmp_hash_element)
+	nrm_hash_iter(my_daemon.state->slices, iter, nrm_slice_t)
 	{
-		nrm_actuator_t *tmp_slice = nrm_hash_get_ptr(tmp_hash_element);
+		nrm_string_t uuid = nrm_hash_iterator_get_uuid(iter);
+		nrm_slice_t *tmp_slice = nrm_hash_find(my_daemon.state->slices,
+		                                       &tmp_hash_element, uuid);
 		nrm_vector_push_back(slices_vector, tmp_slice);
 	}
 
@@ -152,11 +167,10 @@ nrm_msg_t *nrmd_daemon_add_actuator(nrm_uuid_t *clientid,
                                     nrm_msg_actuator_t *actuator)
 {
 	nrm_actuator_t *newactuator = nrm_actuator_create_frommsg(actuator);
-	newactuator->uuid = nrm_uuid_create();
 	newactuator->clientid =
 	        nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
 
-	nrm_hash_add(my_daemon.state->actuators, newactuator->uuid,
+	nrm_hash_add(&my_daemon.state->actuators, newactuator->uuid,
 	             newactuator);
 
 	nrm_msg_t *ret = nrm_msg_create();
@@ -169,7 +183,7 @@ nrm_msg_t *nrmd_daemon_add_scope(nrm_msg_scope_t *scope)
 {
 	nrm_scope_t *newscope = nrm_scope_create_frommsg(scope);
 
-	nrm_hash_add(my_daemon.state->scopes, newscope->uuid, newscope);
+	nrm_hash_add(&my_daemon.state->scopes, newscope->uuid, newscope);
 
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
@@ -181,7 +195,7 @@ nrm_msg_t *nrmd_daemon_add_sensor(const char *name)
 {
 	nrm_sensor_t *newsensor = nrm_sensor_create(name);
 
-	nrm_hash_add(my_daemon.state->sensors, newsensor->uuid, newsensor);
+	nrm_hash_add(&my_daemon.state->sensors, newsensor->uuid, newsensor);
 
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
@@ -193,7 +207,7 @@ nrm_msg_t *nrmd_daemon_add_slice(const char *name)
 {
 	nrm_slice_t *newslice = nrm_slice_create(name);
 
-	nrm_hash_add(my_daemon.state->slices, newslice->uuid, newslice);
+	nrm_hash_add(&my_daemon.state->slices, newslice->uuid, newslice);
 
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
@@ -306,13 +320,12 @@ int nrmd_handle_event_request(nrm_msg_event_t *msg)
 
 nrm_msg_t *nrmd_handle_actuate_request(nrm_role_t *role, nrm_msg_actuate_t *msg)
 {
-	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
-	nrm_actuator_t *a;
+	nrm_uuid_t uuid = nrm_uuid_create_fromchar(msg->uuid);
 	nrm_hash_t *tmp_actuator = NULL;
-	nrm_hash_find(my_daemon.state->actuators, &tmp_actuator, uuid);
+	nrm_actuator_t *a =
+	        nrm_hash_find(my_daemon.state->actuators, &tmp_actuator, uuid);
 	if (tmp_actuator != NULL) {
 		/* found the actuator */
-		a = nrm_hash_get_ptr(tmp_actuator);
 		nrm_log_debug("actuating %s: %f\n", *a->uuid, msg->value);
 		nrm_msg_t *action = nrm_msg_create();
 		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
@@ -368,12 +381,11 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 
 double nrmd_actuator_value(nrm_string_t uuid)
 {
-	nrm_actuator_t *a;
 	nrm_hash_t *tmp_actuator = NULL;
-	nrm_hash_find(my_daemon.state->actuators, tmp_actuator, uuid);
+	nrm_actuator_t *a =
+	        nrm_hash_find(my_daemon.state->actuators, &tmp_actuator, uuid);
 	if (tmp_actuator != NULL) {
 		/* found the actuator */
-		a = nrm_hash_get_ptr(tmp_actuator);
 		return a->value;
 	}
 	return 0.0;
@@ -381,12 +393,11 @@ double nrmd_actuator_value(nrm_string_t uuid)
 
 int nrmd_actuate(nrm_role_t *role, nrm_string_t uuid, double value)
 {
-	nrm_actuator_t *a;
 	nrm_hash_t *tmp_actuator = NULL;
-	nrm_hash_find(my_daemon.state->actuators, tmp_actuator, uuid);
+	nrm_actuator_t *a =
+	        nrm_hash_find(my_daemon.state->actuators, &tmp_actuator, uuid);
 	if (tmp_actuator != NULL) {
 		/* found the actuator */
-		a = nrm_hash_get_ptr(tmp_actuator);
 		nrm_log_debug("actuating %s: %f\n", a->uuid, value);
 		nrm_msg_t *action = nrm_msg_create();
 		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
@@ -545,6 +556,35 @@ int main(int argc, char *argv[])
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(5);
 	nrm_scope_hwloc_scopes(&my_daemon.state->scopes);
+
+	/************************TEMPORARY DEBUG START************************/
+
+	printf("\n");
+	nrm_hash_iterator_t *iter = NULL;
+	nrm_hash_iterator_create(&iter);
+	nrm_hash_t *el = NULL;
+
+	// nrm_scope_t *loc = nrm_hash_find(my_daemon.state->scopes, &el,
+	// "nrm.hwloc.PU.7"); assert(loc != NULL); nrm_string_t *tmp_uuid =
+	// nrm_scope_uuid(loc); printf("scope found: %s\n", tmp_uuid); void *ptr
+	// = NULL; nrm_hash_remove(&my_daemon.state->scopes, "nrm.hwloc.PU.7",
+	// &ptr);
+
+	size_t len;
+	nrm_hash_size(my_daemon.state->scopes, &len);
+	printf("There is %d elements in my_daemon.state->scopes\n", len);
+	nrm_hash_iter(my_daemon.state->scopes, iter, nrm_scope_t)
+	{
+		printf("UUID from iterator: %s, trying to find it using nrm_hash_find...\n",
+		       nrm_hash_iterator_get_uuid(iter));
+		nrm_scope_t *sc =
+		        nrm_hash_find(my_daemon.state->scopes, &el,
+		                      nrm_hash_iterator_get_uuid(iter));
+		printf("found %s\n", nrm_scope_uuid(sc));
+	}
+	exit(0);
+
+	/************************TEMPORARY DEBUG END************************/
 
 	/* configuration */
 	if (argc == 0) {
