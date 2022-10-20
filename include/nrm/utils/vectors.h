@@ -188,7 +188,7 @@ void nrm_vector_destroy(nrm_vector_t **vector);
 		void *__p;                                                     \
 		nrm_vector_get(vector, index, &__p);                           \
 		out = (type *)__p;                                             \
-	} while (0);
+	} while (0)
 /**
  * @}
  **/
