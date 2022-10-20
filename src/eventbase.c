@@ -49,7 +49,7 @@ typedef struct nrm_scope2ring_s {
 nrm_scope2ring_s *head = NULL;
 
 /* a way to hash a sensor uuid to a list of scope2ring struct. */
-struct nrm_sensor2scope_s {
+typedef struct nrm_sensor2scope_s {
 	nrm_string_t uuid;
 	struct nrm_scope2ring_s *list;
 	UT_hash_handle hh;
@@ -209,13 +209,13 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	/* is HASH_CLEAR((*eventbase)->hash->hh, (*eventbase)->hash) valid too?
 	 */
 	(*eventbase)->maxperiods = NULL;
-	UT_hash_handle curr_handle = (*eventbase)->hash->hh;
-	nrm_sensor2scope_s curr_hash = (*eventbase)->hash;
+	UT_hash_handle curr_handle = *eventbase->hash->hh;
+	nrm_sensor2scope_s curr_hash = *eventbase->hash;
 	HASH_ITER(curr_handle, curr_hash, current, s2stmp)
 	{
 		current->uuid = NULL;
 		struct nrm_scope2ring_s *elt, *s2rtmp;
-		DL_FOREACH_SAFE(current->hash->list, elt, s2rtmp)
+		DL_FOREACH_SAFE(current->list, elt, s2rtmp)
 		{
 			nrm_scope_destroy(elt->scope);
 			nrm_ringbuffer_destroy(&elt->past);
