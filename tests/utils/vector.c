@@ -21,15 +21,13 @@ START_TEST(test_basics)
 	nrm_string_t fortytwo = nrm_string_fromchar("fortytwo");
 	ck_assert_str_eq("fortytwo", fortytwo);
 
-	err = nrm_vector_push_back(vector, fortytwo);
+	err = nrm_vector_push_back(vector, &fortytwo);
 	ck_assert_int_eq(err, 0);
 	ck_assert_ptr_nonnull(vector);
 
-	void *ret = NULL;
 	size_t pos;
-	err = nrm_vector_find(vector, fortytwo, comp(), pos);
+	err = nrm_vector_find(vector, &fortytwo, nrm_string_cmp, &pos);
 	ck_assert_int_eq(err, 0);
-	ck_assert_ptr_eq(ret, &a);
 
 	size_t len;
 	err = nrm_vector_length(vector, &len);
@@ -51,23 +49,19 @@ START_TEST(test_iter)
 	nrm_string_t fortythree = nrm_string_fromchar("fortythree");
 	nrm_string_t fortyfour = nrm_string_fromchar("fortyfour");
 	ck_assert_str_eq("fortytwo", fortytwo);
-	err = nrm_vector_push_back(vector, fortytwo);
+	err = nrm_vector_push_back(vector, &fortytwo);
 	ck_assert_int_eq(err, 0);
-	err = nrm_vector_push_back(vector, fortythree);
+	err = nrm_vector_push_back(vector, &fortythree);
 	ck_assert_int_eq(err, 0);
-	err = nrm_vector_push_back(vector, fortyfour);
+	err = nrm_vector_push_back(vector, &fortyfour);
 	ck_assert_int_eq(err, 0);
 
+	nrm_string_t str;
 	nrm_vector_foreach(vector, iterator)
 	{
-		int *j = (int *)nrm_vector_iterator_get(iterator);
-		if (j != &a && j != &b && j != &c)
-			ck_abort();
-		*j = *j + 1;
+		str = nrm_vector_iterator_get(iterator);
 	}
-	ck_assert_int_eq(a, 43);
-	ck_assert_int_eq(b, 44);
-	ck_assert_int_eq(c, 45);
+	ck_assert_str_eq(str, fortyfour);
 
 	size_t len;
 	err = nrm_vector_length(vector, &len);
