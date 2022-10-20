@@ -130,26 +130,28 @@ int nrm_control_europar21_action(nrm_control_t *control,
                                  nrm_vector_t *inputs,
                                  nrm_vector_t *outputs)
 {
-	void *p;
 	nrm_control_input_t *in;
 	nrm_control_output_t *out;
 	double prog, pow, pcap;
 	nrm_control_europar21_data_t *data;
 	data = (nrm_control_europar21_data_t *)control->data;
-
-	nrm_vector_get(inputs, 0, &p);
-	in = (nrm_control_input_t *)p;
+	{
+		nrm_get_element_from_vector(nrm_control_input_t, inputs, 0, in);
+	}
 	if (in == NULL)
 		return -NRM_EINVAL;
 
 	prog = in->value;
-	nrm_vector_get(inputs, 1, &p);
-	in = (nrm_control_input_t *)p;
+	{
+		nrm_get_element_from_vector(nrm_control_input_t, inputs, 1, in);
+	}
 	if (in == NULL)
 		return -NRM_EINVAL;
 	pow = in->value;
-	nrm_vector_get(outputs, 0, &p);
-	out = (nrm_control_output_t *)p;
+	{
+		nrm_get_element_from_vector(nrm_control_output_t, outputs, 0,
+		                            out);
+	}
 	if (out == NULL)
 		return -NRM_EINVAL;
 	pcap = out->value;
