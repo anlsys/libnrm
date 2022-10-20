@@ -33,6 +33,8 @@ struct nrm_vector_s;
 
 typedef struct nrm_vector_s nrm_vector_t;
 
+typedef nrm_vector_t *nrm_vector_iterator_t;
+
 /**
  * Provides the number of elements in the vector.
  *
@@ -154,6 +156,13 @@ int nrm_vector_pop_back(nrm_vector_t *vector, void *out);
  **/
 int nrm_vector_take(nrm_vector_t *vector, const size_t position, void *out);
 
+/**
+ * Delete the elements contained in a vector structure.
+ *
+ * @param[in] vector: A pointer to an initialized vector structure.
+ * @return -NRM_EINVAL if `vector` or `out` are NULL.
+ * @return NRM_SUCCESS on success.
+ **/
 int nrm_vector_clear(const nrm_vector_t *vector);
 
 /**
@@ -189,6 +198,20 @@ void nrm_vector_destroy(nrm_vector_t **vector);
 		nrm_vector_get(vector, index, &__p);                           \
 		out = (type *)__p;                                             \
 	} while (0)
+
+nrm_vector_iterator_t nrm_vector_iterator_begin(nrm_vector_t *vector);
+
+nrm_vector_iterator_t nrm_vector_iterator_next(nrm_vector_t *vector,
+                                               nrm_vector_iterator_t iterator);
+
+void *nrm_vector_iterator_get(nrm_vector_iterator_t iterator);
+
+#define nrm_vector_foreach(vector, iterator)                                   \
+	for (nrm_vector_iterator_t iterator =                                  \
+	             nrm_vector_iterator_begin(vector);                        \
+	     iterator != NULL;                                                 \
+	     iterator = nrm_vector_iterator_next(vector, iterator))
+
 /**
  * @}
  **/

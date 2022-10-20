@@ -217,13 +217,10 @@ int cmd_find_actuator(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(results, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_actuator_t *a;
-		nrm_vector_get_withtype(nrm_actuator_t, results, i, a);
+	nrm_vector_foreach(results, iterator)
+	{
+		nrm_actuator_t *a = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_actuator_to_json(a);
 		json_array_append_new(array, json);
 	}
@@ -248,13 +245,10 @@ int cmd_find_scope(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(results, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_scope_t *s;
-		nrm_vector_get_withtype(nrm_scope_t, results, i, s);
+	nrm_vector_foreach(results, iterator)
+	{
+		nrm_scope_t *s = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_scope_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -279,13 +273,10 @@ int cmd_find_sensor(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(results, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_sensor_t *s;
-		nrm_vector_get_withtype(nrm_sensor_t, results, i, s);
+	nrm_vector_foreach(results, iterator)
+	{
+		nrm_sensor_t *s = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_sensor_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -310,13 +301,10 @@ int cmd_find_slice(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(results, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_slice_t *s;
-		nrm_vector_get_withtype(nrm_slice_t, results, i, s);
+	nrm_vector_foreach(results, iterator)
+	{
+		nrm_slice_t *s = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_slice_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -372,13 +360,10 @@ int cmd_list_actuators(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(actuators, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_actuator_t *r;
-		nrm_vector_get_withtype(nrm_actuator_t, actuators, i, r);
+	nrm_vector_foreach(actuators, iterator)
+	{
+		nrm_actuator_t *r = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_actuator_to_json(r);
 		json_array_append_new(array, json);
 	}
@@ -401,13 +386,10 @@ int cmd_list_scopes(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(scopes, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_scope_t *s;
-		nrm_vector_get_withtype(nrm_scope_t, scopes, i, s);
+	nrm_vector_foreach(scopes, iterator)
+	{
+		nrm_scope_t *s = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_scope_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -431,13 +413,10 @@ int cmd_list_sensors(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(sensors, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_sensor_t *s;
-		nrm_vector_get_withtype(nrm_sensor_t, sensors, i, s);
+	nrm_vector_foreach(sensors, iterator)
+	{
+		nrm_sensor_t *s = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_sensor_to_json(s);
 		json_array_append_new(array, json);
 	}
@@ -461,13 +440,10 @@ int cmd_list_slices(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	size_t len;
-	nrm_vector_length(slices, &len);
-
 	json_t *array = json_array();
-	for (size_t i = 0; i < len; i++) {
-		nrm_slice_t *s;
-		nrm_vector_get_withtype(nrm_slice_t, slices, i, s);
+	nrm_vector_foreach(slices, iterator)
+	{
+		nrm_slice_t *s = nrm_vector_iterator_get(iterator);
 		json_t *json = nrm_slice_to_json(s);
 		json_array_append_new(array, json);
 	}

@@ -18,7 +18,7 @@ struct nrm_hash_s {
 	UT_hash_handle hh;
 };
 
-struct nrm_hash_iterator_s {
+struct nrm_hash_iterator_t {
 	nrm_hash_t *element;
 };
 

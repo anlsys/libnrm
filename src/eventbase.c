@@ -10,14 +10,14 @@
 
 #include "config.h"
 
+#include "nrm.h"
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "nrm.h"
-
 #include "internal/nrmi.h"
+
 #include "internal/uthash.h"
 #include "internal/utlist.h"
 
@@ -58,11 +58,9 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 	nrm_event_t period;
 	period.time = time;
 	period.value = 0;
-	size_t len;
-	nrm_vector_length(s->events, &len);
-	for (size_t i = 0; i < len; i++) {
-		nrm_event_t *f;
-		nrm_vector_get(s->events, i, (void **)&f);
+	nrm_vector_foreach(s->events, iterator)
+	{
+		nrm_event_t *f = nrm_vector_iterator_get(iterator);
 		period.value += f->value;
 	}
 	nrm_vector_clear(s->events);
