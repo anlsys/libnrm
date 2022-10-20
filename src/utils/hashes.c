@@ -45,9 +45,7 @@ int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t uuid, void *ptr)
 		return -NRM_ENOMEM;
 	local->uuid = uuid;
 	local->ptr = ptr;
-	nrm_log_debug("%p\n", *hash_table);
 	HASH_ADD_KEYPTR(hh, (*hash_table), uuid, strlen(uuid), local);
-	nrm_log_debug("%p\n", *hash_table);
 	return NRM_SUCCESS;
 }
 

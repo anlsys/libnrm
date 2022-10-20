@@ -29,7 +29,7 @@ struct nrm_daemon_s my_daemon;
 
 nrm_msg_t *nrmd_daemon_remove_actuator(nrm_msg_remove_t *msg)
 {
-	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
+	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
 	nrm_actuator_t *actuator = NULL;
 	nrm_hash_remove(&my_daemon.state->actuators, uuid, (void *)&actuator);
 	nrm_actuator_destroy(&actuator);
@@ -300,11 +300,10 @@ int nrmd_handle_event_request(nrm_msg_event_t *msg)
 
 nrm_msg_t *nrmd_handle_actuate_request(nrm_role_t *role, nrm_msg_actuate_t *msg)
 {
-	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->uuid);
-	nrm_hash_t *tmp_actuator = NULL;
+	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
 	nrm_actuator_t *a = NULL;
-	nrm_hash_find(my_daemon.state->actuators, uuid, (void **)&a);
-	if (tmp_actuator != NULL) {
+	nrm_hash_find(my_daemon.state->actuators, uuid, (void *)&a);
+	if (a != NULL) {
 		/* found the actuator */
 		nrm_log_debug("actuating %s: %f\n", *a->uuid, msg->value);
 		nrm_msg_t *action = nrm_msg_create();
@@ -361,10 +360,9 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 
 double nrmd_actuator_value(nrm_string_t uuid)
 {
-	nrm_hash_t *tmp_actuator = NULL;
 	nrm_actuator_t *a = NULL;
-	nrm_hash_find(my_daemon.state->actuators, uuid, (void **)&a);
-	if (tmp_actuator != NULL) {
+	nrm_hash_find(my_daemon.state->actuators, uuid, (void *)&a);
+	if (a != NULL) {
 		/* found the actuator */
 		return a->value;
 	}
@@ -373,10 +371,9 @@ double nrmd_actuator_value(nrm_string_t uuid)
 
 int nrmd_actuate(nrm_role_t *role, nrm_string_t uuid, double value)
 {
-	nrm_hash_t *tmp_actuator = NULL;
 	nrm_actuator_t *a = NULL;
-	nrm_hash_find(my_daemon.state->actuators, uuid, (void **)&a);
-	if (tmp_actuator != NULL) {
+	nrm_hash_find(my_daemon.state->actuators, uuid, (void *)&a);
+	if (a != NULL) {
 		/* found the actuator */
 		nrm_log_debug("actuating %s: %f\n", a->uuid, value);
 		nrm_msg_t *action = nrm_msg_create();
