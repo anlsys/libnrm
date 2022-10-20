@@ -128,4 +128,3 @@ nrm_string_t nrm_hash_iterator_get_uuid(nrm_hash_iterator_t iterator)
 	else
 		return NULL;
 }
-
