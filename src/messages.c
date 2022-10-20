@@ -103,7 +103,7 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	assert(ret->choices);
 	for (size_t i = 0; i < ret->n_choices; i++) {
 		double *d;
-		nrm_get_element_from_vector(double, actuator->choices, i, d);
+		nrm_vector_get_withtype(double, actuator->choices, i, d);
 		ret->choices[i] = *d;
 	}
 	return ret;
@@ -236,7 +236,7 @@ nrm_msg_actuatorlist_t *nrm_msg_actuatorlist_new(nrm_vector_t *actuators)
 	assert(ret->actuators);
 	for (size_t i = 0; i < ret->n_actuators; i++) {
 		nrm_actuator_t *s;
-		nrm_get_element_from_vector(nrm_actuator_t, actuators, i, s);
+		nrm_vector_get_withtype(nrm_actuator_t, actuators, i, s);
 		ret->actuators[i] = nrm_msg_actuator_new(s);
 	}
 	return ret;
@@ -258,7 +258,7 @@ nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
 	assert(ret->scopes);
 	for (size_t i = 0; i < ret->n_scopes; i++) {
 		nrm_scope_t *s;
-		nrm_get_element_from_vector(nrm_scope_t, scopes, i, s);
+		nrm_vector_get_withtype(nrm_scope_t, scopes, i, s);
 		ret->scopes[i] = nrm_msg_scope_new(s);
 	}
 	return ret;
@@ -280,7 +280,7 @@ nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
 	assert(ret->sensors);
 	for (size_t i = 0; i < ret->n_sensors; i++) {
 		nrm_sensor_t *s;
-		nrm_get_element_from_vector(nrm_sensor_t, sensors, i, s);
+		nrm_vector_get_withtype(nrm_sensor_t, sensors, i, s);
 		nrm_log_debug("packed sensor %zu %s\n", i, s->uuid);
 		ret->sensors[i] = nrm_msg_sensor_new(s->uuid);
 	}
@@ -303,7 +303,7 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 	assert(ret->slices);
 	for (size_t i = 0; i < ret->n_slices; i++) {
 		nrm_slice_t *s;
-		nrm_get_element_from_vector(nrm_slice_t, slices, i, s);
+		nrm_vector_get_withtype(nrm_slice_t, slices, i, s);
 		nrm_log_debug("packed slice %zu %s\n", i, s->uuid);
 		ret->slices[i] = nrm_msg_slice_new(s->uuid);
 	}

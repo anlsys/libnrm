@@ -403,11 +403,6 @@ int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
 
 void nrm_role_destroy(nrm_role_t **);
 
-#define nrm_get_element_from_vector(type, vector, index, out)                  \
-	void *p;                                                               \
-	nrm_vector_get(vector, index, &p);                                     \
-	out = (type *)p;
-
 #ifdef __cplusplus
 }
 #endif

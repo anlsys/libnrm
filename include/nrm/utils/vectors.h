@@ -176,6 +176,20 @@ int nrm_vector_create(nrm_vector_t **vector, const size_t element_size);
 void nrm_vector_destroy(nrm_vector_t **vector);
 
 /**
+ * Get an element from a vector.
+ *
+ * @param[in] type: the object type.
+ * @param[in] vector: an initialized vector of structure nrm_vector_t.
+ * @param[in] index: the index to search for.
+ * @param[out] out: a pointer for the element we got.
+ **/
+#define nrm_vector_get_withtype(type, vector, index, out)                      \
+	do {                                                                   \
+		void *__p;                                                     \
+		nrm_vector_get(vector, index, &__p);                           \
+		out = (type *)__p;                                             \
+	} while (0);
+/**
  * @}
  **/
 
