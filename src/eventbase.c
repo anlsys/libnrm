@@ -223,4 +223,5 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 		HASH_DEL(eventbase->hash, current);
 		free(current);
 	}
+	*eventbase = NULL;
 }
