@@ -12,48 +12,6 @@
 #include <check.h>
 #include <stdlib.h>
 
-//	nrm_hash_add(&hash_table, "first", NULL);
-//	nrm_hash_add(&hash_table, "second", NULL);
-//	nrm_hash_add(&hash_table, "third", NULL);
-//	nrm_hash_add(&hash_table, "a", NULL);
-//	nrm_hash_add(&hash_table, "b", NULL);
-//	nrm_hash_add(&hash_table, "c", NULL);
-//
-//	size_t **len;
-//	nrm_hash_size(hash_table, &len);
-//	printf("Hash table size: %zu\n", len);
-//
-//	nrm_hash_t *wanted = NULL;
-//
-//	printf("Searching for `second` element\n");
-//	nrm_hash_find(hash_table, &wanted, "second");
-//	nrm_hash_print_uuid(wanted);
-//
-//	nrm_hash_iterator_t *iter = NULL;
-//	nrm_hash_iterator_create(&iter);
-//	nrm_hash_t *tmp = NULL;
-//	printf("##############################################\n");
-//	nrm_hash_iter(hash_table, iter, void)
-//	{
-//		nrm_hash_print_uuid(tmp);
-//	}
-//
-//	printf("Deleting an element...\n");
-//	nrm_hash_delete_element(&hash_table, "second");
-//	nrm_hash_size(hash_table, &len);
-//	printf("Hash table new size: %zu\n", len);
-//
-//	nrm_hash_iter(hash_table, iter, void)
-//	{
-//		nrm_hash_print_uuid(tmp);
-//	}
-//	nrm_hash_delete_table(&hash_table);
-//
-//	nrm_finalize();
-//
-//	return 0;
-//}
-
 START_TEST(test_basics)
 {
 	nrm_hash_t *hash = NULL;

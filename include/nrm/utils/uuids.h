@@ -20,7 +20,7 @@ nrm_uuid_t *nrm_uuid_create();
 
 void nrm_uuid_destroy(nrm_uuid_t **);
 
-nrm_string_t nrm_uuid_create_fromchar(char *s);
+nrm_uuid_t *nrm_uuid_create_fromchar(char *s);
 
 char *nrm_uuid_to_char(nrm_uuid_t *uuid);
 

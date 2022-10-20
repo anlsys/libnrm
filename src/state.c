@@ -54,7 +54,7 @@ void nrm_state_destroy(nrm_state_t **state)
 	nrm_hash_foreach(s->scopes, iter)
 	{
 		nrm_scope_t *a = nrm_hash_iterator_get(iter);
-		nrm_scope_destroy(&a);
+		nrm_scope_destroy(a);
 	}
 	nrm_hash_destroy(&s->scopes);
 
