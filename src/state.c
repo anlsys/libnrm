@@ -29,24 +29,35 @@ void nrm_state_destroy(nrm_state_t **state)
 	if (state == NULL || *state == NULL)
 		return;
 	nrm_state_t *s = *state;
-	nrm_hash_iterator_t *iter = NULL;
-	nrm_hash_iterator_create(&iter);
-	nrm_hash_t *array_of_hashes[4] = {s->actuators, s->slices, s->sensors,
-	                                  s->scopes};
-	for (int i = 0; i < 4; i++) {
-		nrm_hash_iter(array_of_hashes[i], iter, nrm_actuator_t)
-		{
-			nrm_string_t uuid = nrm_hash_iterator_get_uuid(iter);
-			nrm_actuator_t *ptr = nrm_hash_iterator_get(iter);
-			nrm_hash_remove(&array_of_hashes[i], uuid,
-			                (void *)&ptr);
-		}
-		nrm_hash_destroy(&array_of_hashes[i]);
-	}
 
-	// nrm_hash_destroy(&s->actuators);
-	// nrm_hash_destroy(&s->slices);
-	// nrm_hash_destroy(&s->sensors);
-	// nrm_hash_destroy(&s->scopes);
+	nrm_hash_foreach(s->actuators, iter)
+	{
+		nrm_actuator_t *a = nrm_hash_iterator_get(iter);
+		nrm_actuator_destroy(&a);
+	}
+	nrm_hash_destroy(&s->actuators);
+
+	nrm_hash_foreach(s->sensors, iter)
+	{
+		nrm_sensor_t *a = nrm_hash_iterator_get(iter);
+		nrm_sensor_destroy(&a);
+	}
+	nrm_hash_destroy(&s->sensors);
+
+	nrm_hash_foreach(s->slices, iter)
+	{
+		nrm_slice_t *a = nrm_hash_iterator_get(iter);
+		nrm_slice_destroy(&a);
+	}
+	nrm_hash_destroy(&s->slices);
+
+	nrm_hash_foreach(s->scopes, iter)
+	{
+		nrm_scope_t *a = nrm_hash_iterator_get(iter);
+		nrm_scope_destroy(&a);
+	}
+	nrm_hash_destroy(&s->scopes);
+
+	free(s);
 	*state = NULL;
 }

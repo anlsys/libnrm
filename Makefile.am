@@ -157,6 +157,7 @@ LDADD = libnrm.la
 GENERAL_TESTS = \
 		tests/core \
 		tests/net \
+		tests/utils/hash \
 		tests/utils/scope
 
 # unit tests

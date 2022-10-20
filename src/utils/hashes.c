@@ -25,10 +25,10 @@ struct nrm_hash_iterator_s {
 static int nrm_hash_create_element(nrm_hash_t **element)
 {
 	nrm_hash_t *tmp_element = (nrm_hash_t *)malloc(sizeof(nrm_hash_t));
-	tmp_element->uuid = NULL;
-	tmp_element->ptr = NULL;
 	if (tmp_element == NULL)
 		return -NRM_ENOMEM;
+	tmp_element->uuid = NULL;
+	tmp_element->ptr = NULL;
 	*element = tmp_element;
 	return NRM_SUCCESS;
 }
@@ -36,7 +36,7 @@ static int nrm_hash_create_element(nrm_hash_t **element)
 int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t uuid, void *ptr)
 {
 	nrm_hash_t *local = NULL;
-	HASH_FIND(hh, (*hash_table), &uuid, strlen(uuid), local);
+	HASH_FIND(hh, (*hash_table), uuid, strlen(uuid), local);
 	if (local != NULL)
 		return -NRM_FAILURE;
 
@@ -45,7 +45,9 @@ int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t uuid, void *ptr)
 		return -NRM_ENOMEM;
 	local->uuid = uuid;
 	local->ptr = ptr;
-	HASH_ADD_KEYPTR(hh, (*hash_table), &uuid, strlen(uuid), local);
+	nrm_log_debug("%p\n", *hash_table);
+	HASH_ADD_KEYPTR(hh, (*hash_table), uuid, strlen(uuid), local);
+	nrm_log_debug("%p\n", *hash_table);
 	return NRM_SUCCESS;
 }
 
@@ -53,20 +55,22 @@ int nrm_hash_remove(nrm_hash_t **hash_table, nrm_string_t uuid, void **ptr)
 {
 	if (*hash_table == NULL || uuid == NULL)
 		return -NRM_EINVAL;
+
 	nrm_hash_t *tmp;
-	*ptr = nrm_hash_find((*hash_table), &tmp, uuid);
-	if (tmp == NULL)
-		return -NRM_EINVAL;
-	printf("tmp = %s\n", tmp->uuid);
-	HASH_DEL((*hash_table), tmp);
-	free(tmp);
+	HASH_FIND(hh, (*hash_table), &uuid, strlen(uuid), tmp);
+
+	*ptr = tmp;
+	if (tmp != NULL) {
+		HASH_DEL((*hash_table), tmp);
+		free(tmp);
+	}
 	return NRM_SUCCESS;
 }
 
 void nrm_hash_destroy(nrm_hash_t **hash_table)
 {
 	if (hash_table == NULL)
-		return -NRM_EINVAL;
+		return;
 	nrm_hash_t *iterator = NULL;
 	nrm_hash_t *tmp = NULL;
 	HASH_ITER(hh, (*hash_table), iterator, tmp)
@@ -77,23 +81,18 @@ void nrm_hash_destroy(nrm_hash_t **hash_table)
 	free(iterator);
 }
 
-void *
-nrm_hash_find(nrm_hash_t *hash_table, nrm_hash_t **element, nrm_string_t uuid)
+int nrm_hash_find(nrm_hash_t *hash_table, nrm_string_t uuid, void **ptr)
 {
-	printf("Looking for %s from nrm_hash_find...\n", uuid);
-	if (hash_table == NULL || uuid == NULL)
+	if (hash_table == NULL || uuid == NULL || ptr == NULL)
 		return -NRM_EINVAL;
-	printf("UUID of the first element of the table is %s\n",
-	       hash_table->uuid);
-	nrm_hash_t *tmp = NULL;
-	HASH_FIND(hh, hash_table, &uuid, strlen(uuid), tmp);
-	if (tmp == NULL) {
-		printf("ELEMENT WAS NOT FOUND!!!\n");
-		return -NRM_EINVAL;
-	}
 
-	*element = tmp;
-	return tmp->ptr;
+	nrm_hash_t *tmp = NULL;
+	HASH_FIND(hh, hash_table, uuid, strlen(uuid), tmp);
+	if (tmp == NULL)
+		return -NRM_EINVAL;
+
+	*ptr = tmp->ptr;
+	return NRM_SUCCESS;
 }
 
 int nrm_hash_size(nrm_hash_t *hash_table, size_t *len)
@@ -104,38 +103,29 @@ int nrm_hash_size(nrm_hash_t *hash_table, size_t *len)
 	return NRM_SUCCESS;
 }
 
-int nrm_hash_iterator_create(nrm_hash_iterator_t **iterator)
+nrm_hash_iterator_t nrm_hash_iterator_begin(nrm_hash_t *hash_table)
 {
-	*iterator = malloc(sizeof(nrm_hash_iterator_t));
-	if (*iterator == NULL)
-		return -NRM_ENOMEM;
-	return NRM_SUCCESS;
+	nrm_hash_iterator_t ret = hash_table;
+	return ret;
 }
 
-int nrm_hash_iterator_begin(nrm_hash_iterator_t **iterator,
-                            nrm_hash_t *hash_table)
+nrm_hash_iterator_t nrm_hash_iterator_next(nrm_hash_iterator_t iterator)
 {
-	if (hash_table == NULL)
-		return -NRM_EINVAL;
-	(*iterator)->element = hash_table;
-	return NRM_SUCCESS;
+	return iterator->hh.next;
 }
 
-int nrm_hash_iterator_next(nrm_hash_iterator_t **iterator)
+void *nrm_hash_iterator_get(nrm_hash_iterator_t iterator)
 {
-	(*iterator)->element = ((*iterator)->element)->hh.next;
-	return NRM_SUCCESS;
-}
-
-void *nrm_hash_iterator_get(nrm_hash_iterator_t *iterator)
-{
-	if (iterator == NULL || iterator->element == NULL)
+	if (iterator == NULL)
 		return NULL;
-	return iterator->element->ptr;
+	return iterator->ptr;
 }
 
-nrm_string_t nrm_hash_iterator_get_uuid(nrm_hash_iterator_t *iterator)
+nrm_string_t nrm_hash_iterator_get_uuid(nrm_hash_iterator_t iterator)
 {
-	if (iterator->element != NULL)
-		return iterator->element->uuid;
+	if (iterator != NULL)
+		return iterator->uuid;
+	else
+		return NULL;
 }
+
