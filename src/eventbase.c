@@ -206,7 +206,8 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	nrm_sensor2scope_s *current, *s2stmp;
 
 	/* TODO: iterate over the hash and destroy sub structures. */
-	/* is HASH_CLEAR((*eventbase)->hash->hh, (*eventbase)->hash) valid too? */
+	/* is HASH_CLEAR((*eventbase)->hash->hh, (*eventbase)->hash) valid too?
+	 */
 	(*eventbase)->maxperiods = NULL;
 	UT_hash_handle curr_handle = (*eventbase)->hash->hh;
 	nrm_sensor2scope_s curr_hash = (*eventbase)->hash;
