@@ -149,7 +149,7 @@ int nrm_control_europar21_action(nrm_control_t *control,
 		return -NRM_EINVAL;
 	pow = in->value;
 	nrm_vector_get(outputs, 0, &p);
-	out = (nrm_control_input_t *)p;
+	out = (nrm_control_output_t *)p;
 	if (out == NULL)
 		return -NRM_EINVAL;
 	pcap = out->value;

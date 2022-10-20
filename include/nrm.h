@@ -25,17 +25,20 @@ extern "C" {
 #include <stdio.h>
 #include <time.h>
 
+// clang-format off
 #include "nrm/utils/alloc.h"
 #include "nrm/utils/bitmaps.h"
 #include "nrm/utils/error.h"
 #include "nrm/utils/ringbuffer.h"
-#include "nrm/utils/scopes.h"
 #include "nrm/utils/strings.h"
+#include "nrm/utils/scopes.h"
 #include "nrm/utils/timers.h"
 #include "nrm/utils/uuids.h"
 #include "nrm/utils/vectors.h"
+#include "nrm/utils/hashes.h"
 #include "nrm/utils/version.h"
-
+// clang-format on
+//
 /*******************************************************************************
  * Library Init/Fini
  ******************************************************************************/
@@ -194,10 +197,10 @@ void nrm_sensor_destroy(nrm_sensor_t **);
  ******************************************************************************/
 
 struct nrm_state_s {
-	nrm_vector_t *actuators;
-	nrm_vector_t *slices;
-	nrm_vector_t *sensors;
-	nrm_vector_t *scopes;
+	nrm_hash_t *actuators;
+	nrm_hash_t *slices;
+	nrm_hash_t *sensors;
+	nrm_hash_t *scopes;
 };
 
 typedef struct nrm_state_s nrm_state_t;

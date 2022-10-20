@@ -75,6 +75,12 @@ int nrm_scope_cmp(nrm_scope_t *one, nrm_scope_t *two);
  */
 int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *scope);
 
+/**
+ * Returns the UUID of an NRM scope
+ * @return the UUID if successful, an error code otherwise
+ */
+nrm_string_t nrm_scope_uuid(nrm_scope_t *scope);
+
 /*******************************************************************************
  * Scope Utils
  ******************************************************************************/
