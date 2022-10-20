@@ -37,14 +37,14 @@ typedef struct nrm_event_s nrm_event_t;
 /* the main structure, matches a scope to two ringbuffers, one for the current
  * window (one event per signal), one for past windows (one event per period).
  */
-struct nrm_scope2ring_s {
+typedef struct nrm_scope2ring_s {
 	nrm_scope_t *scope;
 	nrm_ringbuffer_t *past;
 	nrm_vector_t *events;
 	/* needed to link them together */
 	struct nrm_scope2ring_s *prev;
 	struct nrm_scope2ring_s *next;
-};
+} nrm_scope2ring_s;
 
 nrm_scope2ring_s *head = NULL;
 
@@ -204,11 +204,10 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	if (eventbase == NULL || *eventbase == NULL)
 		return;
 	nrm_eventbase_t *ebtmp, *current;
-	(void)s;
 
 	/* TODO: iterate over the hash and destroy sub structures. */
-	eventbase->maxperiods = NULL;
-	HASH_ITER(eventbase->hash->hh, eventbase->hash, current, ebtmp)
+	(*eventbase)->maxperiods = NULL;
+	HASH_ITER((*eventbase)->hash->hh, (*eventbase)->hash, current, ebtmp)
 	{
 		current->uuid = NULL;
 		struct nrm_scope2ring_s *elt, *s2rtmp;
@@ -220,7 +219,7 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 			DL_DELETE(head, elt);
 			free(elt);
 		}
-		HASH_DEL(eventbase->hash, current);
+		HASH_DEL((*eventbase)->hash, current);
 		free(current);
 	}
 	*eventbase = NULL;
