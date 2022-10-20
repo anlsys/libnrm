@@ -53,7 +53,7 @@ struct nrm_sensor2scope_s {
 	nrm_string_t uuid;
 	struct nrm_scope2ring_s *list;
 	UT_hash_handle hh;
-};
+} nrm_sensor2scope_s;
 
 int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 {
@@ -203,11 +203,14 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 {
 	if (eventbase == NULL || *eventbase == NULL)
 		return;
-	nrm_eventbase_t *ebtmp, *current;
+	nrm_sensor2scope_s *current, *s2stmp;
 
 	/* TODO: iterate over the hash and destroy sub structures. */
+	/* is HASH_CLEAR((*eventbase)->hash->hh, (*eventbase)->hash) valid too? */
 	(*eventbase)->maxperiods = NULL;
-	HASH_ITER((*eventbase)->hash->hh, (*eventbase)->hash, current, ebtmp)
+	UT_hash_handle curr_handle = (*eventbase)->hash->hh;
+	nrm_sensor2scope_s curr_hash = (*eventbase)->hash;
+	HASH_ITER(curr_handle, curr_hash, current, s2stmp)
 	{
 		current->uuid = NULL;
 		struct nrm_scope2ring_s *elt, *s2rtmp;
