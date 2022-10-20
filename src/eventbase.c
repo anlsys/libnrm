@@ -46,6 +46,8 @@ struct nrm_scope2ring_s {
 	struct nrm_scope2ring_s *next;
 };
 
+nrm_scope2ring_s *head = NULL;
+
 /* a way to hash a sensor uuid to a list of scope2ring struct. */
 struct nrm_sensor2scope_s {
 	nrm_string_t uuid;
@@ -201,17 +203,24 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 {
 	if (eventbase == NULL || *eventbase == NULL)
 		return;
-	nrm_eventbase_t *s = *eventbase;
+	nrm_eventbase_t *ebtmp, *current;
 	(void)s;
-	/* TODO: iterate over the hash and destroy sub structures. */
-	/* del eventbase->maxperiods
-	   iterate over eventbase->hash
-			del hash->uuid
-			iterate over hash->list
-				del list->scope
-				del list->past
-				del list->events
-				
 
-	*eventbase = NULL;
+	/* TODO: iterate over the hash and destroy sub structures. */
+	eventbase->maxperiods = NULL;
+	HASH_ITER(eventbase->hash->hh, eventbase->hash, current, ebtmp)
+	{
+		current->uuid = NULL;
+		struct nrm_scope2ring_s *elt, *s2rtmp;
+		DL_FOREACH_SAFE(current->hash->list, elt, s2rtmp)
+		{
+			nrm_scope_destroy(elt->scope);
+			nrm_ringbuffer_destroy(&elt->past);
+			nrm_vector_destroy(&elt->events);
+			DL_DELETE(head, elt);
+			free(elt);
+		}
+		HASH_DEL(eventbase->hash, current);
+		free(current);
+	}
 }
