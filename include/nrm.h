@@ -425,7 +425,7 @@ int nrm_role_register_sub_cb(const nrm_role_t *role,
 int nrm_role_register_cmd_cb(const nrm_role_t *role,
                              nrm_role_cmd_callback_fn *fn,
                              void *arg);
-nrm_msg_t nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
+nrm_msg_t *nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
 
 void nrm_role_destroy(nrm_role_t **);
 
