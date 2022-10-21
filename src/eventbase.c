@@ -228,20 +228,4 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	nrm_hash_destroy(&s->hash);
 	free(s);
 	*eventbase = NULL;
-
-	// HASH_ITER((*eventbase)->hash->hh, curr_hash, current, s2stmp)
-	// {
-	// 	current->uuid = NULL;
-	// 	nrm_scope2ring_t *elt, *s2rtmp;
-	// 	DL_FOREACH_SAFE(current->list, elt, s2rtmp)
-	// 	{
-	// 		nrm_scope_destroy(elt->scope);
-	// 		nrm_ringbuffer_destroy(&elt->past);
-	// 		nrm_vector_destroy(&elt->events);
-	// 		DL_DELETE(head, elt);
-	// 		free(elt);
-	// 	}
-	// 	HASH_DEL((*eventbase)->hash, current);
-	// 	free(current);
-	// }
 }

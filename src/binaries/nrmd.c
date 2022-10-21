@@ -601,6 +601,7 @@ start:
 	nrm_eventbase_destroy(&my_daemon.events);
 	nrm_state_destroy(&my_daemon.state);
 	nrm_role_destroy(&controller);
+	nrm_log_debug("NRM components destroyed\n");
 
 	exit(EXIT_SUCCESS);
 }
