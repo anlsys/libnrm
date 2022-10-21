@@ -37,23 +37,25 @@ typedef struct nrm_event_s nrm_event_t;
 /* the main structure, matches a scope to two ringbuffers, one for the current
  * window (one event per signal), one for past windows (one event per period).
  */
-typedef struct nrm_scope2ring_s {
+struct nrm_scope2ring_s {
 	nrm_scope_t *scope;
 	nrm_ringbuffer_t *past;
 	nrm_vector_t *events;
 	/* needed to link them together */
 	struct nrm_scope2ring_s *prev;
 	struct nrm_scope2ring_s *next;
-} nrm_scope2ring_s;
+};
+typedef struct nrm_scope2ring_s nrm_scope2ring_t;
 
 nrm_scope2ring_s *head = NULL;
 
 /* a way to hash a sensor uuid to a list of scope2ring struct. */
-typedef struct nrm_sensor2scope_s {
+struct nrm_sensor2scope_s {
 	nrm_string_t uuid;
 	struct nrm_scope2ring_s *list;
 	UT_hash_handle hh;
-} nrm_sensor2scope_s;
+};
+typedef struct nrm_sensor2scope_s nrm_sensor2scope_t;
 
 int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 {
@@ -203,18 +205,17 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 {
 	if (eventbase == NULL || *eventbase == NULL)
 		return;
-	nrm_sensor2scope_s *current, *s2stmp;
+	nrm_sensor2scope_t *current, *s2stmp;
 
 	/* TODO: iterate over the hash and destroy sub structures. */
 	/* is HASH_CLEAR((*eventbase)->hash->hh, (*eventbase)->hash) valid too?
 	 */
 	(*eventbase)->maxperiods = NULL;
-	UT_hash_handle curr_handle = *eventbase->hash->hh;
-	nrm_sensor2scope_s curr_hash = *eventbase->hash;
-	HASH_ITER(curr_handle, curr_hash, current, s2stmp)
+	nrm_sensor2scope_t curr_hash = (*eventbase)->hash;
+	HASH_ITER((*eventbase)->hash->hh, curr_hash, current, s2stmp)
 	{
 		current->uuid = NULL;
-		struct nrm_scope2ring_s *elt, *s2rtmp;
+		nrm_scope2ring_t *elt, *s2rtmp;
 		DL_FOREACH_SAFE(current->list, elt, s2rtmp)
 		{
 			nrm_scope_destroy(elt->scope);
