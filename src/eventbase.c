@@ -44,7 +44,7 @@ struct nrm_scope2ring_s {
 	/* needed to link them together */
 	struct nrm_scope2ring_s *prev;
 	struct nrm_scope2ring_s *next;
-};
+} nrm_scope2ring_s;
 typedef struct nrm_scope2ring_s nrm_scope2ring_t;
 
 nrm_scope2ring_s *head = NULL;
@@ -205,18 +205,18 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 {
 	if (eventbase == NULL || *eventbase == NULL)
 		return;
-	nrm_sensor2scope_t *current, *s2stmp;
+	nrm_eventbase_t *s = *eventbase;
 
 	/* TODO: iterate over the hash and destroy sub structures. */
-	/* is HASH_CLEAR((*eventbase)->hash->hh, (*eventbase)->hash) valid too?
-	 */
-	(*eventbase)->maxperiods = NULL;
-	nrm_sensor2scope_t curr_hash = (*eventbase)->hash;
-	HASH_ITER((*eventbase)->hash->hh, curr_hash, current, s2stmp)
+	s->maxperiods = NULL;
+	nrm_hash_foreach(s->hash, iter)
 	{
-		current->uuid = NULL;
+		nrm_sensor2scope_t *a = nrm_hash_iterator_get(iter);
+		nrm_uuid_destroy(&a->uuid);
+		free(a);
+
 		nrm_scope2ring_t *elt, *s2rtmp;
-		DL_FOREACH_SAFE(current->list, elt, s2rtmp)
+		DL_FOREACH_SAFE(s->hash->list, elt, s2rtmp)
 		{
 			nrm_scope_destroy(elt->scope);
 			nrm_ringbuffer_destroy(&elt->past);
@@ -224,8 +224,24 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 			DL_DELETE(head, elt);
 			free(elt);
 		}
-		HASH_DEL((*eventbase)->hash, current);
-		free(current);
 	}
+	nrm_hash_destroy(&s->hash);
+	free(s);
 	*eventbase = NULL;
+
+	// HASH_ITER((*eventbase)->hash->hh, curr_hash, current, s2stmp)
+	// {
+	// 	current->uuid = NULL;
+	// 	nrm_scope2ring_t *elt, *s2rtmp;
+	// 	DL_FOREACH_SAFE(current->list, elt, s2rtmp)
+	// 	{
+	// 		nrm_scope_destroy(elt->scope);
+	// 		nrm_ringbuffer_destroy(&elt->past);
+	// 		nrm_vector_destroy(&elt->events);
+	// 		DL_DELETE(head, elt);
+	// 		free(elt);
+	// 	}
+	// 	HASH_DEL((*eventbase)->hash, current);
+	// 	free(current);
+	// }
 }
