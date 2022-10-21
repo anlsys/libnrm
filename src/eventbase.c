@@ -37,7 +37,7 @@ typedef struct nrm_event_s nrm_event_t;
 /* the main structure, matches a scope to two ringbuffers, one for the current
  * window (one event per signal), one for past windows (one event per period).
  */
-struct nrm_scope2ring_s {
+typedef struct nrm_scope2ring_s {
 	nrm_scope_t *scope;
 	nrm_ringbuffer_t *past;
 	nrm_vector_t *events;
