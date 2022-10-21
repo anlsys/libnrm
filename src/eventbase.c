@@ -37,17 +37,17 @@ typedef struct nrm_event_s nrm_event_t;
 /* the main structure, matches a scope to two ringbuffers, one for the current
  * window (one event per signal), one for past windows (one event per period).
  */
-typedef struct nrm_scope2ring_s {
+struct nrm_scope2ring_s {
 	nrm_scope_t *scope;
 	nrm_ringbuffer_t *past;
 	nrm_vector_t *events;
 	/* needed to link them together */
 	struct nrm_scope2ring_s *prev;
 	struct nrm_scope2ring_s *next;
-} nrm_scope2ring_s;
+};
 typedef struct nrm_scope2ring_s nrm_scope2ring_t;
 
-nrm_scope2ring_s *head = NULL;
+nrm_scope2ring_t *head = NULL;
 
 /* a way to hash a sensor uuid to a list of scope2ring struct. */
 struct nrm_sensor2scope_s {
@@ -212,7 +212,7 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	nrm_hash_foreach(s->hash, iter)
 	{
 		nrm_sensor2scope_t *a = nrm_hash_iterator_get(iter);
-		nrm_uuid_destroy(&a->uuid);
+		nrm_string_decref(&a->uuid);
 		free(a);
 
 		nrm_scope2ring_t *elt, *s2rtmp;
