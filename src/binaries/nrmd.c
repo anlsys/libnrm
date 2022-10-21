@@ -423,7 +423,6 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_vector_t *outputs;
 	nrm_control_getargs(my_daemon.control, &inputs, &outputs);
 
-	void *iterator = NULL;
 	nrm_vector_foreach(inputs, iterator)
 	{
 		nrm_control_input_t *in = nrm_vector_iterator_get(iterator);

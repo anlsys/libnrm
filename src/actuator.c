@@ -51,7 +51,6 @@ json_t *nrm_vector_d_to_json(nrm_vector_t *vector)
 {
 	json_t *ret;
 	ret = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(vector, iterator)
 	{
 		double *d = nrm_vector_iterator_get(iterator);
