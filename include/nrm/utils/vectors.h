@@ -33,6 +33,8 @@ struct nrm_vector_s;
 
 typedef struct nrm_vector_s nrm_vector_t;
 
+typedef void *nrm_vector_iterator_t;
+
 /**
  * Provides the number of elements in the vector.
  *
@@ -154,6 +156,13 @@ int nrm_vector_pop_back(nrm_vector_t *vector, void *out);
  **/
 int nrm_vector_take(nrm_vector_t *vector, const size_t position, void *out);
 
+/**
+ * Delete the elements contained in a vector structure.
+ *
+ * @param[in] vector: A pointer to an initialized vector structure.
+ * @return -NRM_EINVAL if `vector` or `out` are NULL.
+ * @return NRM_SUCCESS on success.
+ **/
 int nrm_vector_clear(const nrm_vector_t *vector);
 
 /**
@@ -189,6 +198,48 @@ void nrm_vector_destroy(nrm_vector_t **vector);
 		nrm_vector_get(vector, index, &__p);                           \
 		out = (type *)__p;                                             \
 	} while (0)
+
+/**
+ * Get the first element from a vector.
+ *
+ * @param[in] vector: an initialized vector of structure nrm_vector_t.
+ * @return the first element of the vector.
+ **/
+nrm_vector_iterator_t nrm_vector_iterator_begin(nrm_vector_t *vector);
+
+/**
+ * Get the next element from a vector.
+ *
+ * @param[in] vector: an initialized vector of structure nrm_vector_t.
+ * @param[in] iterator: an initialized iterator of structure
+ *nrm_vector_iterator_t.
+ * @return the next element of the vector following iterator.
+ **/
+nrm_vector_iterator_t nrm_vector_iterator_next(nrm_vector_t *vector,
+                                               nrm_vector_iterator_t iterator);
+
+/**
+ * Get the value of an element in a vector.
+ *
+ * @param[in] iterator: an initialized iterator of structure
+ *nrm_vector_iterator_t.
+ * @return the element value that the iterator is pointing at.
+ **/
+void *nrm_vector_iterator_get(nrm_vector_iterator_t iterator);
+
+/**
+ * Iterate over a vector.
+ *
+ * @param[in] vector: an initialized vector of structure nrm_vector_t.
+ * @param[in] iterator: an initialized iterator of structure
+ *nrm_vector_iterator_t.
+ **/
+#define nrm_vector_foreach(vector, iterator)                                   \
+	for (nrm_vector_iterator_t iterator =                                  \
+	             nrm_vector_iterator_begin(vector);                        \
+	     iterator != NULL;                                                 \
+	     iterator = nrm_vector_iterator_next(vector, iterator))
+
 /**
  * @}
  **/

@@ -51,11 +51,9 @@ json_t *nrm_vector_d_to_json(nrm_vector_t *vector)
 {
 	json_t *ret;
 	ret = json_array();
-	size_t nitems;
-	nrm_vector_length(vector, &nitems);
-	for (size_t i = 0; i < nitems; i++) {
-		double *d;
-		nrm_vector_get_withtype(double, vector, i, d);
+	nrm_vector_foreach(vector, iterator)
+	{
+		double *d = nrm_vector_iterator_get(iterator);
 		json_array_append_new(ret, json_real(*d));
 	}
 	return ret;

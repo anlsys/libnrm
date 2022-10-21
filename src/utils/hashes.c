@@ -18,10 +18,6 @@ struct nrm_hash_s {
 	UT_hash_handle hh;
 };
 
-struct nrm_hash_iterator_s {
-	nrm_hash_t *element;
-};
-
 static int nrm_hash_create_element(nrm_hash_t **element)
 {
 	nrm_hash_t *tmp_element = (nrm_hash_t *)malloc(sizeof(nrm_hash_t));

@@ -127,7 +127,7 @@ nrm_string_t nrm_hash_iterator_get_uuid(nrm_hash_iterator_t iterator);
 #define nrm_hash_foreach(hash_table, iterator)                                 \
 	for (nrm_hash_iterator_t iterator =                                    \
 	             nrm_hash_iterator_begin(hash_table);                      \
-	     iterator != NULL; iter = nrm_hash_iterator_next(iterator))
+	     iterator != NULL; iterator = nrm_hash_iterator_next(iterator))
 
 /**
  * @}

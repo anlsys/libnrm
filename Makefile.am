@@ -158,6 +158,7 @@ GENERAL_TESTS = \
 		tests/core \
 		tests/net \
 		tests/utils/hash \
+		tests/utils/vector \
 		tests/utils/scope
 
 # unit tests
