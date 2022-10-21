@@ -199,13 +199,41 @@ void nrm_vector_destroy(nrm_vector_t **vector);
 		out = (type *)__p;                                             \
 	} while (0)
 
+/**
+ * Get the first element from a vector.
+ *
+ * @param[in] vector: an initialized vector of structure nrm_vector_t.
+ * @return the first element of the vector.
+ **/
 nrm_vector_iterator_t *nrm_vector_iterator_begin(nrm_vector_t *vector);
 
-nrm_vector_iterator_t *nrm_vector_iterator_next(nrm_vector_t *vector,
-                                                void *iterator);
+/**
+ * Get the next element from a vector.
+ *
+ * @param[in] vector: an initialized vector of structure nrm_vector_t.
+ * @param[in] iterator: an initialized iterator of structure
+ *nrm_vector_iterator_t.
+ * @return the next element of the vector following iterator.
+ **/
+nrm_vector_iterator_t *
+nrm_vector_iterator_next(nrm_vector_t *vector, nrm_vector_iterator_t *iterator);
 
+/**
+ * Get the value of an element in a vector.
+ *
+ * @param[in] iterator: an initialized iterator of structure
+ *nrm_vector_iterator_t.
+ * @return the element value that the iterator is pointing at.
+ **/
 void *nrm_vector_iterator_get(nrm_vector_iterator_t *iterator);
 
+/**
+ * Iterate over a vector.
+ *
+ * @param[in] vector: an initialized vector of structure nrm_vector_t.
+ * @param[in] iterator: an initialized iterator of structure
+ *nrm_vector_iterator_t.
+ **/
 #define nrm_vector_foreach(vector, iterator)                                   \
 	for (iterator = nrm_vector_iterator_begin(vector); iterator != NULL;   \
 	     iterator = nrm_vector_iterator_next(vector, iterator))
