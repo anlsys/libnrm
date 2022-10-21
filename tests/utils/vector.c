@@ -65,7 +65,7 @@ START_TEST(test_iter)
 	ck_assert_int_eq(err, 0);
 
 	nrm_string_t str;
-	void *iterator = NULL;
+	nrm_vector_iterator_t *iterator = NULL;
 	nrm_string_t array[3] = {fortytwo, fortythree, fortyfour};
 	int i = 0;
 	nrm_vector_foreach(vector, iterator)

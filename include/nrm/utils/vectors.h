@@ -33,6 +33,8 @@ struct nrm_vector_s;
 
 typedef struct nrm_vector_s nrm_vector_t;
 
+typedef void *nrm_vector_iterator_t;
+
 /**
  * Provides the number of elements in the vector.
  *
@@ -197,11 +199,12 @@ void nrm_vector_destroy(nrm_vector_t **vector);
 		out = (type *)__p;                                             \
 	} while (0)
 
-void *nrm_vector_iterator_begin(nrm_vector_t *vector);
+nrm_vector_iterator_t *nrm_vector_iterator_begin(nrm_vector_t *vector);
 
-void *nrm_vector_iterator_next(nrm_vector_t *vector, void *iterator);
+nrm_vector_iterator_t *nrm_vector_iterator_next(nrm_vector_t *vector,
+                                                void *iterator);
 
-void *nrm_vector_iterator_get(nrm_vector_t *iterator);
+void *nrm_vector_iterator_get(nrm_vector_iterator_t *iterator);
 
 #define nrm_vector_foreach(vector, iterator)                                   \
 	for (iterator = nrm_vector_iterator_begin(vector); iterator != NULL;   \
