@@ -71,7 +71,7 @@ START_TEST(test_iter)
 	nrm_vector_foreach(vector, iterator)
 	{
 		str = nrm_vector_iterator_get(iterator);
-		ck_assert_str_eq(str, array[i]);
+		ck_assert_str_eq(*str, array[i]);
 		i++;
 	}
 
