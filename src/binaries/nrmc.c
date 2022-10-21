@@ -218,7 +218,6 @@ int cmd_find_actuator(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(results, iterator)
 	{
 		nrm_actuator_t *a = nrm_vector_iterator_get(iterator);
@@ -247,7 +246,6 @@ int cmd_find_scope(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(results, iterator)
 	{
 		nrm_scope_t *s = nrm_vector_iterator_get(iterator);
@@ -276,7 +274,6 @@ int cmd_find_sensor(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(results, iterator)
 	{
 		nrm_sensor_t *s = nrm_vector_iterator_get(iterator);
@@ -305,7 +302,6 @@ int cmd_find_slice(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(results, iterator)
 	{
 		nrm_slice_t *s = nrm_vector_iterator_get(iterator);
@@ -365,7 +361,6 @@ int cmd_list_actuators(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(actuators, iterator)
 	{
 		nrm_actuator_t *r = nrm_vector_iterator_get(iterator);
@@ -392,7 +387,6 @@ int cmd_list_scopes(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(scopes, iterator)
 	{
 		nrm_scope_t *s = nrm_vector_iterator_get(iterator);
@@ -420,7 +414,6 @@ int cmd_list_sensors(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(sensors, iterator)
 	{
 		nrm_sensor_t *s = nrm_vector_iterator_get(iterator);
@@ -448,7 +441,6 @@ int cmd_list_slices(int argc, char **argv)
 	}
 
 	json_t *array = json_array();
-	void *iterator = NULL;
 	nrm_vector_foreach(slices, iterator)
 	{
 		nrm_slice_t *s = nrm_vector_iterator_get(iterator);

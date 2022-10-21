@@ -235,7 +235,7 @@ void *nrm_vector_iterator_get(nrm_vector_iterator_t iterator);
  *nrm_vector_iterator_t.
  **/
 #define nrm_vector_foreach(vector, iterator)                                   \
-	for (nrm_vector_iterator_t iterator =                                 \
+	for (nrm_vector_iterator_t iterator =                                  \
 	             nrm_vector_iterator_begin(vector);                        \
 	     iterator != NULL;                                                 \
 	     iterator = nrm_vector_iterator_next(vector, iterator))
