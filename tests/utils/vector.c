@@ -66,7 +66,7 @@ START_TEST(test_iter)
 
 	nrm_string_t str;
 	void *iterator = NULL;
-	nrm_string_t array = {fortytwo, fortythree, fortyfour};
+	nrm_string_t array[3] = {fortytwo, fortythree, fortyfour};
 	int i = 0;
 	nrm_vector_foreach(vector, iterator)
 	{
