@@ -58,6 +58,7 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 	nrm_event_t period;
 	period.time = time;
 	period.value = 0;
+	void *iterator = NULL;
 	nrm_vector_foreach(s->events, iterator)
 	{
 		nrm_event_t *f = nrm_vector_iterator_get(iterator);

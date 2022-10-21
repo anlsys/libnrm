@@ -23,10 +23,6 @@ struct nrm_vector_s {
 	UT_icd icd;
 };
 
-struct nrm_vector_iterator_t {
-	nrm_vector_t *element;
-};
-
 int nrm_vector_create(nrm_vector_t **vector, const size_t element_size)
 {
 	nrm_vector_t *a;
@@ -187,20 +183,19 @@ int nrm_vector_clear(const nrm_vector_t *vector)
 	return NRM_SUCCESS;
 }
 
-nrm_vector_iterator_t nrm_vector_iterator_begin(nrm_vector_t *vector)
+void *nrm_vector_iterator_begin(nrm_vector_t *vector)
 {
-	nrm_vector_iterator_t ret = utarray_front(vector->array);
+	void *ret = utarray_front(vector->array);
 	return ret;
 }
 
-nrm_vector_iterator_t nrm_vector_iterator_next(nrm_vector_t *vector,
-                                               nrm_vector_iterator_t iterator)
+void *nrm_vector_iterator_next(nrm_vector_t *vector, void *iterator)
 {
-	nrm_vector_iterator_t ret = utarray_next(vector->array, iterator);
+	void *ret = utarray_next(vector->array, iterator);
 	return ret;
 }
 
-void *nrm_vector_iterator_get(nrm_vector_iterator_t iterator)
+void *nrm_vector_iterator_get(nrm_vector_t *iterator)
 {
 	if (iterator == NULL)
 		return NULL;

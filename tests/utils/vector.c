@@ -16,26 +16,32 @@ START_TEST(test_basics)
 {
 	nrm_vector_t *vector = NULL;
 	nrm_vector_create(&vector, sizeof(nrm_string_t));
-	int a = 42;
-	int err;
-	nrm_string_t fortytwo = nrm_string_fromchar("fortytwo");
-	ck_assert_str_eq("fortytwo", fortytwo);
+	ck_assert_ptr_nonnull(vector);
 
+	int err;
+
+	nrm_string_t fortyone = nrm_string_fromchar("fortyone");
+	nrm_string_t fortytwo = nrm_string_fromchar("fortytwo");
+	ck_assert_str_eq("fortyone", fortyone);
+	ck_assert_str_eq("fortytwo", fortytwo);
+	err = nrm_vector_push_back(vector, &fortyone);
+	ck_assert_int_eq(err, 0);
 	err = nrm_vector_push_back(vector, &fortytwo);
 	ck_assert_int_eq(err, 0);
-	ck_assert_ptr_nonnull(vector);
 
 	size_t pos;
 	err = nrm_vector_find(vector, &fortytwo, nrm_string_cmp, &pos);
 	ck_assert_int_eq(err, 0);
+	ck_assert_int_eq(pos, 1);
 
 	size_t len;
 	err = nrm_vector_length(vector, &len);
 	ck_assert_int_eq(err, 0);
-	ck_assert_int_eq(len, 1);
+	ck_assert_int_eq(len, 2);
 
 	nrm_vector_destroy(&vector);
 	ck_assert_ptr_null(vector);
+	nrm_string_decref(fortyone);
 	nrm_string_decref(fortytwo);
 }
 
@@ -49,6 +55,8 @@ START_TEST(test_iter)
 	nrm_string_t fortythree = nrm_string_fromchar("fortythree");
 	nrm_string_t fortyfour = nrm_string_fromchar("fortyfour");
 	ck_assert_str_eq("fortytwo", fortytwo);
+	ck_assert_str_eq("fortythree", fortythree);
+	ck_assert_str_eq("fortyfour", fortyfour);
 	err = nrm_vector_push_back(vector, &fortytwo);
 	ck_assert_int_eq(err, 0);
 	err = nrm_vector_push_back(vector, &fortythree);
@@ -57,11 +65,15 @@ START_TEST(test_iter)
 	ck_assert_int_eq(err, 0);
 
 	nrm_string_t str;
+	void *iterator = NULL;
+	nrm_string_t array = {fortytwo, fortythree, fortyfour};
+	int i = 0;
 	nrm_vector_foreach(vector, iterator)
 	{
 		str = nrm_vector_iterator_get(iterator);
+		ck_assert_str_eq(str, array[i]);
+		i++;
 	}
-	ck_assert_str_eq(str, fortyfour);
 
 	size_t len;
 	err = nrm_vector_length(vector, &len);
