@@ -59,6 +59,28 @@ jobs:
           path: |
             out/config.log
             out/*.log
+  valgrind:
+    runs-on: ubuntu-22.04
+    steps:
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev valgrind
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: configure
+        run: |
+          ./autogen.sh
+          mkdir build
+          ./configure --prefix=`pwd`/build --enable-valgrind
+      - run: make
+      - run: make check-valgrind
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: valgrind
+          path: |
+            config.log
+            *.log
   nix:
     runs-on: ubuntu-latest
     steps:

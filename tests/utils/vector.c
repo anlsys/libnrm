@@ -12,6 +12,14 @@
 #include <check.h>
 #include <stdlib.h>
 
+int test_nrm_strcmp(const void *a, const void *b)
+{
+	nrm_string_t *one, *two;
+	one = (nrm_string_t *)a;
+	two = (nrm_string_t *)b;
+	return nrm_string_cmp(*one, *two);
+}
+
 START_TEST(test_basics)
 {
 	nrm_vector_t *vector = NULL;
@@ -30,7 +38,7 @@ START_TEST(test_basics)
 	ck_assert_int_eq(err, 0);
 
 	size_t pos;
-	err = nrm_vector_find(vector, &fortytwo, nrm_string_cmp, &pos);
+	err = nrm_vector_find(vector, &fortytwo, test_nrm_strcmp, &pos);
 	ck_assert_int_eq(err, 0);
 	ck_assert_int_eq(pos, 1);
 

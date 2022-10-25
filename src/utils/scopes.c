@@ -42,6 +42,7 @@ size_t nrm_scope_length(const nrm_scope_t *s, unsigned int type)
 
 int nrm_scope_destroy(nrm_scope_t *s)
 {
+	nrm_string_decref(s->uuid);
 	free(s);
 	return 0;
 }
