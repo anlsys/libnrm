@@ -70,9 +70,9 @@ void nrm_hash_destroy(nrm_hash_t **hash_table)
 	HASH_ITER(hh, (*hash_table), iterator, tmp)
 	{
 		HASH_DEL((*hash_table), iterator);
-		free(tmp);
+		free(iterator);
 	}
-	free(iterator);
+	*hash_table = NULL;
 }
 
 int nrm_hash_find(nrm_hash_t *hash_table, nrm_string_t uuid, void **ptr)

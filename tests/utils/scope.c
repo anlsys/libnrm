@@ -23,6 +23,8 @@ START_TEST(test_from_json)
 	nrm_scope_t *scope = nrm_scope_create("test");
 	nrm_scope_from_json(scope, valid_cpu_scope);
 	assert(nrm_bitmap_isset(&scope->maps[NRM_SCOPE_TYPE_CPU], 0));
+	nrm_scope_destroy(scope);
+	json_decref(valid_cpu_scope);
 }
 END_TEST
 

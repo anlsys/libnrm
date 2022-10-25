@@ -80,6 +80,8 @@ START_TEST(test_send_onemsg_rpc)
 	ck_assert_ptr_nonnull(recvbuf);
 	ck_assert_ptr_nonnull(identity);
 	ck_assert_str_eq(recvbuf, sndbuf);
+	free(recvbuf);
+	free(identity);
 }
 END_TEST
 
@@ -93,6 +95,7 @@ START_TEST(test_send_onemsg_pubsub)
 	ck_assert(!zsock_recv(client, "s", &recvbuf));
 	ck_assert_ptr_nonnull(recvbuf);
 	ck_assert_str_eq(recvbuf, sndbuf);
+	free(recvbuf);
 }
 END_TEST
 
