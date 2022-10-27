@@ -101,8 +101,9 @@ libnrm_la_SOURCES = \
 		 src/roles/client.c \
 		 src/roles/controller.c \
 		 src/roles/role.c \
-		 src/slices.c \
 		 src/sensor.c \
+		 src/server.c \
+		 src/slices.c \
 		 src/state.c \
 		 src/utils/bitmaps.c \
 		 src/utils/error.c \
