@@ -208,7 +208,8 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 	/* TODO: iterate over the hash and destroy sub structures. */
 	s->maxperiods = 0;
 	nrm_sensor2scope_t *current, *tmp;
-	HASH_ITER(hh, s->hash, current, tmp) // hh_name, head, item_ptr, tmp_item_ptr
+	HASH_ITER(hh, s->hash, current, tmp) // hh_name, head, item_ptr,
+	                                     // tmp_item_ptr
 	{
 		nrm_string_decref(&current->uuid);
 		HASH_DEL(s->hash, current); // head, item_ptr
