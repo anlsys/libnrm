@@ -203,28 +203,28 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 {
 	if (eventbase == NULL || *eventbase == NULL)
 		return;
-	nrm_eventbase_t *s = *eventbase;
+	// nrm_eventbase_t *s = *eventbase;
 
 	/* TODO: iterate over the hash and destroy sub structures. */
 	s->maxperiods = 0;
 	nrm_sensor2scope_t *current, *tmp;
-	HASH_ITER(s->hash->hh, s->hash, current, tmp)
+	HASH_ITER(*eventbase->hash->hh, *eventbase->hash, current, tmp)
 	{
 		nrm_string_decref(&current->uuid);
-		HASH_DEL(s->hash, current);
+		HASH_DEL(*eventbase->hash, current);
 		free(current);
 
 		nrm_scope2ring_t *elt, *s2rtmp;
-		DL_FOREACH_SAFE(s->hash->list, elt, s2rtmp)
+		DL_FOREACH_SAFE(*eventbase->hash->list, elt, s2rtmp)
 		{
 			nrm_scope_destroy(elt->scope);
 			nrm_ringbuffer_destroy(&elt->past);
 			nrm_vector_destroy(&elt->events);
-			DL_DELETE(s->hash->list, elt);
+			DL_DELETE(*eventbase->hash->list, elt);
 			free(elt);
 		}
 	}
-	HASH_CLEAR(s->hash->hh, s->hash); // just in case
-	free(s);
+	HASH_CLEAR(*eventbase->hash->hh, *eventbase->hash); // just in case
+	free(*eventbase);
 	*eventbase = NULL;
 }
