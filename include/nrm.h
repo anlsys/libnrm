@@ -403,6 +403,37 @@ int nrm_client_start_actuate_listener(const nrm_client_t *client);
  */
 void nrm_client_destroy(nrm_client_t **client);
 
+/*******************************************************************************
+ * NRM Server object
+ * Used by any program that wants to act as a control loop: it can receive
+ * requests from clients and send actions back.
+ ******************************************************************************/
+
+typedef struct nrm_server_s nrm_server_t;
+
+typedef int(nrm_server_callback_fn)(void *arg);
+
+/**
+ * Creates a new NRM server.
+ *
+ * @param server: pointer to a variable that will contain the server handle
+ * @param uri: address for listening to clients
+ * @param pub_port: port for publishing server events
+ * @param rpc_port: port for listening to requests
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_server_create(nrm_server_t **server,
+                      const char *uri,
+                      int pub_port,
+                      int rpc_port);
+
+
+/**
+ * Destroys an NRM server. Closes connections.
+ */
+void nrm_server_destroy(nrm_client_t **client);
+
 #ifdef __cplusplus
 }
 #endif
