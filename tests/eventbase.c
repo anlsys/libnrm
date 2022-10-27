@@ -8,13 +8,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
+#include "nrm.h"
 #include <check.h>
 #include <stdlib.h>
 
-#include "nrm.h"
+#include "internal/nrmi.h"
 
 #include "nrm-internal.h"
-#include "internal/nrmi.h"
 
 /* fixtures for eventbase */
 nrm_eventbase_t eventbase;
@@ -50,26 +50,21 @@ START_TEST(test_push_event)
 
 	ret = nrm_eventbase_push_event(eventbase, uuid, scope, now, value);
 	ck_assert_int_eq(ret, 0);
-
-
 }
 END_TEST
 
 START_TEST(test_tick)
 {
-
 }
 END_TEST
 
 START_TEST(test_last_value)
 {
-
 }
 END_TEST
 
 START_TEST(test_destroy)
 {
-
 }
 END_TEST
 
