@@ -13,7 +13,7 @@
 
 #include "nrm.h"
 
-#include "nrm-internal.h"
+#include "internal/nrmi.h"
 
 /* fixtures for pair of sensor receiver and emitter */
 struct nrm_sensor_emitter_ctxt *sensor;

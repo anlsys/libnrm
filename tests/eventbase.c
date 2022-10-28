@@ -14,8 +14,6 @@
 
 #include "internal/nrmi.h"
 
-#include "nrm-internal.h"
-
 /* fixtures for eventbase */
 nrm_eventbase_t eventbase;
 
