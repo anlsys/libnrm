@@ -155,6 +155,8 @@ LDADD = libnrm.la
 GENERAL_TESTS = \
 		tests/core \
 		tests/net \
+		tests/sensor \
+		tests/eventbase \
 		tests/utils/hash \
 		tests/utils/vector \
 		tests/utils/scope
