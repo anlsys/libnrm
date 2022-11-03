@@ -26,6 +26,7 @@ struct nrm_eventbase_s {
 	size_t maxperiods;
 	struct nrm_sensor2scope_s *hash;
 };
+typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 /* events, as stored in one of the ringbuffers */
 struct nrm_event_s {
