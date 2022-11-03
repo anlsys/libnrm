@@ -8,10 +8,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-#include "nrm.h"
 #include <check.h>
 #include <stdlib.h>
 
+#include "nrm.h"
 #include "internal/nrmi.h"
 
 /* fixtures for eventbase */
@@ -20,20 +20,20 @@ nrm_eventbase_t *eventbase;
 void setup(void)
 {
 	eventbase = nrm_eventbase_create(5);
-	ck_assert(eventbase != NULL);
+	ck_assert_ptr_nonnull(eventbase);
 }
 
 void teardown(void)
 {
 	nrm_eventbase_destroy(&eventbase);
-	assert(eventbase == NULL);
+	ck_assert_ptr_null(eventbase);
 }
 
 START_TEST(test_create)
 {
 	eventbase = nrm_eventbase_create(5);
-	ck_assert(&eventbase->maxperiods == 5);
-	ck_assert(&eventbase->hash == NULL);
+	ck_assert_int_eq(eventbase->maxperiods, 5);
+	ck_assert_ptr_null(eventbase->hash);
 }
 END_TEST
 
