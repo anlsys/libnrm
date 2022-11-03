@@ -200,6 +200,11 @@ nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods)
 	return ret;
 }
 
+size_t nrm_eventbase_get_maxperiods(nrm_eventbase_t *eb)
+{
+	return eb->maxperiods;
+}
+
 void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 {
 	if (eventbase == NULL || *eventbase == NULL)

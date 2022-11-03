@@ -32,7 +32,8 @@ void teardown(void)
 START_TEST(test_create)
 {
 	eventbase = nrm_eventbase_create(5);
-	ck_assert_int_eq(eventbase->maxperiods, 5);
+	size_t outperiods;
+	ck_assert_int_eq(nrm_eventbase_get_maxperiods(eventbase), 5);
 	ck_assert_ptr_null(eventbase->hash);
 }
 END_TEST

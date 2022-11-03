@@ -226,6 +226,8 @@ typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
 
+size_t nrm_eventbase_get_maxperiods(nrm_eventbase_t *);
+
 int nrm_eventbase_push_event(
         nrm_eventbase_t *, nrm_string_t, nrm_scope_t *, nrm_time_t, double);
 
