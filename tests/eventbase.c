@@ -53,14 +53,14 @@ START_TEST(test_push_event_last_value)
 
 	// now checking last_value. new scope
 	nrm_scope_t *nscope = nrm_scope_create("nrm.scope.eventbasetest2");
-	ret_last = nrm_eventbase_last_value(eventbase, uuid, nrm_scope_uuid(nscope), &last_value);
+	ret_last = nrm_eventbase_last_value(eventbase, uuid, nrm_scope_uuid(nscope), last_value);
 	ck_assert_float_eq(&last_value, 0.0);
 	ck_assert_int_eq(ret_last, -NRM_EINVAL);
 
 
 	// check last_value. s2s == NULL
-	nrm_eventbase_t new_eventbase = nrm_eventbase_create(4);
-	ret_last = nrm_eventbase_last_value(new_eventbase, uuid, nrm_scope_uuid(scope), &last_value);
+	nrm_eventbase_t *new_eventbase = nrm_eventbase_create(4);
+	ret_last = nrm_eventbase_last_value(new_eventbase, uuid, nrm_scope_uuid(scope), last_value);
 	ck_assert_float_eq(&last_value, 0.0);
 	ck_assert_int_eq(ret_last, -NRM_EINVAL);
 
