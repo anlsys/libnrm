@@ -41,27 +41,31 @@ START_TEST(test_push_event_last_value)
 {
 	int ret_push, ret_last;
 	nrm_scope_t *scope = nrm_scope_create("nrm.scope.eventbasetest");
-	nrm_string_t uuid = nrm_string_fromchar("test-uuid");
+	nrm_string_t sen_uuid = nrm_string_fromchar("test-uuid");
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 	double value = 1234;
 	double *last_value;
 
 	// testing push_event
-	ret_push = nrm_eventbase_push_event(eventbase, uuid, scope, now, value);
+	ret_push = nrm_eventbase_push_event(eventbase, sen_uuid, scope, now, value);
 	ck_assert_int_eq(ret_push, 0);
 
-	// now checking last_value. new scope
+	// test last_value normally
+	ret_last = nrm_eventbase_last_value(eventbase, sen_uuid, nrm_scope_uuid(scope), last_value);
+	ck_assert_int_eq(*last_value, 1234);
+
+	// now checking last_value. new scope, so value should be set 0.0
 	nrm_scope_t *nscope = nrm_scope_create("nrm.scope.eventbasetest2");
-	ret_last = nrm_eventbase_last_value(eventbase, uuid, nrm_scope_uuid(nscope), last_value);
-	ck_assert_double_eq(&last_value, 0.0);
+	ret_last = nrm_eventbase_last_value(eventbase, sen_uuid, nrm_scope_uuid(nscope), last_value);
+	ck_assert_double_eq(*last_value, 0.0);
 	ck_assert_int_eq(ret_last, -NRM_EINVAL);
 
 
 	// check last_value. s2s == NULL
 	nrm_eventbase_t *new_eventbase = nrm_eventbase_create(4);
-	ret_last = nrm_eventbase_last_value(new_eventbase, uuid, nrm_scope_uuid(scope), last_value);
-	ck_assert_double_eq(&last_value, 0.0);
+	ret_last = nrm_eventbase_last_value(new_eventbase, sen_uuid, nrm_scope_uuid(scope), last_value);
+	ck_assert_double_eq(*last_value, 0.0);
 	ck_assert_int_eq(ret_last, -NRM_EINVAL);
 
 }
@@ -110,7 +114,7 @@ int main(void)
 	SRunner *sr;
 
 	nrm_init(NULL, NULL);
-	s = sensor_suite();
+	s = eventbase_suite();
 	sr = srunner_create(s);
 
 	srunner_run_all(sr, CK_ENV);
