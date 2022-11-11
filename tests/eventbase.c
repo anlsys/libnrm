@@ -8,10 +8,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
+#include "nrm.h"
 #include <check.h>
 #include <stdlib.h>
 
-#include "nrm.h"
 #include "internal/nrmi.h"
 
 /* fixtures for eventbase */
@@ -65,11 +65,13 @@ START_TEST(test_push_tick_last_normal)
 	nrm_string_t sensor_uuid = nrm_sensor_uuid(sensor);
 
 	// testing push_event normal
-	ret_push = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now, value);
+	ret_push = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now,
+	                                    value);
 	ck_assert_int_eq(ret_push, 0);
 
 	// test last_value normal
-	ret_last = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid, last_value);
+	ret_last = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid,
+	                                    last_value);
 	ck_assert_int_eq(ret_last, 0);
 	ck_assert_int_eq(*last_value, 1234);
 
@@ -78,7 +80,8 @@ START_TEST(test_push_tick_last_normal)
 	ck_assert_int_eq(ret_tick, 0);
 
 	// testing push_event normal, accumulation
-	ret_push = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now, new_val);
+	ret_push = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now,
+	                                    new_val);
 	ck_assert_int_eq(ret_push, 0);
 
 	// testing tick normal, accumulation
@@ -86,7 +89,8 @@ START_TEST(test_push_tick_last_normal)
 	ck_assert_int_eq(ret_tick, 0);
 
 	// test last_value normal, accumulation
-	ret_last = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid, last_value);
+	ret_last = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid,
+	                                    last_value);
 	ck_assert_int_eq(ret_last, 0);
 	ck_assert_int_eq(*last_value, 2234);
 
@@ -102,16 +106,17 @@ START_TEST(test_push_tick_last_edge_cases)
 
 	// now checking last_value. new scope, so value should be set 0.0
 	nrm_scope_t *nscope = nrm_scope_create("nrm.scope.eventbasetest2");
-	ret_last = nrm_eventbase_last_value(eventbase, sen_uuid, nrm_scope_uuid(nscope), last_value);
+	ret_last = nrm_eventbase_last_value(eventbase, sen_uuid,
+	                                    nrm_scope_uuid(nscope), last_value);
 	ck_assert_double_eq(*last_value, 0.0);
 	ck_assert_int_eq(ret_last, -NRM_EINVAL);
 
 	// check last_value. s2s == NULL
 	nrm_eventbase_t *new_eventbase = nrm_eventbase_create(4);
-	ret_last = nrm_eventbase_last_value(new_eventbase, sen_uuid, nrm_scope_uuid(scope), last_value);
+	ret_last = nrm_eventbase_last_value(new_eventbase, sen_uuid,
+	                                    nrm_scope_uuid(scope), last_value);
 	ck_assert_double_eq(*last_value, 0.0);
 	ck_assert_int_eq(ret_last, -NRM_EINVAL);
-
 }
 END_TEST
 
