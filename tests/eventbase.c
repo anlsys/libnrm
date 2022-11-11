@@ -17,25 +17,29 @@
 /* fixtures for eventbase */
 nrm_eventbase_t *eventbase;
 nrm_scope_t *scope;
-nrm_string_t sen_uuid;
+nrm_sensor_t *sensor;
 nrm_time_t now;
 
 void setup(void)
 {
 	eventbase = nrm_eventbase_create(5);
-	ck_assert_ptr_nonnull(eventbase);
 	scope = nrm_scope_create("nrm.scope.eventbasetest");
-	sen_uuid = nrm_string_fromchar("test-uuid");
+	sensor = nrm_sensor_create("nrm.sensor.eventbasetest");
 	nrm_time_gettime(&now);
+
+	ck_assert_ptr_nonnull(eventbase);
+	ck_assert_ptr_nonnull(scope);
+	ck_assert_ptr_nonnull(sensor);
 }
 
 void teardown(void)
 {
 	nrm_eventbase_destroy(&eventbase);
 	nrm_scope_destroy(scope);
-	ck_assert_ptr_null(scope);
+	nrm_sensor_destroy(sensor);
+
+	ck_assert_ptr_null(sensor);
 	ck_assert_ptr_null(eventbase);
-	nrm_string_decref(sen_uuid);
 }
 
 START_TEST(test_empty)
@@ -47,7 +51,6 @@ END_TEST
 START_TEST(test_create)
 {
 	eventbase = nrm_eventbase_create(5);
-	size_t outperiods;
 	ck_assert_int_eq(nrm_eventbase_get_maxperiods(eventbase), 5);
 }
 END_TEST
@@ -58,20 +61,24 @@ START_TEST(test_push_tick_last_normal)
 	double value = 1234, new_val = 1000;
 	double *last_value;
 
+	nrm_string_t scope_uuid = nrm_scope_uuid(scope);
+	nrm_string_t sensor_uuid = nrm_sensor_uuid(sensor);
+
 	// testing push_event normal
-	ret_push = nrm_eventbase_push_event(eventbase, sen_uuid, scope, now, value);
+	ret_push = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now, value);
 	ck_assert_int_eq(ret_push, 0);
+
+	// test last_value normal
+	ret_last = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid, last_value);
+	ck_assert_int_eq(ret_last, 0);
+	ck_assert_int_eq(*last_value, 1234);
 
 	// testing tick normal
 	ret_tick = nrm_eventbase_tick(eventbase, now);
 	ck_assert_int_eq(ret_tick, 0);
 
-	// test last_value normal
-	ret_last = nrm_eventbase_last_value(eventbase, sen_uuid, nrm_scope_uuid(scope), last_value);
-	ck_assert_int_eq(*last_value, 1234);
-
 	// testing push_event normal, accumulation
-	ret_push = nrm_eventbase_push_event(eventbase, sen_uuid, scope, now, new_val);
+	ret_push = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now, new_val);
 	ck_assert_int_eq(ret_push, 0);
 
 	// testing tick normal, accumulation
@@ -79,11 +86,11 @@ START_TEST(test_push_tick_last_normal)
 	ck_assert_int_eq(ret_tick, 0);
 
 	// test last_value normal, accumulation
-	ret_last = nrm_eventbase_last_value(eventbase, sen_uuid, nrm_scope_uuid(scope), last_value);
+	ret_last = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid, last_value);
+	ck_assert_int_eq(ret_last, 0);
 	ck_assert_int_eq(*last_value, 2234);
 
 	free(last_value);
-
 }
 END_TEST
 
