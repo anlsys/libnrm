@@ -26,7 +26,7 @@ nrm_sensor_t *nrm_sensor_create(const char *name)
 	return ret;
 }
 
-nrm_string_t nrm_sensor_uuid(nrm_sensor_t *sensor);
+nrm_string_t nrm_sensor_uuid(nrm_sensor_t *sensor)
 {
 	return sensor->uuid;
 }
