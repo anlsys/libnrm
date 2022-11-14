@@ -41,5 +41,6 @@ void nrm_sensor_destroy(nrm_sensor_t **sensor)
 	if (sensor == NULL || *sensor == NULL)
 		return;
 	nrm_string_decref((*sensor)->uuid);
+	free(*sensor);
 	*sensor = NULL;
 }

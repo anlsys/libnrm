@@ -60,7 +60,7 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 {
 	nrm_event_t period;
 	period.time = time;
-	period.value = 0;
+	period.value = 0.0;
 	nrm_vector_foreach(s->events, iterator)
 	{
 		nrm_event_t *f = nrm_vector_iterator_get(iterator);
@@ -74,6 +74,7 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 int nrm_eventbase_tick(nrm_eventbase_t *eb, nrm_time_t time)
 {
 	struct nrm_sensor2scope_s *s2s;
+
 	for (s2s = eb->hash; s2s != NULL; s2s = s2s->hh.next) {
 		struct nrm_scope2ring_s *s2r;
 		DL_FOREACH(s2s->list, s2r)
@@ -119,7 +120,7 @@ struct nrm_sensor2scope_s *nrm_eventbase_add_sensor(nrm_eventbase_t *eb,
 	s->uuid = sensor_uuid;
 	nrm_string_incref(sensor_uuid);
 	s->list = NULL;
-	HASH_ADD_STR(eb->hash, uuid, s);
+	HASH_ADD_KEYPTR(hh, eb->hash, s->uuid, strlen(s->uuid), s);
 	return s;
 }
 
@@ -163,6 +164,7 @@ int nrm_eventbase_push_event(nrm_eventbase_t *eb,
 	}
 	/* did not find the scope */
 	s2r = nrm_eventbase_add_scope(eb, scope);
+	DL_APPEND(s2s->list, s2r);
 	nrm_eventbase_add_event(s2r, time, value);
 	return 0;
 }
@@ -182,7 +184,15 @@ int nrm_eventbase_last_value(nrm_eventbase_t *eb,
 	DL_FOREACH(s2s->list, s2r)
 	{
 		if (!nrm_string_cmp(scope_uuid, s2r->scope->uuid)) {
-			nrm_ringbuffer_back(s2r->past, &value);
+			void *p;
+			int err;
+			nrm_event_t *e;
+			*value = 0.0;
+			err = nrm_ringbuffer_back(s2r->past, &p);
+			if (err)
+				return err;
+			e = (nrm_event_t *)p;
+			*value = e->value;
 			return 0;
 		}
 	}
@@ -211,25 +221,23 @@ void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
 		return;
 	nrm_eventbase_t *s = *eventbase;
 
-	/* TODO: iterate over the hash and destroy sub structures. */
-	s->maxperiods = 0;
 	nrm_sensor2scope_t *current, *tmp;
 	HASH_ITER(hh, s->hash, current, tmp) // hh_name, head, item_ptr,
 	                                     // tmp_item_ptr
 	{
-		nrm_string_decref(&current->uuid);
-		HASH_DEL(s->hash, current); // head, item_ptr
-		free(current);
-
 		nrm_scope2ring_t *elt, *s2rtmp;
-		DL_FOREACH_SAFE(s->hash->list, elt, s2rtmp)
+		DL_FOREACH_SAFE(current->list, elt, s2rtmp)
 		{
 			nrm_scope_destroy(elt->scope);
-			nrm_ringbuffer_destroy(&elt->past);
-			nrm_vector_destroy(&elt->events);
-			DL_DELETE(s->hash->list, elt);
+			nrm_ringbuffer_destroy(&(elt->past));
+			nrm_vector_destroy(&(elt->events));
+			DL_DELETE(current->list, elt);
 			free(elt);
 		}
+
+		nrm_string_decref(current->uuid);
+		HASH_DEL(s->hash, current); // head, item_ptr
+		free(current);
 	}
 	HASH_CLEAR(hh, s->hash); // just in case. hh_name, head
 	free(s);

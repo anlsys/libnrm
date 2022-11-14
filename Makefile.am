@@ -158,6 +158,7 @@ GENERAL_TESTS = \
 		tests/eventbase \
 		tests/utils/hash \
 		tests/utils/vector \
+		tests/utils/ringbuffer \
 		tests/utils/scope
 
 # unit tests
