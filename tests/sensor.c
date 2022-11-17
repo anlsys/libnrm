@@ -8,10 +8,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
+#include "nrm.h"
 #include <check.h>
 #include <stdlib.h>
-
-#include "nrm.h"
 
 #include "internal/nrmi.h"
 
