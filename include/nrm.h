@@ -193,6 +193,8 @@ typedef struct nrm_sensor_s nrm_sensor_t;
  */
 nrm_sensor_t *nrm_sensor_create(const char *name);
 
+nrm_string_t nrm_sensor_uuid(nrm_sensor_t *sensor);
+
 /**
  * Removes an NRM sensor. Do this for each sensor before an instrumented program
  * exits.
