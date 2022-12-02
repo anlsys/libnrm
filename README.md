@@ -87,5 +87,7 @@ Use the GitHub issues to report bugs or ask for help using this library. Contrib
 
 ## Example Usage
 
+See a simple example here: https://nrm.readthedocs.io/projects/libnrm/en/latest/pages/simple_c_example.html
+
 Some utilities that use libnrm instrumentation are available in the nrm-extra repository:
 https://github.com/anlsys/nrm-extra/tree/master/src
