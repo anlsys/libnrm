@@ -1,4 +1,4 @@
-# NRM Communication library - libnrm
+## NRM Communication library - libnrm
 
 This library aims to provide a consistent API to communicate with the Argo Node
 Resource Manager.
@@ -14,11 +14,11 @@ The power policies in NRM need contextual information from the application
 decision. This information from the application can be provided to NRM using
 the C downstream API.
 
-## Dependencies
+# Dependencies
 
 Besides a C compiler, you need the `autoconf`, `automake`, `libtool`, and `pkg-config` build tools.
 
-# Compile-time
+## Compile-time
 
 * `libzmq3-dev`
 * `libczmq-dev`
@@ -28,16 +28,16 @@ Besides a C compiler, you need the `autoconf`, `automake`, `libtool`, and `pkg-c
 * `libhwloc-dev`
 * `check`
 
-# Runtime
+## Runtime
 
 * `libzmq5`
 * `libczmq4`
 * `libjansson4`
 
 
-## Downloading
+# Downloading
 
-# Main repository
+## Main repository
 
 Main repository on GitHub: https://github.com/anlsys/libnrm
 
@@ -45,7 +45,7 @@ Main repository on GitHub: https://github.com/anlsys/libnrm
 git clone https://github.com/anlsys/libnrm.git; cd libnrm
 ```
 
-# Official Releases
+## Official Releases
 
 See the releases page on GitHub: https://github.com/anlsys/libnrm/releases
 
@@ -54,7 +54,7 @@ wget https://github.com/anlsys/libnrm/releases/download/v0.7.0/libnrm-0.7.0.tar.
 tar xvf libnrm-0.7.0.tar.gz; cd libnrm-0.7.0
 ```
 
-## Building and Installing
+# Building and Installing
 
 From the libnrm root directory:
 
@@ -67,7 +67,7 @@ make; make install
 
 Specify `--enable-binaries` to `./configure` to build the NRM daemon and command-line utility.
 
-# From Spack
+## From Spack
 
 libnrm is also available on the Spack package manager:
 
@@ -77,15 +77,15 @@ spack install libnrm
 
 See the libnrm entry on the Spack docs for more info: https://spack.readthedocs.io/en/latest/package_list.html#libnrm
 
-## Documentation
+# Documentation
 
 Available on Read the Docs: https://nrm.readthedocs.io/en/latest/libnrm.html
 
-## Additional Info
+# Additional Info
 
 Use the GitHub issues to report bugs or ask for help using this library. Contributions are welcome.
 
-## Example Usage
+# Example Usage
 
 See a simple example here: https://nrm.readthedocs.io/projects/libnrm/en/latest/pages/simple_c_example.html
 
