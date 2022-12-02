@@ -135,8 +135,18 @@ struct nrm_actuator_s {
 
 typedef struct nrm_actuator_s nrm_actuator_t;
 
+/**
+ * Creates a new NRM actuator
+ *
+ * @param name: char pointer to a name describing the actuator
+ * @return: a new NRM actuator
+ */
 nrm_actuator_t *nrm_actuator_create(const char *name);
 
+/**
+ * Removes an NRM actuator. Do this for each actuator before an instrumented
+ * program exits.
+ */
 void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
 
@@ -217,19 +227,64 @@ struct nrm_eventbase_s;
 
 typedef struct nrm_eventbase_s nrm_eventbase_t;
 
+/**
+ * Creates a new NRM eventbase
+ *
+ * @param maxperiods: max number of entries for the underlying ringbuffer
+ * @return: a new NRM eventbase structure
+ */
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
 
-int nrm_eventbase_push_event(
-        nrm_eventbase_t *, nrm_string_t, nrm_scope_t *, nrm_time_t, double);
+/**
+ * Pushes and accumulates a value into the eventbase at a given time,
+ *
+ * @param eb: an NRM eventbase pointer
+ * @param sensor_uuid: uuid for associated sensor. can obtain via: `nrm_string_t
+ * sensor_uuid = nrm_sensor_uuid(sensor);`
+ * @param scope: NRM scope pointer
+ * @param time: time value. can obtain via: `nrm_time_t now;
+ * nrm_time_gettime(&now);`
+ * @param value: double to accumulate into the eventbase
+ * @return: 0 if successful, an error code otherwise
+ */
+int nrm_eventbase_push_event(nrm_eventbase_t *eb,
+                             nrm_string_t sensor_uuid,
+                             nrm_scope_t *scope,
+                             nrm_time_t time,
+                             double value);
 
-int nrm_eventbase_tick(nrm_eventbase_t *, nrm_time_t);
+/**
+ * Ticks the eventbase, resetting the internal counters so a new sum can be
+ * calculated.
+ *
+ * @param eb: an NRM eventbase pointer
+ * @param time: time value. can obtain via: `nrm_time_t now;
+ * nrm_time_gettime(&now);`
+ * @return: 0 if successful, an error code otherwise
+ */
+int nrm_eventbase_tick(nrm_eventbase_t *eb, nrm_time_t time);
 
-int nrm_eventbase_last_value(nrm_eventbase_t *,
-                             nrm_string_t,
-                             nrm_string_t,
-                             double *);
+/**
+ * Obtains the last value pushed into the eventbase
+ *
+ * @param eb: an NRM eventbase pointer
+ * @param sensor_uuid: uuid for associated sensor. can obtain via: `nrm_string_t
+ * sensor_uuid = nrm_sensor_uuid(sensor);`
+ * @param scope_uuid: uuid for associated scope. can obtain via: `nrm_string_t
+ * scope_uuid = nrm_scope_uuid(scope);`
+ * @param value: pointer to write last value into
+ * @return: 0 if successful, an error code otherwise
+ */
+int nrm_eventbase_last_value(nrm_eventbase_t *eb,
+                             nrm_string_t sensor_uuid,
+                             nrm_string_t scope_uuid,
+                             double *value);
 
-void nrm_eventbase_destroy(nrm_eventbase_t **);
+/**
+ * Removes an NRM eventbase. Do this for each eventbase before the program
+ * exits.
+ */
+void nrm_eventbase_destroy(nrm_eventbase_t **eb);
 
 /*******************************************************************************
  * NRM Client object
