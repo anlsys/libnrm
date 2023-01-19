@@ -9,6 +9,7 @@
  ******************************************************************************/
 
 #include "config.h"
+#include "Python.h"
 
 #include "nrm.h"
 
@@ -20,6 +21,8 @@ struct nrm_client_s {
 	nrm_role_t *role;
 	nrm_client_event_listener_fn *user_fn;
 	nrm_client_actuate_listener_fn *actuate_fn;
+	nrm_client_event_listener_Pyfn *user_Pyfn;
+	nrm_client_actuate_listener_Pyfn *actuate_Pyfn
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -38,6 +41,9 @@ int nrm_client_create(nrm_client_t **client,
 	if (ret->role == NULL)
 		return -NRM_EINVAL;
 	ret->user_fn = NULL;
+	ret->actuate_fn = NULL;
+	ret->user_Pyfn = NULL;
+	ret->actuate_Pyfn = NULL;
 
 	*client = ret;
 	return 0;
@@ -313,6 +319,35 @@ int nrm_client_set_event_listener(nrm_client_t *client,
 		return -NRM_EINVAL;
 	client->user_fn = fn;
 	return 0;
+}
+
+int nrm_client_set_event_Pylistener(nrm_client_t *client,
+                                    PyObject *fn)
+{
+	if (client == NULL || fn == NULL)
+		return -NRM_EINVAL;
+	client->user_Pyfn = fn;
+	return 0;
+}
+
+int nrm_client_start_event_Pylistener(nrm_client_t *client,
+                                      nrm_string_t topic)
+{
+
+}
+
+int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
+                                    PyObject *fn)
+{
+	if (client == NULL || fn == NULL)
+		return -NRM_EINVAL;
+	client->actuate_Pyfn = fn;
+	return 0;
+}
+
+int nrm_client_start_actuate_Pylistener(const nrm_client_t *client)
+{
+
 }
 
 int nrm_client_start_event_listener(const nrm_client_t *client,
