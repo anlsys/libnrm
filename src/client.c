@@ -21,8 +21,8 @@ struct nrm_client_s {
 	nrm_role_t *role;
 	nrm_client_event_listener_fn *user_fn;
 	nrm_client_actuate_listener_fn *actuate_fn;
-	nrm_client_event_listener_Pyfn *user_Pyfn;
-	nrm_client_actuate_listener_Pyfn *actuate_Pyfn
+	PyObject *py_user_fn;
+	PyObject *py_actuate_fn;
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -42,8 +42,6 @@ int nrm_client_create(nrm_client_t **client,
 		return -NRM_EINVAL;
 	ret->user_fn = NULL;
 	ret->actuate_fn = NULL;
-	ret->user_Pyfn = NULL;
-	ret->actuate_Pyfn = NULL;
 
 	*client = ret;
 	return 0;
@@ -321,19 +319,27 @@ int nrm_client_set_event_listener(nrm_client_t *client,
 	return 0;
 }
 
+// https://docs.python.org/3.8/extending/extending.html#calling-python-functions-from-c
+
 int nrm_client_set_event_Pylistener(nrm_client_t *client,
                                     PyObject *fn)
 {
 	if (client == NULL || fn == NULL)
 		return -NRM_EINVAL;
-	client->user_Pyfn = fn;
+	client->py_user_fn = fn;
+	nrm_log_debug("Received PyObject user cb")
 	return 0;
 }
 
-int nrm_client_start_event_Pylistener(nrm_client_t *client,
-                                      nrm_string_t topic)
+int nrm_client_start_event_Pylistener(const nrm_client_t *client,
+                                    nrm_string_t topic)
 {
-
+	if (client == NULL)
+		return -NRM_EINVAL;
+	nrm_role_register_sub_cb(client->role, nrm_client__sub_callback,  // need py_sub_callback, result = PyObject_CallObject(my_callback, arglist);
+	                         (void *)client);
+	nrm_role_sub(client->role, topic);
+	return 0;
 }
 
 int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
@@ -341,14 +347,21 @@ int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
 {
 	if (client == NULL || fn == NULL)
 		return -NRM_EINVAL;
-	client->actuate_Pyfn = fn;
+	client->py_actuate_fn = fn;
+	nrm_log_debug("Received PyObject actuator cb")
 	return 0;
 }
 
 int nrm_client_start_actuate_Pylistener(const nrm_client_t *client)
 {
-
+	if (client == NULL)
+		return -NRM_EINVAL;
+	nrm_role_register_cmd_cb(client->role, nrm_client__actuate_callback, // need py_actuate_callback, result = PyObject_CallObject(my_callback, arglist);
+	                         client);
+	return 0;
 }
+
+// end PY routines
 
 int nrm_client_start_event_listener(const nrm_client_t *client,
                                     nrm_string_t topic)

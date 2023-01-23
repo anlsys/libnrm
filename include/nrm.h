@@ -14,6 +14,7 @@
 
 #ifndef NRM_H
 #define NRM_H 1
+#define PY_SSIZE_T_CLEAN
 
 #ifdef __cplusplus
 extern "C" {
@@ -24,6 +25,7 @@ extern "C" {
 #include <stdarg.h>
 #include <stdio.h>
 #include <time.h>
+#include <Python.h>
 
 // clang-format off
 #include "nrm/utils/alloc.h"
@@ -246,12 +248,6 @@ typedef int(nrm_client_event_listener_fn)(nrm_string_t sensor_uuid,
                                           double value);
 typedef int(nrm_client_actuate_listener_fn)(nrm_uuid_t *uuid, double value);
 
-typedef int(nrm_client_event_listener_Pyfn)(nrm_string_t sensor_uuid,
-                                          nrm_time_t time,
-                                          nrm_scope_t *scope,
-                                          double value);
-typedef int(nrm_client_actuate_listener_Pyfn)(nrm_uuid_t *uuid, double value);
-
 /**
  * Creates a new NRM Client.
  *
@@ -359,6 +355,15 @@ int nrm_client_set_event_listener(nrm_client_t *client,
                                   nrm_client_event_listener_fn fn);
 
 /**
+ * Set a callback Python function for client events
+ * @param client: NRM client object
+ * @param fn: Python function reference
+ * @return 0 if successful, an error code otherwise
+ */
+int nrm_client_set_event_Pylistener(nrm_client_t *client,
+                                  PyObject *fn);
+
+/**
  * Start a callback function for client events
  * @param client: NRM client object
  * @param topic: NRM string label
@@ -369,18 +374,17 @@ int nrm_client_start_event_listener(const nrm_client_t *client,
 
 int nrm_client_set_actuate_listener(nrm_client_t *client,
                                     nrm_client_actuate_listener_fn fn);
-int nrm_client_start_actuate_listener(const nrm_client_t *client);
 
-int nrm_client_set_event_Pylistener(nrm_client_t *client,
-                                    nrm_client_event_listener_Pyfn *fn);
-
-int nrm_client_start_event_Pylistener(nrm_client_t *client,
-                                      nrm_string_t topic);
-
+/**
+ * Set a callback Python function for actuator events
+ * @param client: NRM client object
+ * @param fn: Python function reference
+ * @return 0 if successful, an error code otherwise
+ */
 int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
-                                      nrm_client_actuate_listener_Pyfn *fn);
+                                    PyObject *fn);
 
-int nrm_client_start_actuate_Pylistener(const nrm_client_t *client);
+int nrm_client_start_actuate_listener(const nrm_client_t *client);
 
 /**
  * Removes an NRM client. Do this for each client before an instrumented program
