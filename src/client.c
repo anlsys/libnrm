@@ -9,7 +9,6 @@
  ******************************************************************************/
 
 #include "config.h"
-#include "Python.h"
 
 #include "nrm.h"
 
@@ -304,7 +303,7 @@ int nrm_client__sub_callback(nrm_msg_t *msg, void *arg)
 	nrm_string_t uuid = nrm_string_fromchar(msg->event->uuid);
 	nrm_time_t time = nrm_time_fromns(msg->event->time);
 	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->event->scope);
-	self->user_fn(uuid, time, scope, msg->event->value);
+	self->user_fn(uuid, time, scope, msg->event->value, arg);
 	return 0;
 }
 
@@ -317,8 +316,6 @@ int nrm_client_set_event_listener(nrm_client_t *client,
 	return 0;
 }
 
-// https://docs.python.org/3.8/extending/extending.html#calling-python-functions-from-c
-
 int nrm_event_Pylistener_cb(nrm_uuid_t uuid, nrm_time_t time, nrm_scope_t scope, double value)
 {
 
@@ -330,11 +327,12 @@ int nrm_actuate_Pylistener_cb(nrm_uuid_t uuid, double value)
 }
 
 int nrm_client_set_event_Pylistener(nrm_client_t *client,
+									void *pyclient,
                                     nrm_client_event_listener_fn *fn)
 {
 	if (client == NULL || fn == NULL)
 		return -NRM_EINVAL;
-	client->py_user_fn = fn;
+	client->user_fn = fn;
 	nrm_log_debug("Received PyObject user cb");
 	return 0;
 }
@@ -351,11 +349,12 @@ int nrm_client_start_event_Pylistener(const nrm_client_t *client,
 }
 
 int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
+									  void *pyclient,
                                       nrm_client_actuate_listener_fn *fn)
 {
 	if (client == NULL || fn == NULL)
 		return -NRM_EINVAL;
-	client->py_actuate_fn = fn;
+	client->actuate_fn = fn;
 	nrm_log_debug("Received PyObject actuator cb");
 	return 0;
 }
@@ -377,7 +376,7 @@ int nrm_client__actuate_callback(nrm_msg_t *msg, void *arg)
 	if (self->actuate_fn == NULL)
 		return 0;
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->actuate->uuid);
-	self->actuate_fn(uuid, msg->event->value);
+	self->actuate_fn(uuid, msg->event->value, arg);
 	return 0;
 }
 
