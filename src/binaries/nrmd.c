@@ -307,7 +307,7 @@ nrm_msg_t *nrmd_handle_actuate_request(nrm_role_t *role, nrm_msg_actuate_t *msg)
 	nrm_hash_find(my_daemon.state->actuators, uuid, (void *)&a);
 	if (a != NULL) {
 		/* found the actuator */
-		nrm_log_debug("actuating %s: %f\n", *a->uuid, msg->value);
+		nrm_log_debug("actuating %s: %f\n", a->uuid, msg->value);
 		nrm_msg_t *action = nrm_msg_create();
 		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 		nrm_msg_set_actuate(action, a->uuid, msg->value);
