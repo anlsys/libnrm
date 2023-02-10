@@ -391,7 +391,7 @@ int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
 
 int nrm_client_start_actuate_Pylistener(const nrm_client_t *client);
 
-int nrm_client_start_actuate_listener(const nrm_client_t *client);
+int nrm_client_start_actuate_listener(nrm_client_t *client);
 
 /**
  * Removes an NRM client. Do this for each client before an instrumented program
