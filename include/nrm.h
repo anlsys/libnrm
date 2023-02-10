@@ -364,7 +364,7 @@ int nrm_client_set_event_Pylistener(nrm_client_t *client,
                                     void *pyclient,
                                     nrm_client_event_listener_fn *fn);
 
-int nrm_client_start_event_Pylistener(const nrm_client_t *client,
+int nrm_client_start_event_Pylistener(nrm_client_t *client,
                                       nrm_string_t topic);
 
 /**
@@ -373,7 +373,7 @@ int nrm_client_start_event_Pylistener(const nrm_client_t *client,
  * @param topic: NRM string label
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_start_event_listener(const nrm_client_t *client,
+int nrm_client_start_event_listener(nrm_client_t *client,
                                     nrm_string_t topic);
 
 int nrm_client_set_actuate_listener(nrm_client_t *client,
@@ -389,7 +389,7 @@ int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
                                       void *pyclient,
                                       nrm_client_actuate_listener_fn *fn);
 
-int nrm_client_start_actuate_Pylistener(const nrm_client_t *client);
+int nrm_client_start_actuate_Pylistener(nrm_client_t *client);
 
 int nrm_client_start_actuate_listener(nrm_client_t *client);
 
