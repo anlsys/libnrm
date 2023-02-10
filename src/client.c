@@ -341,7 +341,7 @@ int nrm_client_set_event_Pylistener(nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_start_event_Pylistener(const nrm_client_t *client,
+int nrm_client_start_event_Pylistener(nrm_client_t *client,
                                       nrm_string_t topic)
 {
 	if (client == NULL)
