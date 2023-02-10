@@ -309,18 +309,6 @@ int nrm_client__sub_callback(nrm_msg_t *msg, void *arg)
 	return 0;
 }
 
-int nrm_client__sub_pycallback(nrm_msg_t *msg, void *arg)
-{
-	nrm_client_t *self = (nrm_client_t *)arg;
-	if (self->user_fn == NULL)
-		return 0;
-	nrm_string_t uuid = nrm_string_fromchar(msg->event->uuid);
-	nrm_time_t time = nrm_time_fromns(msg->event->time);
-	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->event->scope);
-	self->user_fn(uuid, time, scope, msg->event->value, self->pyclient);  // _event_listener_wrap() from client.py should get called?
-	return 0;
-}
-
 int nrm_client_set_event_listener(nrm_client_t *client,
                                   nrm_client_event_listener_fn *fn)
 {
@@ -338,17 +326,6 @@ int nrm_client_set_event_Pylistener(nrm_client_t *client,
 		return -NRM_EINVAL;
 	client->user_fn = fn;
 	client->pyclient = pyclient;
-	return 0;
-}
-
-int nrm_client_start_event_Pylistener(nrm_client_t *client,
-                                      nrm_string_t topic)
-{
-	if (client == NULL)
-		return -NRM_EINVAL;
-	nrm_role_register_sub_cb(client->role, nrm_client__sub_pycallback,
-	                         (void *)client);
-	nrm_role_sub(client->role, topic);
 	return 0;
 }
 
@@ -381,25 +358,6 @@ int nrm_client__actuate_callback(nrm_msg_t *msg, void *arg)
 		return 0;
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->actuate->uuid);
 	self->actuate_fn(uuid, msg->event->value, arg);
-	return 0;
-}
-
-int nrm_client__actuate_pycallback(nrm_msg_t *msg, void *arg)
-{
-	nrm_client_t *self = (nrm_client_t *)arg;
-	if (self->actuate_fn == NULL)
-		return 0;
-	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->actuate->uuid);
-	self->actuate_fn(uuid, msg->event->value, self->pyclient); // _actuate_listener_wrap() from client.py should get called?
-	return 0;
-}
-
-int nrm_client_start_actuate_Pylistener(nrm_client_t *client)
-{
-	if (client == NULL)
-		return -NRM_EINVAL;
-	nrm_role_register_cmd_cb(client->role, nrm_client__actuate_pycallback,
-	                         client);
 	return 0;
 }
 
