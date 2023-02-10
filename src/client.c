@@ -16,11 +16,19 @@
 #include "internal/nrmi.h"
 #include "internal/roles.h"
 
+struct py_info_s {
+	void *pyclient;
+	nrm_client_event_listener_fn *extern_user_fn;
+	nrm_client_actuate_listener_fn *extern_actuate_fn;
+};
+
+typedef struct py_info_s pyinfo_t;
+
 struct nrm_client_s {
 	nrm_role_t *role;
 	nrm_client_event_listener_fn *user_fn;
 	nrm_client_actuate_listener_fn *actuate_fn;
-	void *pyclient;
+	void *arg;
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -40,7 +48,7 @@ int nrm_client_create(nrm_client_t **client,
 		return -NRM_EINVAL;
 	ret->user_fn = NULL;
 	ret->actuate_fn = NULL;
-	ret->pyclient = NULL;
+	ret->pyinfo = NULL;
 
 	*client = ret;
 	return 0;
@@ -310,34 +318,61 @@ int nrm_client__sub_callback(nrm_msg_t *msg, void *arg)
 }
 
 int nrm_client_set_event_listener(nrm_client_t *client,
-                                  nrm_client_event_listener_fn *fn)
+                                  nrm_client_event_listener_fn *fn,
+								  void *arg)
 {
-	if (client == NULL || fn == NULL)
+	if (client == NULL || fn == NULL || arg == NULL)
 		return -NRM_EINVAL;
 	client->user_fn = fn;
+	client->arg = arg;
 	return 0;
 }
 
+int nrm_client_externpython_actuate(){
+
+}
+
+int nrm_client_externpython_event(nrm_string_t sensor_uuid,
+                                  nrm_time_t time,
+                                  nrm_scope_t *scope,
+                                  double value,
+                                  void *arg){
+	nrm_client_t *client = (nrm_client_t *)arg;
+	return client->pyinfo->extern_user_fn(sensor_uuid, time, scope, value, client->pyinfo->pyclient);
+}
+
+pyinfo_t setup_pyinfo(void *pyclient){
+	if (pyclient == NULL)
+		return -NRM_EINVAL;
+
+	pyinfo_t *pyinfo = calloc(1, sizeof(pyinfo_t));
+	if (pyinfo == NULL)
+		return -NRM_ENOMEM;
+
+	pyinfo->pyclient = pyclient;
+	return pyinfo;
+
+}
+
+// need to not overwrite client's pyinfo when already set as arg...
+
 int nrm_client_set_event_Pylistener(nrm_client_t *client,
 									void *pyclient,
-                                    nrm_client_event_listener_fn *fn)
+                                    nrm_client_event_listener_fn *pyfn)
 {
-	if (client == NULL || pyclient == NULL || fn == NULL)
-		return -NRM_EINVAL;
-	client->user_fn = fn;
-	client->pyclient = pyclient;
-	return 0;
+	pyinfo_t pyinfo = setup_pyinfo(pyclient);
+	pyinfo->extern_user_fn = pyfn;
+	return nrm_client_set_event_listener(client, nrm_client_externpython_event, pyinfo);
 }
 
 int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
 									  void *pyclient,
                                       nrm_client_actuate_listener_fn *fn)
 {
-	if (client == NULL || pyclient == NULL || fn == NULL)
-		return -NRM_EINVAL;
-	client->actuate_fn = fn;
-	client->pyclient = pyclient;
-	return 0;
+
+	pyinfo_t pyinfo = setup_pyinfo(pyclient);
+	pyinfo->extern_actuate_fn = pyfn;
+	return nrm_client_set_actuate_listener(client, nrm_client_externpython_actuate, pyinfo);
 }
 
 int nrm_client_start_event_listener(nrm_client_t *client,
@@ -362,11 +397,13 @@ int nrm_client__actuate_callback(nrm_msg_t *msg, void *arg)
 }
 
 int nrm_client_set_actuate_listener(nrm_client_t *client,
-                                    nrm_client_actuate_listener_fn fn)
+                                    nrm_client_actuate_listener_fn *fn,
+									void *arg)
 {
-	if (client == NULL || fn == NULL)
+	if (client == NULL || fn == NULL || arg == NULL)
 		return -NRM_EINVAL;
 	client->actuate_fn = fn;
+	client->arg = arg;
 	return 0;
 }
 
