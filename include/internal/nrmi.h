@@ -102,9 +102,6 @@ json_t *nrm_sensor_to_json(nrm_sensor_t *);
 json_t *nrm_slice_to_json(nrm_slice_t *);
 json_t *nrm_time_to_json(nrm_time_t *);
 
-int nrm_event_Pylistener_cb(nrm_uuid_t uuid, nrm_time_t time, nrm_scope_t scope, double value);
-int nrm_actuate_Pylistener_cb(nrm_uuid_t uuid, double value);
-
 int nrm_scope_hwloc_scopes(nrm_hash_t **scopes);
 
 #ifdef __cplusplus

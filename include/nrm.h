@@ -14,7 +14,6 @@
 
 #ifndef NRM_H
 #define NRM_H 1
-#define PY_SSIZE_T_CLEAN
 
 #ifdef __cplusplus
 extern "C" {
