@@ -334,7 +334,7 @@ int cmd_listen(int argc, char **argv)
 	nrm_string_t topic = nrm_string_fromchar(argv[0]);
 	nrm_log_debug("listening to topic: %s\n", topic);
 
-	nrm_client_set_event_listener(client, client_listen_callback);
+	nrm_client_set_event_listener(client, client_listen_callback, NULL);
 	nrm_client_start_event_listener(client, topic);
 
 	/* don't want to push a message queue into the user API, so do it this

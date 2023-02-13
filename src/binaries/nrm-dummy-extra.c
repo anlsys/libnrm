@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 	}
 
 	nrm_log_info("starting dummy actuate callback\n");
-	nrm_client_set_actuate_listener(client, nrm_dummy_extra_callback);
+	nrm_client_set_actuate_listener(client, nrm_dummy_extra_callback, NULL);
 	nrm_client_start_actuate_listener(client);
 
 	uint64_t counter = 0;

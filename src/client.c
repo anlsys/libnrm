@@ -46,7 +46,7 @@ int nrm_client_create(nrm_client_t **client,
 		return -NRM_EINVAL;
 	ret->user_fn = NULL;
 	ret->actuate_fn = NULL;
-	ret->pyinfo = NULL;
+	ret->arg = NULL;
 
 	*client = ret;
 	return 0;
@@ -330,7 +330,8 @@ int nrm_client_externpython_actuate(nrm_uuid_t *uuid,
                                     double value,
                                     void *arg){
 	nrm_client_t *client = (nrm_client_t *)arg;
-	return client->pyinfo->extern_actuate_fn(sensor_uuid, value, client->pyinfo->pyclient);
+	pyinfo_t *pyinfo = client->arg;
+	return pyinfo->extern_actuate_fn(uuid, value, pyinfo->pyclient);
 }
 
 int nrm_client_externpython_event(nrm_string_t sensor_uuid,
@@ -339,7 +340,8 @@ int nrm_client_externpython_event(nrm_string_t sensor_uuid,
                                   double value,
                                   void *arg){
 	nrm_client_t *client = (nrm_client_t *)arg;
-	return client->pyinfo->extern_user_fn(sensor_uuid, time, scope, value, client->pyinfo->pyclient);
+	pyinfo_t *pyinfo = client->arg;
+	return pyinfo->extern_user_fn(sensor_uuid, time, scope, value, pyinfo->pyclient);
 }
 
 // pyinfo_t init_pyinfo(void *pyclient){
