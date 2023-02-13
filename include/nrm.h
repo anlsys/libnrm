@@ -239,6 +239,7 @@ void nrm_eventbase_destroy(nrm_eventbase_t **);
  ******************************************************************************/
 
 typedef struct nrm_client_s nrm_client_t;
+typedef struct pyinfo_s pyinfo_t;
 
 typedef int(nrm_client_event_listener_fn)(nrm_string_t sensor_uuid,
                                           nrm_time_t time,
@@ -351,7 +352,8 @@ int nrm_client_send_event(const nrm_client_t *client,
  * @return 0 if successful, an error code otherwise
  */
 int nrm_client_set_event_listener(nrm_client_t *client,
-                                  nrm_client_event_listener_fn fn);
+                                  nrm_client_event_listener_fn *fn,
+                                  void *arg);
 
 /**
  * Set a callback Python function for client events
@@ -360,8 +362,8 @@ int nrm_client_set_event_listener(nrm_client_t *client,
  * @return 0 if successful, an error code otherwise
  */
 int nrm_client_set_event_Pylistener(nrm_client_t *client,
-                                    void *pyclient,
-                                    nrm_client_event_listener_fn *fn);
+                                    nrm_client_event_listener_fn *fn,
+                                    void *arg);
 
 /**
  * Start a callback function for client events
@@ -373,7 +375,8 @@ int nrm_client_start_event_listener(nrm_client_t *client,
                                     nrm_string_t topic);
 
 int nrm_client_set_actuate_listener(nrm_client_t *client,
-                                    nrm_client_actuate_listener_fn fn);
+                                    nrm_client_actuate_listener_fn *fn,
+                                    void *arg);
 
 /**
  * Set a callback Python function for actuator events
@@ -382,8 +385,8 @@ int nrm_client_set_actuate_listener(nrm_client_t *client,
  * @return 0 if successful, an error code otherwise
  */
 int nrm_client_set_actuate_Pylistener(nrm_client_t *client,
-                                      void *pyclient,
-                                      nrm_client_actuate_listener_fn *fn);
+                                      nrm_client_actuate_listener_fn *fn,
+                                      void *arg);
 
 int nrm_client_start_actuate_listener(nrm_client_t *client);
 
