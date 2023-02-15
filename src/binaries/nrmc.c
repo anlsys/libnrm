@@ -363,11 +363,14 @@ int cmd_list_actuators(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(actuators, iterator)
 	{
-		nrm_actuator_t *r = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_actuator_to_json(r);
+		nrm_actuator_t **r = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_actuator_to_json(*r);
 		json_array_append_new(array, json);
+		nrm_actuator_destroy(r);
 	}
+	nrm_vector_destroy(&actuators);
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	json_decref(array);
 	return 0;
 }
 
@@ -389,11 +392,14 @@ int cmd_list_scopes(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(scopes, iterator)
 	{
-		nrm_scope_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_scope_to_json(s);
+		nrm_scope_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_scope_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_scope_destroy(*s);
 	}
+	nrm_vector_destroy(&scopes);
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	json_decref(array);
 	return 0;
 }
 
@@ -416,11 +422,14 @@ int cmd_list_sensors(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(sensors, iterator)
 	{
-		nrm_sensor_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_sensor_to_json(s);
+		nrm_sensor_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_sensor_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_sensor_destroy(s);
 	}
+	nrm_vector_destroy(&sensors);
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	json_decref(array);
 	return 0;
 }
 
@@ -443,11 +452,14 @@ int cmd_list_slices(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(slices, iterator)
 	{
-		nrm_slice_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_slice_to_json(s);
+		nrm_slice_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_slice_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_slice_destroy(s);
 	}
+	nrm_vector_destroy(&slices);
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	json_decref(array);
 	return 0;
 }
 
