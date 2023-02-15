@@ -377,7 +377,7 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	nrm_vector_t *ret;
-	err = nrm_vector_create(&ret, sizeof(nrm_actuator_t));
+	err = nrm_vector_create(&ret, sizeof(nrm_actuator_t *));
 	if (err)
 		return err;
 
@@ -386,7 +386,7 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 	for (size_t i = 0; i < msg->list->actuators->n_actuators; i++) {
 		nrm_actuator_t *s = nrm_actuator_create_frommsg(
 		        msg->list->actuators->actuators[i]);
-		nrm_vector_push_back(ret, s);
+		nrm_vector_push_back(ret, &s);
 	}
 	*actuators = ret;
 	return 0;
@@ -414,7 +414,7 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	nrm_vector_t *ret;
-	err = nrm_vector_create(&ret, sizeof(nrm_scope_t));
+	err = nrm_vector_create(&ret, sizeof(nrm_scope_t *));
 	if (err)
 		return err;
 
@@ -423,7 +423,7 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 	for (size_t i = 0; i < msg->list->scopes->n_scopes; i++) {
 		nrm_scope_t *s =
 		        nrm_scope_create_frommsg(msg->list->scopes->scopes[i]);
-		nrm_vector_push_back(ret, s);
+		nrm_vector_push_back(ret, &s);
 	}
 	*scopes = ret;
 	return 0;
@@ -451,7 +451,7 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	nrm_vector_t *ret;
-	err = nrm_vector_create(&ret, sizeof(nrm_sensor_t));
+	err = nrm_vector_create(&ret, sizeof(nrm_sensor_t *));
 	if (err)
 		return err;
 
@@ -460,7 +460,7 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 	for (size_t i = 0; i < msg->list->sensors->n_sensors; i++) {
 		nrm_sensor_t *s = nrm_sensor_create_frommsg(
 		        msg->list->sensors->sensors[i]);
-		nrm_vector_push_back(ret, s);
+		nrm_vector_push_back(ret, &s);
 	}
 	*sensors = ret;
 	return 0;
@@ -488,7 +488,7 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	nrm_vector_t *ret;
-	err = nrm_vector_create(&ret, sizeof(nrm_slice_t));
+	err = nrm_vector_create(&ret, sizeof(nrm_slice_t *));
 	if (err)
 		return err;
 
@@ -497,7 +497,7 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	for (size_t i = 0; i < msg->list->slices->n_slices; i++) {
 		nrm_slice_t *s =
 		        nrm_slice_create_frommsg(msg->list->slices->slices[i]);
-		nrm_vector_push_back(ret, s);
+		nrm_vector_push_back(ret, &s);
 	}
 	*slices = ret;
 	return 0;
