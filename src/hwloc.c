@@ -52,11 +52,13 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 			unsigned int bit;
 			// Nodeset
 			hwloc_bitmap_foreach_begin(bit, object->nodeset)
-			        nrm_scope_add(this_scope, 1, bit);
+			        nrm_scope_add(this_scope, NRM_SCOPE_TYPE_NUMA,
+			                      bit);
 			hwloc_bitmap_foreach_end();
 			// Cpuset
 			hwloc_bitmap_foreach_begin(bit, object->cpuset)
-			        nrm_scope_add(this_scope, 0, bit);
+			        nrm_scope_add(this_scope, NRM_SCOPE_TYPE_CPU,
+			                      bit);
 			hwloc_bitmap_foreach_end();
 			nrm_hash_add(scopes, nrm_scope_uuid(this_scope),
 			             this_scope);
@@ -78,7 +80,7 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 			snprintf(scope_name, sizeof(scope_name), "%s%s",
 			         namespace, object->name);
 			this_scope = nrm_scope_create(scope_name);
-			nrm_scope_add(this_scope, 2, counter);
+			nrm_scope_add(this_scope, NRM_SCOPE_TYPE_GPU, counter);
 			counter++;
 			nrm_hash_add(scopes, nrm_scope_uuid(this_scope),
 			             this_scope);
@@ -86,4 +88,32 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 	}
 	hwloc_topology_destroy(topology);
 	return 0;
+}
+
+nrm_scope_t *nrm_scope_create_hwloc_allowed()
+{
+	/* retrieve allowed cpus and nodes, and create the corresponding scope
+	 */
+	hwloc_topology_t topology;
+	hwloc_const_cpuset_t cpuset;
+	hwloc_const_nodeset_t nodeset;
+	hwloc_topology_init(&topology);
+	hwloc_topology_set_flags(
+	        topology, HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM &
+	                          HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING &
+	                          HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING);
+	hwloc_topology_load(topology);
+	cpuset = hwloc_topology_get_allowed_cpuset(topology);
+	nodeset = hwloc_topology_get_allowed_nodeset(topology);
+
+	nrm_scope_t *ret = nrm_scope_create("nrm.hwloc.allowed");
+	unsigned int bit;
+	hwloc_bitmap_foreach_begin(bit, cpuset)
+	        nrm_scope_add(ret, NRM_SCOPE_TYPE_CPU, bit);
+	hwloc_bitmap_foreach_end();
+	hwloc_bitmap_foreach_begin(bit, nodeset)
+	        nrm_scope_add(ret, NRM_SCOPE_TYPE_NUMA, bit);
+	hwloc_bitmap_foreach_end();
+
+	return ret;
 }
