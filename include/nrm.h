@@ -141,6 +141,13 @@ void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
 
 /*******************************************************************************
+ * Extra scope API
+ ******************************************************************************/
+
+int nrm_scope_hwloc_scopes(nrm_hash_t **scopes);
+nrm_scope_t *nrm_scope_create_hwloc_allowed(void);
+
+/*******************************************************************************
  * Slice: a resource arbitration unit
  ******************************************************************************/
 
