@@ -520,7 +520,7 @@ int cmd_remove_scope(int argc, char **argv)
 		nrm_scope_t *s;
 		nrm_vector_get_withtype(nrm_scope_t, results, i, s);
 		json_t *json = nrm_scope_to_json(s);
-		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SCOPE, s->uuid);
+		nrm_client_remove_scope(client, s);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
@@ -584,7 +584,7 @@ int cmd_remove_sensor(int argc, char **argv)
 		nrm_sensor_t *s;
 		nrm_vector_get_withtype(nrm_sensor_t, results, i, s);
 		json_t *json = nrm_sensor_to_json(s);
-		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SENSOR, s->uuid);
+		nrm_client_remove_sensor(client, s);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
@@ -648,7 +648,7 @@ int cmd_remove_slice(int argc, char **argv)
 		nrm_slice_t *s;
 		nrm_vector_get_withtype(nrm_slice_t, results, i, s);
 		json_t *json = nrm_slice_to_json(s);
-		nrm_client_remove(client, NRM_MSG_TARGET_TYPE_SLICE, s->uuid);
+		nrm_client_remove_slice(client, s);
 		json_array_append_new(array, json);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);

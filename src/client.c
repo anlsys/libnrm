@@ -12,8 +12,9 @@
 
 #include "nrm.h"
 
-#include "internal/messages.h"
 #include "internal/nrmi.h"
+
+#include "internal/messages.h"
 #include "internal/roles.h"
 
 struct nrm_client_s {
@@ -503,18 +504,89 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	return 0;
 }
 
-int nrm_client_remove(const nrm_client_t *client, int type, nrm_string_t uuid)
+int nrm_client_remove_actuator(const nrm_client_t *client,
+                               nrm_actuator_t *actuator)
 {
-	if (client == NULL || uuid == NULL)
-		return -NRM_EINVAL;
-	if (type < 0 || type > NRM_MSG_TARGET_TYPE_MAX)
+	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
 
 	/* craft the message we want to send */
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_REMOVE);
-	nrm_msg_set_remove(msg, type, uuid);
+	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_ACTUATOR, actuator->uuid);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
+	return 0;
+}
+
+int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
+{
+	if (client == NULL || scope == NULL)
+		return -NRM_EINVAL;
+
+	/* craft the message we want to send */
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_REMOVE);
+	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SCOPE, scope->uuid);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
+	return 0;
+}
+
+int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
+{
+	if (client == NULL || sensor == NULL)
+		return -NRM_EINVAL;
+
+	/* craft the message we want to send */
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_REMOVE);
+	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SENSOR, sensor->uuid);
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+	nrm_log_debug("sending request\n");
+	nrm_role_send(client->role, msg, NULL);
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	msg = nrm_role_recv(client->role, NULL);
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
+	return 0;
+}
+
+int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
+{
+	if (client == NULL || slice == NULL)
+		return -NRM_EINVAL;
+
+	/* craft the message we want to send */
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_REMOVE);
+	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SLICE, slice->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	nrm_role_send(client->role, msg, NULL);
