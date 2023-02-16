@@ -145,7 +145,7 @@ void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
  ******************************************************************************/
 
 int nrm_scope_hwloc_scopes(nrm_hash_t **scopes);
-nrm_scope_t *nrm_scope_create_hwloc_allowed(void);
+nrm_scope_t *nrm_scope_create_hwloc_allowed(const char *name);
 
 /*******************************************************************************
  * Slice: a resource arbitration unit
