@@ -58,7 +58,7 @@ nrm_scope_t *nrm_scope_dup(nrm_scope_t *s)
 int nrm_scope_cmp(nrm_scope_t *one, nrm_scope_t *two)
 {
 	for (size_t i = 0; i < NRM_SCOPE_TYPE_MAX; i++)
-		if (!nrm_bitmap_cmp(&one->maps[i], &two->maps[i]))
+		if (nrm_bitmap_cmp(&one->maps[i], &two->maps[i]))
 			return 1;
 	return 0;
 }
