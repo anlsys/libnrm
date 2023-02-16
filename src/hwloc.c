@@ -90,7 +90,7 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 	return 0;
 }
 
-nrm_scope_t *nrm_scope_create_hwloc_allowed()
+nrm_scope_t *nrm_scope_create_hwloc_allowed(const char *name)
 {
 	/* retrieve allowed cpus and nodes, and create the corresponding scope
 	 */
@@ -106,7 +106,7 @@ nrm_scope_t *nrm_scope_create_hwloc_allowed()
 	cpuset = hwloc_topology_get_allowed_cpuset(topology);
 	nodeset = hwloc_topology_get_allowed_nodeset(topology);
 
-	nrm_scope_t *ret = nrm_scope_create("nrm.hwloc.allowed");
+	nrm_scope_t *ret = nrm_scope_create(name);
 	unsigned int bit;
 	hwloc_bitmap_foreach_begin(bit, cpuset)
 	        nrm_scope_add(ret, NRM_SCOPE_TYPE_CPU, bit);
@@ -114,6 +114,5 @@ nrm_scope_t *nrm_scope_create_hwloc_allowed()
 	hwloc_bitmap_foreach_begin(bit, nodeset)
 	        nrm_scope_add(ret, NRM_SCOPE_TYPE_NUMA, bit);
 	hwloc_bitmap_foreach_end();
-
 	return ret;
 }
