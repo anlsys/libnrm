@@ -860,6 +860,7 @@ int nrm_msg_fprintf(FILE *f, nrm_msg_t *msg)
 	char *s = json_dumps(json, 0);
 	fprintf(f, "%s\n", s);
 	json_decref(json);
+	free(s);
 	return 0;
 }
 

@@ -141,6 +141,13 @@ void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
 
 /*******************************************************************************
+ * Extra scope API
+ ******************************************************************************/
+
+int nrm_scope_hwloc_scopes(nrm_hash_t **scopes);
+nrm_scope_t *nrm_scope_create_hwloc_allowed(const char *name);
+
+/*******************************************************************************
  * Slice: a resource arbitration unit
  ******************************************************************************/
 
@@ -330,10 +337,29 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
 int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
 
 /**
- * Removes an NRM slice from a client
+ * Removes an NRM actuator from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove(const nrm_client_t *client, int type, nrm_string_t uuid);
+int nrm_client_remove_actuator(const nrm_client_t *client,
+                               nrm_actuator_t *actuator);
+
+/**
+ * Removes an NRM slice from a daemon
+ * @return 0 if successful, an error code otherwise
+ */
+int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice);
+
+/**
+ * Removes an NRM sensor from a daemon
+ * @return 0 if successful, an error code otherwise
+ */
+int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
+
+/**
+ * Removes an NRM scope from a daemon
+ * @return 0 if successful, an error code otherwise
+ */
+int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope);
 
 /**
  * Sends a measurement to the NRM daemon
