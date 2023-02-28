@@ -577,7 +577,7 @@ start:
 	sfd = signalfd(-1, &sigmask, 0);
 	assert(sfd != -1);
 
-	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN};
+	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
 
 	nrm_role_controller_register_recvcallback(
 	        controller, loop, nrmd_shim_controller_read_callback,

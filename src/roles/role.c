@@ -55,7 +55,7 @@ int nrm_role_register_cmd_cb(const nrm_role_t *role,
 	return role->ops->register_cmd_cb(role->data, fn, arg);
 }
 
-int *nrm_role_sub(const nrm_role_t *role, nrm_string_t topic)
+int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic)
 {
 	if (role == NULL || role->ops == NULL || role->ops->sub == NULL)
 		return -NRM_ENOTSUP;

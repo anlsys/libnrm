@@ -136,6 +136,8 @@ struct nrm_actuator_s {
 typedef struct nrm_actuator_s nrm_actuator_t;
 
 nrm_actuator_t *nrm_actuator_create(const char *name);
+int nrm_actuator_set_value(nrm_actuator_t *, double);
+int nrm_actuator_set_choices(nrm_actuator_t *, size_t, double *);
 
 void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
@@ -429,7 +431,7 @@ int nrm_role_register_sub_cb(const nrm_role_t *role,
 int nrm_role_register_cmd_cb(const nrm_role_t *role,
                              nrm_role_cmd_callback_fn *fn,
                              void *arg);
-int *nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
+int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
 
 void nrm_role_destroy(nrm_role_t **);
 

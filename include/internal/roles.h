@@ -35,7 +35,7 @@ struct nrm_role_ops {
 	int (*register_sub_cb)(const struct nrm_role_data *data,
 	                       nrm_role_sub_callback_fn *fn,
 	                       void *arg);
-	nrm_msg_t *(*sub)(const struct nrm_role_data *data, nrm_string_t topic);
+	int (*sub)(const struct nrm_role_data *data, nrm_string_t topic);
 	int (*register_cmd_cb)(const struct nrm_role_data *data,
 	                       nrm_role_cmd_callback_fn *fn,
 	                       void *arg);
