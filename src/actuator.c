@@ -83,8 +83,8 @@ json_t *nrm_actuator_to_json(nrm_actuator_t *actuator)
 	clientid = nrm_uuid_to_json(actuator->clientid);
 	choices = nrm_vector_d_to_json(actuator->choices);
 	return json_pack("{s:s, s:o?, s:f, s:o?}", "uuid", actuator->uuid,
-	                 "clientid", clientid, "value",
-	                 actuator->value, "choices", choices);
+	                 "clientid", clientid, "value", actuator->value,
+	                 "choices", choices);
 }
 
 int nrm_actuator_from_json(nrm_actuator_t *actuator, json_t *json)
