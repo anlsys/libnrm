@@ -577,7 +577,7 @@ start:
 	sfd = signalfd(-1, &sigmask, 0);
 	assert(sfd != -1);
 
-	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN};
+	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
 
 	nrm_role_controller_register_recvcallback(
 	        controller, loop, nrmd_shim_controller_read_callback,
@@ -601,6 +601,7 @@ start:
 	nrm_eventbase_destroy(&my_daemon.events);
 	nrm_state_destroy(&my_daemon.state);
 	nrm_role_destroy(&controller);
+	nrm_log_debug("NRM components destroyed\n");
 
 	exit(EXIT_SUCCESS);
 }

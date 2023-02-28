@@ -136,6 +136,8 @@ struct nrm_actuator_s {
 typedef struct nrm_actuator_s nrm_actuator_t;
 
 nrm_actuator_t *nrm_actuator_create(const char *name);
+int nrm_actuator_set_value(nrm_actuator_t *, double);
+int nrm_actuator_set_choices(nrm_actuator_t *, size_t, double *);
 
 void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
@@ -193,6 +195,8 @@ typedef struct nrm_sensor_s nrm_sensor_t;
  */
 nrm_sensor_t *nrm_sensor_create(const char *name);
 
+nrm_string_t nrm_sensor_uuid(nrm_sensor_t *sensor);
+
 /**
  * Removes an NRM sensor. Do this for each sensor before an instrumented program
  * exits.
@@ -225,6 +229,8 @@ struct nrm_eventbase_s;
 typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
+
+size_t nrm_eventbase_get_maxperiods(nrm_eventbase_t *);
 
 int nrm_eventbase_push_event(
         nrm_eventbase_t *, nrm_string_t, nrm_scope_t *, nrm_time_t, double);

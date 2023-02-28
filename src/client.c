@@ -226,7 +226,7 @@ int nrm_client_find(const nrm_client_t *client,
 		assert(0);
 	}
 	assert(msg->type == NRM_MSG_TYPE_LIST);
-	assert(msg->list->type == type);
+	assert((int)msg->list->type == type);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	nrm_role_send(client->role, msg, NULL);
@@ -237,7 +237,7 @@ int nrm_client_find(const nrm_client_t *client,
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	assert(msg->type == NRM_MSG_TYPE_LIST);
-	assert(msg->list->type == type);
+	assert((int)msg->list->type == type);
 
 	nrm_vector_t *ret;
 	if (type == NRM_MSG_TARGET_TYPE_ACTUATOR) {
@@ -247,7 +247,7 @@ int nrm_client_find(const nrm_client_t *client,
 
 		for (size_t i = 0; i < msg->list->actuators->n_actuators; i++) {
 			if (uuid != NULL &&
-			    strcmp(*uuid,
+			    strcmp(uuid,
 			           msg->list->actuators->actuators[i]->uuid))
 				continue;
 			nrm_actuator_t *s = nrm_actuator_create_frommsg(
@@ -351,7 +351,7 @@ int nrm_client_start_actuate_listener(const nrm_client_t *client)
 	if (client == NULL)
 		return -NRM_EINVAL;
 	nrm_role_register_cmd_cb(client->role, nrm_client__actuate_callback,
-	                         client);
+	                         (void *)client);
 	return 0;
 }
 

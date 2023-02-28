@@ -86,6 +86,7 @@ int nrm_msg_set_add_actuator(nrm_msg_t *msg, nrm_actuator_t *actuator);
 int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope);
 int nrm_msg_set_add_sensor(nrm_msg_t *msg, nrm_sensor_t *sensor);
 int nrm_msg_set_add_slice(nrm_msg_t *msg, nrm_slice_t *slice);
+int nrm_msg_set_list_actuators(nrm_msg_t *msg, nrm_vector_t *actuators);
 int nrm_msg_set_list_scopes(nrm_msg_t *msg, nrm_vector_t *scopes);
 int nrm_msg_set_list_sensors(nrm_msg_t *msg, nrm_vector_t *sensors);
 int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices);
@@ -97,6 +98,8 @@ nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg);
 nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg);
 nrm_sensor_t *nrm_sensor_create_frommsg(nrm_msg_sensor_t *msg);
 
+int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
+                                nrm_msg_actuator_t *msg);
 int nrm_scope_update_frommsg(nrm_scope_t *scope, nrm_msg_scope_t *msg);
 int nrm_slice_update_frommsg(nrm_slice_t *slice, nrm_msg_slice_t *msg);
 int nrm_sensor_update_frommsg(nrm_sensor_t *sensor, nrm_msg_sensor_t *msg);

@@ -312,12 +312,12 @@ int cmd_find_slice(int argc, char **argv)
 	return 0;
 }
 
-int client_listen_callback(nrm_sensor_t *sensor,
+int client_listen_callback(nrm_string_t sensor_uuid,
                            nrm_time_t time,
-                           nrm_scope_t scope,
+                           nrm_scope_t *scope,
                            double value)
 {
-	(void)sensor;
+	(void)sensor_uuid;
 	(void)time;
 	(void)scope;
 	(void)value;

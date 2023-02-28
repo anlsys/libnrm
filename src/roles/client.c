@@ -202,7 +202,7 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	sfd = signalfd(-1, &sigmask, 0);
 	assert(sfd != -1);
 
-	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN};
+	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
 	/* register signal handler callback */
 	zloop_poller(self->loop, &signal_poller,
 	             (zloop_fn *)nrm_client_broker_signal_callback, NULL);
