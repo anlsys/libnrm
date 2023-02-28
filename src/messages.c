@@ -389,7 +389,7 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 		return NULL;
 	nrm_actuator_t *ret = nrm_actuator_create(msg->uuid);
 	if (msg->clientid)
-		ret->clientid = nrm_uuid_create_fromchar(msg->uuid);
+		ret->clientid = nrm_uuid_create_fromchar(msg->clientid);
 	ret->value = msg->value;
 	nrm_vector_resize(ret->choices, msg->n_choices);
 	nrm_vector_clear(ret->choices);

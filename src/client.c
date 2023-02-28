@@ -333,7 +333,7 @@ int nrm_client__actuate_callback(nrm_msg_t *msg, void *arg)
 	if (self->actuate_fn == NULL)
 		return 0;
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->actuate->uuid);
-	self->actuate_fn(uuid, msg->event->value);
+	self->actuate_fn(uuid, msg->actuate->value);
 	return 0;
 }
 
