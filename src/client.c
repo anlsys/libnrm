@@ -83,7 +83,9 @@ int nrm_client_actuate(const nrm_client_t *client,
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -110,7 +112,9 @@ int nrm_client_add_actuator(const nrm_client_t *client,
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -138,7 +142,9 @@ int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -166,7 +172,9 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -194,7 +202,9 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -248,7 +258,9 @@ int nrm_client_find(const nrm_client_t *client,
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	assert(msg->type == NRM_MSG_TYPE_LIST);
@@ -390,7 +402,9 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -429,7 +443,9 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -468,7 +484,9 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -507,7 +525,9 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -546,7 +566,9 @@ int nrm_client_remove_actuator(const nrm_client_t *client,
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -572,7 +594,9 @@ int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -598,7 +622,9 @@ int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -624,7 +650,9 @@ int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&lock);
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&lock);
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
