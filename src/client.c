@@ -42,8 +42,8 @@ int nrm_client_create(nrm_client_t **client,
 		return -NRM_EINVAL;
 	ret->user_fn = NULL;
 	ret->actuate_fn = NULL;
-	pthread_mutex_t lock;
-	pthread_mutex_init(&lock, NULL);
+	pthread_mutex_t *lock;
+	pthread_mutex_init(lock, NULL);
 	ret->sendrecv_lock = lock;
 
 	*client = ret;
