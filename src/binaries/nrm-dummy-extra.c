@@ -188,13 +188,13 @@ int main(int argc, char *argv[])
 		req.tv_sec = ceil(sleeptime);
 		req.tv_nsec = sleeptime * 1e9 - ceil(sleeptime) * 1e9;
 		/* possible signal interrupt here */
-		do {
-			err = nanosleep(&req, &rem);
-			req = rem;
-		} while (err == -1 && errno == EINTR);
+		err = nanosleep(&req, &rem);
+		if (err == -1 && errno == EINTR) {
+			nrm_log_error("interupted during sleep, exiting\n");
+			break;
+		}
 	}
-
 	nrm_client_destroy(&client);
 	nrm_finalize();
-	return err;
+	return 0;
 }
