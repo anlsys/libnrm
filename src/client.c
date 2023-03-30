@@ -8,10 +8,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-#include <pthread.h>
 #include "config.h"
 
 #include "nrm.h"
+#include <pthread.h>
 
 #include "internal/nrmi.h"
 
