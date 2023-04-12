@@ -22,7 +22,7 @@ struct nrm_client_s {
 	nrm_role_t *role;
 	nrm_client_event_listener_fn *user_fn;
 	nrm_client_actuate_listener_fn *actuate_fn;
-	pthread_mutex_t sendrecv_lock;
+	pthread_mutex_t lock;
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -42,7 +42,7 @@ int nrm_client_create(nrm_client_t **client,
 		return -NRM_EINVAL;
 	ret->user_fn = NULL;
 	ret->actuate_fn = NULL;
-	pthread_mutex_init(&(ret->sendrecv_lock), NULL);
+	pthread_mutex_init(&(ret->lock), NULL);
 
 	*client = ret;
 	return 0;
@@ -78,15 +78,15 @@ int nrm_client_actuate(const nrm_client_t *client,
 	nrm_msg_set_actuate(msg, actuator->uuid, value);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -107,15 +107,15 @@ int nrm_client_add_actuator(const nrm_client_t *client,
 	nrm_msg_set_add_actuator(msg, actuator);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -137,15 +137,15 @@ int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	nrm_msg_set_add_scope(msg, scope);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -167,15 +167,15 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	nrm_msg_set_add_slice(msg, slice);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -197,15 +197,15 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	nrm_msg_set_add_sensor(msg, sensor);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -253,15 +253,15 @@ int nrm_client_find(const nrm_client_t *client,
 	assert((int)msg->list->type == type);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	assert(msg->type == NRM_MSG_TYPE_LIST);
@@ -397,15 +397,15 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 	nrm_msg_set_list_actuators(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -438,15 +438,15 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 	nrm_msg_set_list_scopes(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -479,15 +479,15 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 	nrm_msg_set_list_sensors(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -520,15 +520,15 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	nrm_msg_set_list_slices(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -561,15 +561,15 @@ int nrm_client_remove_actuator(const nrm_client_t *client,
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_ACTUATOR, actuator->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -589,15 +589,15 @@ int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SCOPE, scope->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -617,15 +617,15 @@ int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SENSOR, sensor->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -645,15 +645,15 @@ int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SLICE, slice->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -676,9 +676,9 @@ int nrm_client_send_event(const nrm_client_t *client,
 	nrm_msg_set_event(msg, time, sensor->uuid, scope, value);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
-	pthread_mutex_lock(&(client->sendrecv_lock));
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
-	pthread_mutex_unlock(&(client->sendrecv_lock));
+	pthread_mutex_unlock(&(client->lock));
 
 	return 0;
 }
