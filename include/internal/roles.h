@@ -22,6 +22,10 @@ extern "C" {
  * Global definitions
  ******************************************************************************/
 
+typedef struct nrm_role_s nrm_role_t;
+typedef int(nrm_role_sub_callback_fn)(nrm_msg_t *msg, void *arg);
+typedef int(nrm_role_cmd_callback_fn)(nrm_msg_t *msg, void *arg);
+
 struct nrm_role_data;
 
 struct nrm_role_ops {
@@ -92,6 +96,24 @@ extern struct nrm_role_ops nrm_role_controller_ops;
 nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int);
 
 extern struct nrm_role_ops nrm_role_client_ops;
+
+/*******************************************************************************
+ * Public API:
+ * common API across all roles
+ ******************************************************************************/
+
+int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg, nrm_uuid_t *to);
+nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from);
+int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg);
+int nrm_role_register_sub_cb(const nrm_role_t *role,
+                             nrm_role_sub_callback_fn *fn,
+                             void *arg);
+int nrm_role_register_cmd_cb(const nrm_role_t *role,
+                             nrm_role_cmd_callback_fn *fn,
+                             void *arg);
+int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
+
+void nrm_role_destroy(nrm_role_t **);
 
 #ifdef __cplusplus
 }

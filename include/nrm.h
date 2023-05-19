@@ -114,15 +114,6 @@ int nrm_log_setlevel(int level);
 	nrm_log_printf(NRM_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
 
 /*******************************************************************************
- * NRM Messages
- * Messages being transmitted between nrm components
- ******************************************************************************/
-
-typedef struct _Nrm__Message nrm_msg_t;
-
-void nrm_msg_destroy(nrm_msg_t **msg);
-
-/*******************************************************************************
  * Actuator: something capable of actions on the system
  ******************************************************************************/
 
@@ -402,38 +393,6 @@ int nrm_client_start_actuate_listener(const nrm_client_t *client);
  * exits.
  */
 void nrm_client_destroy(nrm_client_t **client);
-
-/*******************************************************************************
- * NRM Role API
- * A "role" is a set of features of NRM that a client of this library is using.
- * A typical role is a sensor, or an actuator, or something monitoring sensor
- * messages and so on.
- * Behind each role is an event loop and a helper thread, related to its actions
- * in the communication infrastructure of the NRM.
- ******************************************************************************/
-
-typedef struct nrm_role_s nrm_role_t;
-typedef int(nrm_role_sub_callback_fn)(nrm_msg_t *msg, void *arg);
-typedef int(nrm_role_cmd_callback_fn)(nrm_msg_t *msg, void *arg);
-
-nrm_role_t *nrm_role_monitor_create_fromenv();
-
-nrm_role_t *nrm_role_sensor_create_fromenv(const char *sensor_name);
-
-nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int);
-
-int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg, nrm_uuid_t *to);
-nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from);
-int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg);
-int nrm_role_register_sub_cb(const nrm_role_t *role,
-                             nrm_role_sub_callback_fn *fn,
-                             void *arg);
-int nrm_role_register_cmd_cb(const nrm_role_t *role,
-                             nrm_role_cmd_callback_fn *fn,
-                             void *arg);
-int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
-
-void nrm_role_destroy(nrm_role_t **);
 
 #ifdef __cplusplus
 }
