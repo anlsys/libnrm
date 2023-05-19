@@ -49,6 +49,7 @@ typedef Nrm__ActuatorList nrm_msg_actuatorlist_t;
 typedef Nrm__Add nrm_msg_add_t;
 typedef Nrm__Event nrm_msg_event_t;
 typedef Nrm__List nrm_msg_list_t;
+typedef Nrm__Message nrm_msg_t;
 typedef Nrm__Remove nrm_msg_remove_t;
 typedef Nrm__Scope nrm_msg_scope_t;
 typedef Nrm__ScopeList nrm_msg_scopelist_t;
@@ -74,6 +75,7 @@ typedef Nrm__SliceList nrm_msg_slicelist_t;
 
 nrm_msg_t *nrm_msg_create(void);
 void nrm_msg_destroy(nrm_msg_t **msg);
+void nrm_log_printmsg(int level, nrm_msg_t *msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
 int nrm_msg_set_event(nrm_msg_t *msg,

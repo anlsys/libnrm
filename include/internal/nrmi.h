@@ -85,8 +85,6 @@ struct nrm_scope {
 	struct nrm_bitmap maps[NRM_SCOPE_TYPE_MAX];
 };
 
-void nrm_log_printmsg(int level, nrm_msg_t *msg);
-
 int nrm_actuator_from_json(nrm_actuator_t *, json_t *);
 int nrm_bitmap_from_json(nrm_bitmap_t *, json_t *);
 int nrm_scope_from_json(nrm_scope_t *, json_t *);
