@@ -124,11 +124,10 @@ struct nrm_sensor2scope_s *nrm_eventbase_add_sensor(nrm_eventbase_t *eb,
 	return s;
 }
 
-int nrm_eventbase_remove_sensor(nrm_eventbase_t *eb, nrm_uuid_t *sensor_uuid)
+int nrm_eventbase_remove_sensor(nrm_eventbase_t *eb, nrm_string_t *sensor_uuid)
 {
 	struct nrm_sensor2scope_s *s;
-	char *uuid = nrm_uuid_to_char(sensor_uuid);
-	HASH_FIND_STR(eb->hash, uuid, s);
+	HASH_FIND_STR(eb->hash, sensor_uuid, s);
 	if (s != NULL) {
 		struct nrm_scope2ring_s *elt, *tmp;
 		DL_FOREACH_SAFE(s->list, elt, tmp)
