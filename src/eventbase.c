@@ -150,7 +150,8 @@ int nrm_eventbase_push_event(nrm_eventbase_t *eb,
 {
 	struct nrm_sensor2scope_s *s2s;
 	struct nrm_scope2ring_s *s2r;
-	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid), s2s);
+	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid),
+	          s2s);
 	if (s2s == NULL)
 		s2s = nrm_eventbase_add_sensor(eb, sensor_uuid);
 	DL_FOREACH(s2s->list, s2r)
@@ -174,7 +175,8 @@ int nrm_eventbase_last_value(nrm_eventbase_t *eb,
 {
 	struct nrm_sensor2scope_s *s2s;
 	struct nrm_scope2ring_s *s2r;
-	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid), s2s);
+	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid),
+	          s2s);
 	if (s2s == NULL) {
 		*value = 0.0;
 		return -NRM_EINVAL;

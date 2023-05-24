@@ -90,7 +90,7 @@ int nrm_string_cmp(nrm_string_t one, nrm_string_t two)
 
 size_t nrm_string_strlen(const nrm_string_t s)
 {
-	if(s == NULL)
+	if (s == NULL)
 		return 0;
 
 	nrm_realstring_t *r = NRM_STRING_C2S(s);

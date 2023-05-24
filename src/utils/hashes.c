@@ -41,7 +41,8 @@ int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t uuid, void *ptr)
 		return -NRM_ENOMEM;
 	local->uuid = uuid;
 	local->ptr = ptr;
-	HASH_ADD_KEYPTR(hh, (*hash_table), uuid, nrm_string_strlen(uuid), local);
+	HASH_ADD_KEYPTR(hh, (*hash_table), uuid, nrm_string_strlen(uuid),
+	                local);
 	return NRM_SUCCESS;
 }
 
