@@ -22,4 +22,6 @@ void nrm_string_decref(nrm_string_t s);
 
 int nrm_string_cmp(const nrm_string_t, const nrm_string_t);
 
+size_t nrm_string_strlen(const nrm_string_t);
+
 #endif

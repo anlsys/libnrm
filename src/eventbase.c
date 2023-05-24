@@ -26,7 +26,6 @@ struct nrm_eventbase_s {
 	size_t maxperiods;
 	struct nrm_sensor2scope_s *hash;
 };
-typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 /* events, as stored in one of the ringbuffers */
 struct nrm_event_s {
@@ -120,14 +119,14 @@ struct nrm_sensor2scope_s *nrm_eventbase_add_sensor(nrm_eventbase_t *eb,
 	s->uuid = sensor_uuid;
 	nrm_string_incref(sensor_uuid);
 	s->list = NULL;
-	HASH_ADD_KEYPTR(hh, eb->hash, s->uuid, strlen(s->uuid), s);
+	HASH_ADD_KEYPTR(hh, eb->hash, s->uuid, nrm_string_strlen(s->uuid), s);
 	return s;
 }
 
-int nrm_eventbase_remove_sensor(nrm_eventbase_t *eb, nrm_string_t *sensor_uuid)
+int nrm_eventbase_remove_sensor(nrm_eventbase_t *eb, nrm_string_t sensor_uuid)
 {
 	struct nrm_sensor2scope_s *s;
-	HASH_FIND_STR(eb->hash, sensor_uuid, s);
+	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid), s);
 	if (s != NULL) {
 		struct nrm_scope2ring_s *elt, *tmp;
 		DL_FOREACH_SAFE(s->list, elt, tmp)
@@ -151,7 +150,7 @@ int nrm_eventbase_push_event(nrm_eventbase_t *eb,
 {
 	struct nrm_sensor2scope_s *s2s;
 	struct nrm_scope2ring_s *s2r;
-	HASH_FIND_STR(eb->hash, sensor_uuid, s2s);
+	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid), s2s);
 	if (s2s == NULL)
 		s2s = nrm_eventbase_add_sensor(eb, sensor_uuid);
 	DL_FOREACH(s2s->list, s2r)
@@ -175,7 +174,7 @@ int nrm_eventbase_last_value(nrm_eventbase_t *eb,
 {
 	struct nrm_sensor2scope_s *s2s;
 	struct nrm_scope2ring_s *s2r;
-	HASH_FIND_STR(eb->hash, sensor_uuid, s2s);
+	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid), s2s);
 	if (s2s == NULL) {
 		*value = 0.0;
 		return -NRM_EINVAL;
