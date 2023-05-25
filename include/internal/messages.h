@@ -34,7 +34,8 @@ typedef enum _Nrm__MSGTYPE nrm_msg_msgtype_e;
 #define NRM_MSG_TYPE_REMOVE (NRM__MSGTYPE__REMOVE)
 #define NRM_MSG_TYPE_EVENT (NRM__MSGTYPE__EVENT)
 #define NRM_MSG_TYPE_ACTUATE (NRM__MSGTYPE__ACTUATE)
-#define NRM_MSG_TYPE_MAX (6)
+#define NRM_MSG_TYPE_EXIT (NRM__MSGTYPE__EXIT)
+#define NRM_MSG_TYPE_MAX (7)
 
 typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_SLICE (NRM__TARGETTYPE__SLICE)

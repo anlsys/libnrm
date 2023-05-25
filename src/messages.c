@@ -616,6 +616,7 @@ struct nrm_msg_type_table_s {
 
 typedef struct nrm_msg_type_table_s nrm_msg_type_table_t;
 
+/* clang-format off */
 static const nrm_msg_type_table_t nrm_msg_type_table[] = {
         {NRM_MSG_TYPE_ACK, "ACK"},
         {NRM_MSG_TYPE_LIST, "LIST"},
@@ -623,8 +624,10 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
         {NRM_MSG_TYPE_REMOVE, "REMOVE"},
         {NRM_MSG_TYPE_EVENT, "EVENT"},
         {NRM_MSG_TYPE_ACTUATE, "ACTUATE"},
+        {NRM_MSG_TYPE_EXIT, "EXIT"},
         {0, NULL},
 };
+/* clang-format on */
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
         {NRM_MSG_TARGET_TYPE_ACTUATOR, "ACTUATOR"},
