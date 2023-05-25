@@ -563,6 +563,7 @@ void nrm_msg_destroy_created(nrm_msg_t **msg)
 		nrm_msg_remove_destroy(sub->remove);
 		break;
 	case NRM_MSG_TYPE_ACK:
+	case NRM_MSG_TYPE_EXIT:
 	default:
 		break;
 	}
