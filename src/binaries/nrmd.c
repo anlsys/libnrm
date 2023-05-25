@@ -24,6 +24,9 @@ struct nrm_daemon_s {
 	nrm_state_t *state;
 	nrm_eventbase_t *events;
 	nrm_control_t *control;
+	nrm_sensor_t *mysensor;
+	nrm_scope_t *myscope;
+	nrm_string_t mytopic;
 };
 
 int signo;
@@ -88,6 +91,7 @@ nrm_msg_t *nrmd_daemon_build_list_actuators()
 	}
 
 	nrm_msg_set_list_actuators(ret, actuators_vector);
+	nrm_vector_destroy(&actuators_vector);
 	return ret;
 }
 
@@ -106,6 +110,7 @@ nrm_msg_t *nrmd_daemon_build_list_scopes()
 	}
 
 	nrm_msg_set_list_scopes(ret, scopes_vector);
+	nrm_vector_destroy(&scopes_vector);
 	return ret;
 }
 
@@ -124,6 +129,7 @@ nrm_msg_t *nrmd_daemon_build_list_sensors()
 	}
 
 	nrm_msg_set_list_sensors(ret, sensors_vector);
+	nrm_vector_destroy(&sensors_vector);
 	return ret;
 }
 
@@ -142,6 +148,7 @@ nrm_msg_t *nrmd_daemon_build_list_slices()
 	}
 
 	nrm_msg_set_list_slices(ret, slices_vector);
+	nrm_vector_destroy(&slices_vector);
 	return ret;
 }
 
@@ -372,7 +379,7 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 		nrm_log_error("message type not handled\n");
 		break;
 	}
-	nrm_msg_destroy(&msg);
+	nrm_msg_destroy_received(&msg);
 	return err;
 }
 
@@ -409,22 +416,18 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_log_info("global timer wakeup\n");
 	nrm_role_t *self = (nrm_role_t *)arg;
 
-	nrm_string_t topic = nrm_string_fromchar("DAEMON");
-
 	/* create a ticking event */
 	nrm_time_t now;
 	nrm_time_gettime(&now);
-	nrm_scope_t *scope = nrm_scope_create("nrm.scope.all");
-	nrm_scope_threadprivate(scope);
-	nrm_sensor_t *sensor = nrm_sensor_create("daemon.tick");
 
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
-	nrm_msg_set_event(msg, now, sensor->uuid, scope, 1.0);
+	nrm_msg_set_event(msg, now, my_daemon.mysensor->uuid, my_daemon.myscope,
+	                  1.0);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending event\n");
-	nrm_role_pub(self, topic, msg);
+	nrm_role_pub(self, my_daemon.mytopic, msg);
 
 	/* tick the event base */
 	nrm_log_debug("eventbase tick\n");
@@ -468,6 +471,8 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 static int
 nrmd_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
 {
+	(void)loop;
+	(void)arg;
 	struct signalfd_siginfo fdsi;
 	ssize_t s = read(poller->fd, &fdsi, sizeof(struct signalfd_siginfo));
 	assert(s == sizeof(struct signalfd_siginfo));
@@ -553,6 +558,13 @@ int main(int argc, char *argv[])
 	my_daemon.state = nrm_state_create();
 	my_daemon.events = nrm_eventbase_create(5);
 	nrm_scope_hwloc_scopes(&my_daemon.state->scopes);
+	my_daemon.mysensor = nrm_sensor_create("daemon.tick");
+	nrm_string_t global_scope = nrm_string_fromchar("nrm.hwloc.Machine.0");
+	nrm_hash_find(my_daemon.state->scopes, global_scope,
+	              (void *)&my_daemon.myscope);
+	assert(my_daemon.myscope);
+	nrm_string_decref(global_scope);
+	my_daemon.mytopic = nrm_string_fromchar("daemon");
 
 	/* configuration */
 	if (argc == 0) {
@@ -614,6 +626,8 @@ start:
 	nrm_log_debug("Loop destroyed\n");
 
 	/* teardown NRM */
+	nrm_string_decref(my_daemon.mytopic);
+	nrm_sensor_destroy(&my_daemon.mysensor);
 	nrm_eventbase_destroy(&my_daemon.events);
 	nrm_state_destroy(&my_daemon.state);
 	nrm_role_destroy(&controller);

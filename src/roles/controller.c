@@ -78,11 +78,15 @@ int nrm_controller_broker_pipe_handler(zloop_t *loop,
 		NRM_CTRLMSG_2SENDTO(p, q, msg, uuid);
 		nrm_log_info("received request to send to client: %s\n", *uuid);
 		nrm_msg_sendto(self->rpc, msg, uuid);
+		nrm_msg_destroy_created(&msg);
+		nrm_uuid_destroy(&uuid);
 		break;
 	case NRM_CTRLMSG_TYPE_PUB:
 		nrm_log_info("received request to publish message\n");
 		NRM_CTRLMSG_2PUB(p, q, s, msg);
 		nrm_msg_pub(self->pub, s, msg);
+		nrm_string_decref(s);
+		nrm_msg_destroy_created(&msg);
 		break;
 	default:
 		nrm_log_error("msg type %u not handled\n", msg_type);
@@ -231,6 +235,7 @@ int nrm_role_controller_pub(const struct nrm_role_data *data,
 {
 	struct nrm_role_controller_s *controller =
 	        (struct nrm_role_controller_s *)data;
+	nrm_string_incref(topic);
 	nrm_ctrlmsg_pub((zsock_t *)controller->broker, NRM_CTRLMSG_TYPE_PUB,
 	                topic, msg);
 	return 0;
