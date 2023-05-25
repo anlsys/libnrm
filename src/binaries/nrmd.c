@@ -319,12 +319,22 @@ nrm_msg_t *nrmd_handle_actuate_request(nrm_role_t *role, nrm_msg_actuate_t *msg)
 	return ret;
 }
 
+nrm_msg_t *nrmd_handle_exit_request(nrm_role_t *role)
+{
+	(void)role;
+	/* just ack the message and exit the daemon */
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	return ret;
+}
+
 int nrmd_shim_controller_read_callback(zloop_t *loop,
                                        zsock_t *socket,
                                        void *arg)
 {
 	(void)loop;
 	(void)socket;
+	int err = 0;
 	nrm_log_info("entering callback\n");
 	nrm_role_t *self = (nrm_role_t *)arg;
 	nrm_msg_t *msg, *ret;
@@ -352,12 +362,18 @@ int nrmd_shim_controller_read_callback(zloop_t *loop,
 		ret = nrmd_handle_remove_request(msg->remove);
 		nrm_role_send(self, ret, uuid);
 		break;
+	case NRM_MSG_TYPE_EXIT:
+		ret = nrmd_handle_exit_request(self);
+		nrm_role_send(self, ret, uuid);
+		/* that will trigger exit */
+		err = -1;
+		break;
 	default:
 		nrm_log_error("message type not handled\n");
 		break;
 	}
 	nrm_msg_destroy(&msg);
-	return 0;
+	return err;
 }
 
 double nrmd_actuator_value(nrm_string_t uuid)

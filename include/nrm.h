@@ -367,6 +367,15 @@ int nrm_client_send_event(const nrm_client_t *client,
                           double value);
 
 /**
+ * Asks the daemon to exit
+ *
+ * @param client: NRM client object
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_client_send_exit(const nrm_client_t *client);
+
+/**
  * Set a callback function for client events
  * @param client: NRM client object
  * @param fn: function reference

@@ -15,6 +15,7 @@ enum MSGTYPE {
 	REMOVE = 3;
 	EVENT = 4;
 	ACTUATE = 5;
+	EXIT = 6;
 }
 
 message Scope {
