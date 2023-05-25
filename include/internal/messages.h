@@ -75,7 +75,8 @@ typedef Nrm__SliceList nrm_msg_slicelist_t;
 #define nrm_msg_slicelist_init(msg) nrm__slice_list__init(msg)
 
 nrm_msg_t *nrm_msg_create(void);
-void nrm_msg_destroy(nrm_msg_t **msg);
+void nrm_msg_destroy_created(nrm_msg_t **msg);
+void nrm_msg_destroy_received(nrm_msg_t **msg);
 void nrm_log_printmsg(int level, nrm_msg_t *msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
