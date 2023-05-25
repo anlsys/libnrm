@@ -275,7 +275,7 @@ void nrm_msg_add_destroy(nrm_msg_add_t *msg)
 	if (msg == NULL)
 		return;
 
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_msg_slice_destroy(msg->slice);
 		break;
@@ -491,7 +491,7 @@ void nrm_msg_list_destroy(nrm_msg_list_t *msg)
 	if (msg == NULL)
 		return;
 
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_MSG_TARGET_TYPE_SLICE:
 		nrm_msg_slicelist_destroy(msg->slices);
 		break;

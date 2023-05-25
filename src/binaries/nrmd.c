@@ -423,8 +423,8 @@ int nrmd_timer_callback(zloop_t *loop, int timerid, void *arg)
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
-	nrm_msg_set_event(msg, now, my_daemon.mysensor->uuid,
-			  my_daemon.myscope, 1.0);
+	nrm_msg_set_event(msg, now, my_daemon.mysensor->uuid, my_daemon.myscope,
+	                  1.0);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending event\n");
 	nrm_role_pub(self, my_daemon.mytopic, msg);
@@ -560,8 +560,8 @@ int main(int argc, char *argv[])
 	nrm_scope_hwloc_scopes(&my_daemon.state->scopes);
 	my_daemon.mysensor = nrm_sensor_create("daemon.tick");
 	nrm_string_t global_scope = nrm_string_fromchar("nrm.hwloc.Machine.0");
-	nrm_hash_find(my_daemon.state->scopes, global_scope, (void
-							      *)&my_daemon.myscope);
+	nrm_hash_find(my_daemon.state->scopes, global_scope,
+	              (void *)&my_daemon.myscope);
 	assert(my_daemon.myscope);
 	nrm_string_decref(global_scope);
 	my_daemon.mytopic = nrm_string_fromchar("daemon");
