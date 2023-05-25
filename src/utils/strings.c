@@ -28,6 +28,9 @@ typedef struct nrm_realstring_s nrm_realstring_t;
 	(nrm_realstring_t *)(((intptr_t)s) - NRM_STRING_HEADER_SIZE)
 #define NRM_STRING_S2C(s) (char *)(((intptr_t)s) + NRM_STRING_HEADER_SIZE)
 
+#define NRM_ATOMIC_FINC(p) __atomic_fetch_add(p, 1, __ATOMIC_RELAXED)
+#define NRM_ATOMIC_DECF(p) __atomic_sub_fetch(p, 1, __ATOMIC_RELAXED)
+
 static nrm_realstring_t *nrm_string_new(size_t slen)
 {
 	/* header + buffer + null byte */
@@ -67,14 +70,16 @@ nrm_string_t nrm_string_frombuf(const char *string, size_t len)
 void nrm_string_incref(nrm_string_t s)
 {
 	nrm_realstring_t *r = NRM_STRING_C2S(s);
-	r->rc++;
+	int ret = NRM_ATOMIC_FINC(&(r->rc));
+	assert(ret > 0);
 }
 
 void nrm_string_decref(nrm_string_t s)
 {
 	nrm_realstring_t *r = NRM_STRING_C2S(s);
-	r->rc--;
-	if (r->rc == 0)
+	int ret = NRM_ATOMIC_DECF(&(r->rc));
+	assert(ret >= 0);
+	if (ret == 0)
 		free(r);
 }
 
