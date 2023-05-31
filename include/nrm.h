@@ -200,14 +200,29 @@ void nrm_sensor_destroy(nrm_sensor_t **);
 
 struct nrm_state_s {
 	nrm_hash_t *actuators;
-	nrm_hash_t *slices;
-	nrm_hash_t *sensors;
 	nrm_hash_t *scopes;
+	nrm_hash_t *sensors;
+	nrm_hash_t *slices;
 };
 
 typedef struct nrm_state_s nrm_state_t;
 
 nrm_state_t *nrm_state_create(void);
+
+int nrm_state_list_actuators(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_scopes(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_sensors(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_slices(nrm_state_t *, nrm_vector_t *);
+
+int nrm_state_add_actuator(nrm_state_t *, nrm_actuator_t *);
+int nrm_state_add_scope(nrm_state_t *, nrm_scope_t *);
+int nrm_state_add_sensor(nrm_state_t *, nrm_sensor_t *);
+int nrm_state_add_slice(nrm_state_t *, nrm_slice_t *);
+
+int nrm_state_remove_actuator(nrm_state_t *, const char *uuid);
+int nrm_state_remove_scope(nrm_state_t *, const char *uuid);
+int nrm_state_remove_sensor(nrm_state_t *, const char *uuid);
+int nrm_state_remove_slice(nrm_state_t *, const char *uuid);
 
 void nrm_state_destroy(nrm_state_t **);
 
@@ -416,14 +431,18 @@ typedef int(nrm_server_callback_fn)(void *arg);
 /**
  * Creates a new NRM server.
  *
+ * Uses a state to keep track of server objects that clients can add/remove
+ * from the system.
+ *
  * @param server: pointer to a variable that will contain the server handle
+ * @param server: pointer to a valid state handle
  * @param uri: address for listening to clients
  * @param pub_port: port for publishing server events
  * @param rpc_port: port for listening to requests
  * @return 0 if successful, an error code otherwise
  *
  */
-int nrm_server_create(nrm_server_t **server,
+int nrm_server_create(nrm_server_t **server, nrm_state_t *state,
                       const char *uri,
                       int pub_port,
                       int rpc_port);
@@ -432,7 +451,7 @@ int nrm_server_create(nrm_server_t **server,
 /**
  * Destroys an NRM server. Closes connections.
  */
-void nrm_server_destroy(nrm_client_t **client);
+void nrm_server_destroy(nrm_server_t **server);
 
 #ifdef __cplusplus
 }
