@@ -55,7 +55,7 @@ int nrm_client_actuate(const nrm_client_t *client,
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
 
-	nrm_log_debug("checking value is valid");
+	nrm_log_debug("checking value is valid\n");
 	size_t i, len;
 	nrm_vector_length(actuator->choices, &len);
 	for (i = 0; i < len; i++) {
