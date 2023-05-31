@@ -568,7 +568,7 @@ int main(int argc, char *argv[])
 
 	/* configuration */
 	if (argc == 0) {
-		nrm_log_info("no configuration given, skipping control config");
+		nrm_log_info("no configuration given, skipping control\n");
 		goto start;
 	}
 

@@ -37,9 +37,15 @@ static struct option long_options[] = {
 
 static const char *short_options = "+hVu:r:p:";
 
-static const char *help[] = {"Usage: nrmc [options]\n\n", "Allowed options:\n",
-                             "--help, -h    : print this help message\n",
-                             "--version, -V : print program version\n", NULL};
+static const char *help[] = {
+        "Usage: nrmc [options]\n\n",
+        "Allowed options:\n",
+        "--help, -h    : print this help message\n",
+        "--version, -V : print program version\n",
+        "--uri, -u     : daemon socket uri to connect to\n",
+        "--rpc-port    : daemon rpc port to use\n",
+        "--pub-port    : daemon pub/sub port to use\n",
+        NULL};
 
 void print_help()
 {
