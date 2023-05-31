@@ -19,9 +19,10 @@
 
 #include "internal/nrmi.h"
 #include "internal/messages.h"
+#include "internal/roles.h"
 
 struct nrm_server_user_callbacks_s {
-	int(*list)(nrm_server_t *, nrm_uuid_t *, int, void *);
+	int(*list)(nrm_server_t *, int, nrm_vector_t *, void *);
 	int(*add)(nrm_server_t *, nrm_uuid_t *, int, void *, void *);
 	int(*remove)(nrm_server_t *, nrm_uuid_t *, int, nrm_string_t, void *);
 	int(*event)(nrm_server_t *, nrm_uuid_t *, nrm_string_t, nrm_scope_t *,
@@ -52,7 +53,7 @@ typedef struct nrm_server_user_callbacks_s nrm_server_user_callbacks_t;
 struct nrm_server_s {
 	nrm_role_t *role;
 	zloop_t *loop;
-	nrm_server_user_callback_t callbacks;
+	nrm_server_user_callbacks_t callbacks;
 	void *user_arg;
 };
 
@@ -111,45 +112,123 @@ int nrm_server_msg_converter_add(nrm_uuid_t *uuid, nrm_msg_t *msg, void **arg, i
 	return 0;
 }
 
-int nrm_server_msg_converter_remove(nrm_uuid_t *uuid, nrm_msg_t *msg, void **arg, int *type)
+nrm_msg_t *nrm_server_add_actuator(nrm_server_t *self, nrm_uuid_t *clientid, nrm_msg_actuator_t *msg)
 {
-	assert(msg->type == NRM_MSG_TYPE_REMOVE);
-	assert(msg->remove->type < NRM_MSG_TARGET_TYPE_MAX);
-	nrm_string_t uuid;
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_actuator_t *actuator = nrm_actuator_create_frommsg(msg);
+	actuator->clientid = nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
 
-	return 0;
-}
-
-int nrm_server_msg_converter_event(nrm_uuid_t *uuid, nrm_msg_t *msg, void **arg, int *type)
-{
-	return 0;
-}
-
-int nrm_server_msg_converter_actuate(nrm_uuid_t *uuid, nrm_msg_t *msg, void **arg, int *type)
-{
-	return 0;
-}
-
-
-int nrm_server_list_callback(nrm_server_t *self, nrm_uuid_t *clientid,
-			     nrm_msg_list_t *msg)
-{
-	(void)uuid;
-	assert(msg->type == NRM_MSG_TYPE_LIST);
-	int type = nrm_server_msg_types[msg->type];
-	int ret = self->callbacks->list(self, clientid, type,
-					self->user_arg);
-	if (ret == 0) {
-		/* TODO: callback should fill out a vector of results */
-	} else {
-		/* TODO: nack message */	
+	int err = self->callback->add(self, NRM_SERVER_OBJECT_TYPE_ACTUATOR,
+			actuator);
+	if (err) {
+		/* TODO: NACK */
+		nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+		return ret;
 	}
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);
+	nrm_msg_set_add_actuator(ret, actuator);
+	return ret;
+}
+
+int nrm_server_add_callback(nrm_server_t *self, nrm_uuid_t *clientid,
+			     nrm_msg_add_t *msg)
+{
+	nrm_msg_t *ret = NULL;
+	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_log_info("adding an actuator\n");
+		ret = nrm_server_add_actuator(self, uuid, msg->actuator);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_log_info("adding a slice\n");
+		ret = nrm_server_add_slice(self, msg->slice);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_log_info("adding a sensor\n");
+		ret = nrm_server_add_sensor(self, msg->sensor);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_log_info("adding a scope\n");
+		ret = nrm_server_add_scope(self);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	default:
+		nrm_log_error("wrong add request type %u\n", msg->type);
+		break;
+	}
+	if (ret == NULL)
+		return -1;
+	nrm_role_send(self->role, ret, clientid);
 	/* we don't return an error here unless it's a failure of the server
 	 * code itself */
 	return 0;
 }
 
+#define NRM_SERVER_LIST_CALL(type, TYPE) \
+	nrm_msg_t *nrm_server_list_ ## type ## s(nrm_server_t *self) \
+	{ \
+		nrm_msg_t *ret = nrm_msg_create(); \
+		nrm_vector_t *vec; \
+		nrm_vector_create(&vec, sizeof(nrm_ ## type ## _t)); \
+		int err = self->callbacks.list(self, \
+				NRM_SERVER_OBJECT_TYPE_ ## TYPE, \
+				vec, self->user_arg); \
+		if (err) { \
+			/* TODO: NACK */ \
+			nrm_msg_fill(ret, NRM_MSG_TYPE_ACK); \
+			goto end; \
+		} \
+		nrm_msg_fill(ret, NRM_MSG_TYPE_LIST); \
+		nrm_msg_set_list_ ## type ## s(ret, vec); \
+	end: \
+		nrm_vector_destroy(&vec); \
+		return ret; \
+	}
 
+NRM_SERVER_LIST_CALL(actuator, ACTUATOR)
+NRM_SERVER_LIST_CALL(scope, SCOPE)
+NRM_SERVER_LIST_CALL(slice, SLICE)
+NRM_SERVER_LIST_CALL(sensor, SENSOR)
+
+int nrm_server_list_callback(nrm_server_t *self, nrm_uuid_t *clientid,
+			     nrm_msg_list_t *msg)
+{
+	nrm_msg_t *ret = NULL;
+	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_log_info("listing actuators\n");
+		ret = nrm_server_list_actuators(self);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_log_info("listing slices\n");
+		ret = nrm_server_list_slices(self);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_log_info("listing sensors\n");
+		ret = nrm_server_list_sensors(self);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_log_info("listing scopes\n");
+		ret = nrm_server_list_scopes(self);
+		nrm_log_printmsg(NRM_LOG_DEBUG, ret);
+		break;
+	default:
+		nrm_log_error("wrong list request type %u\n", msg->type);
+		break;
+	}
+	if (ret == NULL)
+		return -1;
+	nrm_role_send(self->role, ret, clientid);
+	/* we don't return an error here unless it's a failure of the server
+	 * code itself */
+	return 0;
+}
 
 int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
@@ -184,7 +263,7 @@ int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 		nrm_log_error("message type not handled\n");
 		return -NRM_EINVAL;
 	}
-	nrm_msg_destroy(&msg);
+	nrm_msg_destroy_received(&msg);
 	return err;
 }
 
