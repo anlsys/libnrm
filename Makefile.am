@@ -168,7 +168,10 @@ BATS_TESTS = \
 	     tests/cli/nrmd.bats
 
 TEST_EXTENSIONS = .bats
-BATS_LOG_COMPILER = $(BATS)
+BATS_LOG_COMPILER = \
+		export TOP_BUILDDIR=$(abs_top_builddir); \
+		export TOP_SRCDIR=$(abs_top_srcdir); \
+		$(BATS)
 
 # unit tests
 UNIT_TESTS = \

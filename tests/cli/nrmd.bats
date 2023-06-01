@@ -1,8 +1,6 @@
 #!/usr/bin/env bats
 
 setup() {
-	load 'common'
-	_common_setup
 	PATH=$TOP_BUILDDIR:$PATH
 }
 

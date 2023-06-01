@@ -1,4 +1,0 @@
-_common_setup() {
-	TOP_BUILDDIR=@abs_top_builddir@
-	TOP_SRCDIR=@abs_top_srcdir@
-}
