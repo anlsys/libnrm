@@ -168,10 +168,9 @@ BATS_TESTS = \
 	     tests/cli/nrmd.bats
 
 TEST_EXTENSIONS = .bats
-BATS_LOG_COMPILER = \
-		export TOP_BUILDDIR=$(abs_top_builddir); \
-		export TOP_SRCDIR=$(abs_top_srcdir); \
-		$(BATS)
+BATS_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
+		$(top_srcdir)/build-aux/tap-driver.sh
+BATS_LOG_COMPILER = $(SHELL) $(top_builddir)/bats-driver.sh
 
 # unit tests
 UNIT_TESTS = \
