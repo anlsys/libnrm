@@ -17,6 +17,11 @@ AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_LIBOBJ_DIR([lib])
 
+# needed for tests
+##################
+
+AC_REQUIRE_AUX_FILE([tap-driver.sh])
+
 # automake should fail on any error
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects 1.12])
 
