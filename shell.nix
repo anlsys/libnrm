@@ -20,6 +20,7 @@ mkShell {
     python3Packages.breathe
     python3Packages.sphinx_rtd_theme
     jq
+    bats
   ];
 
   CFLAGS =

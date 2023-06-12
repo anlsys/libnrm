@@ -13,9 +13,14 @@ m4_define([VERSION_REVISION], m4_argn(4, VERSION_FIELDS))
 
 AC_INIT([libnrm],[0.7.0],[swann@anl.gov])
 AC_CONFIG_SRCDIR([include/nrm.h])
-AC_CONFIG_AUX_DIR([m4])
+AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_LIBOBJ_DIR([lib])
+
+# needed for tests
+##################
+
+AC_REQUIRE_AUX_FILE([tap-driver.sh])
 
 # automake should fail on any error
 AM_INIT_AUTOMAKE([-Wall -Werror foreign subdir-objects 1.12])
@@ -47,6 +52,10 @@ AX_VALGRIND_DFLT([helgrind], [off])
 AX_VALGRIND_DFLT([drd], [off])
 AX_VALGRIND_DFLT([sgcheck], [off])
 AX_VALGRIND_CHECK
+
+# support for testing command line programs
+AC_CHECK_PROG([BATS], [bats], [bats])
+AS_IF([test "x$BATS" = "x"],[AC_MSG_ERROR(could not find bats)],[])
 
 # getcpu is somewhat new, and might be missing from the system libc
 AC_REPLACE_FUNCS(getcpu)
@@ -121,5 +130,6 @@ AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile
 		 libnrm.pc
 	 	 doc/Makefile
+		 bats-driver.sh
 		 include/nrm/utils/version.h])
 AC_OUTPUT
