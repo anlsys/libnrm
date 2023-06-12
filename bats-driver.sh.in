@@ -1,0 +1,3 @@
+#!/bin/sh
+PATH=@abs_top_builddir@:$PATH
+@BATS@ $@
