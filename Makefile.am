@@ -144,6 +144,7 @@ SUBDIRS = doc
 ###############################################################################
 
 # bats tests use a different driver, so we configure them in a different subdir
+SUBDIRS += tests/cli
 
 AM_COLOR_TESTS = yes
 AM_CPPFLAGS += $(CHECK_CFLAGS)
@@ -163,20 +164,9 @@ COMPILED_TESTS = \
 		tests/utils/ringbuffer \
 		tests/utils/scope
 
-BATS_TESTS = \
-	     tests/cli/nrmc.bats \
-	     tests/cli/nrmd.bats
-
-TEST_EXTENSIONS = .bats
-BATS_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
-		$(top_srcdir)/build-aux/tap-driver.sh
-BATS_LOG_COMPILER = $(SHELL) $(top_builddir)/bats-driver.sh
-
 # unit tests
 UNIT_TESTS = \
-	     $(COMPILED_TESTS) \
-	     $(BATS_TESTS)
+	     $(COMPILED_TESTS)
 
 check_PROGRAMS += $(COMPILED_TESTS)
 TESTS += $(UNIT_TESTS)
-EXTRA_DIST += $(BATS_TESTS)

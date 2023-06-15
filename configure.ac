@@ -130,6 +130,7 @@ AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile
 		 libnrm.pc
 	 	 doc/Makefile
-		 bats-driver.sh
+		 tests/cli/Makefile
+		 tests/cli/bats-driver.sh
 		 include/nrm/utils/version.h])
 AC_OUTPUT
