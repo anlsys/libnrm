@@ -1,0 +1,7 @@
+name: linuxperf-wrapped
+app:
+  perfwrapper:
+    perfFreq:
+      hertz: 1
+    perfLimit: 100000
+    perfEvent: "instructions"

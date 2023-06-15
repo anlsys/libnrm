@@ -28,7 +28,7 @@ if read_the_docs:
 # -- Project information -----------------------------------------------------
 
 project = u'NRM'
-copyright = u'2022, Argonne National Laboratory'
+copyright = u'2023, Argonne National Laboratory'
 author = u'Argo team, Argonne National Laboratory'
 
 # The short X.Y version
@@ -46,7 +46,7 @@ needs_sphinx = '2.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.intersphinx", "breathe"]
+extensions = ["sphinx.ext.intersphinx", "breathe", "sphinx_design"]
 intersphinx_mapping = {
     'nrm-python': ('https://nrm.readthedocs.io/projects/nrm-python/en/master/', None),
     'nrm-core': ('https://nrm.readthedocs.io/projects/nrm-core/en/master/', None)
@@ -95,6 +95,11 @@ html_theme = 'sphinx_rtd_theme'
 # documentation.
 #
 # html_theme_options = {}
+
+html_theme_options = {
+    "navigation_depth": 3,
+    "collapse_navigation": False
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

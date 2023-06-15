@@ -25,29 +25,57 @@ elements, send events, listen to state changes.
 
 .. doxygenfunction:: nrm_client_create
 
-.. doxygenfunction:: nrm_client_add_scope
-
-.. doxygenfunction:: nrm_client_add_sensor
-
-.. doxygenfunction:: nrm_client_add_slice
-
 .. doxygenfunction:: nrm_client_find
-
-.. doxygenfunction:: nrm_client_list_scopes
-
-.. doxygenfunction:: nrm_client_list_sensors
-
-.. doxygenfunction:: nrm_client_list_slices
-
-.. doxygenfunction:: nrm_client_remove
 
 .. doxygenfunction:: nrm_client_send_event
 
-.. doxygenfunction:: nrm_client_set_event_listener
-
-.. doxygenfunction:: nrm_client_start_event_listener
-
 .. doxygenfunction:: nrm_client_destroy
+
+.. tab-set::
+
+  .. tab-item:: Scopes
+
+    .. doxygenfunction:: nrm_client_add_scope
+
+    .. doxygenfunction:: nrm_client_list_scopes
+
+    .. doxygenfunction:: nrm_client_remove_scope
+
+  .. tab-item:: Sensors
+
+    .. doxygenfunction:: nrm_client_add_sensor
+
+    .. doxygenfunction:: nrm_client_list_sensors
+
+    .. doxygenfunction:: nrm_client_remove_sensor
+
+  .. tab-item:: Actuators
+
+    .. doxygenfunction:: nrm_client_add_actuator
+
+    .. doxygenfunction:: nrm_client_list_actuators
+
+    .. doxygenfunction:: nrm_client_remove_actuator
+
+    .. doxygenfunction:: nrm_client_actuate
+
+  .. tab-item:: Slices
+
+    .. doxygenfunction:: nrm_client_add_slice
+
+    .. doxygenfunction:: nrm_client_list_slices
+
+    .. doxygenfunction:: nrm_client_remove_slice
+
+  .. tab-item:: Callbacks
+
+    .. doxygenfunction:: nrm_client_set_event_listener
+
+    .. doxygenfunction:: nrm_client_start_event_listener
+
+    .. doxygenfunction:: nrm_client_set_actuate_listener
+
+    .. doxygenfunction:: nrm_client_start_actuate_listener
 
 .. _scopes:
 

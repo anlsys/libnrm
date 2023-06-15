@@ -1,0 +1,10 @@
+{
+  "name": "libnrm-wrapped",
+  "app": {
+    "instrumentation": {
+      "ratelimit": {
+        "hertz": 1000000
+      }
+    }
+  }
+}

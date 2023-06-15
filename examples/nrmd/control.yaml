@@ -1,0 +1,21 @@
+passiveSensorFrequency:
+  hertz: 1
+controlCfg:
+  hint: Full
+  learnCfg:
+    horizon: 4000
+  minimumWaitInterval:
+    microseconds: 100000
+  minimumControlInterval:
+    microseconds: 100000
+  referenceMeasurementRoundInterval: 6
+  speedThreshold: 1.1
+  staticPower:
+    microwatts: 200000000
+raplCfg:
+  raplActions:
+    - microwatts: 100000000
+    - microwatts: 200000000
+  raplPath: /sys/devices/virtual/powercap/intel-rapl
+  referencePower:
+    microwatts: 250000000
