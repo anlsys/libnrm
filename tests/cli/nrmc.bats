@@ -2,10 +2,13 @@
 # vim: set ft=bash:
 
 setup() {
+	sleep 1
 	nrmd &>/dev/null 3>&- &
 	NRMD_PID=$!
+	sleep 1
 	nrm-dummy-extra &>/dev/null 3>&- &
 	NRMD_DUMMY_PID=$!
+	sleep 1
 }
 
 @test "--version works" {
@@ -33,7 +36,7 @@ setup() {
 
 @test "find dummy sensor" {
 	# can we find the dummy sensor
-	run nrmc -q list-sensors
+	run nrmc -q find-sensor "nrm-dummy-extra-sensor"
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
