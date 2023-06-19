@@ -70,10 +70,10 @@ setup() {
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
-	# extra valid choice from output
-	first_choice=`echo "$output" | jq .[0].choices[-1]`
-	echo "$first_choice"
-	run nrmc -q actuate "nrm-dummy-extra-actuator" $first_choice
+	# extract valid choice from output
+	choice=`echo "$output" | jq .[0].choices[-1]`
+	echo "$choice"
+	run nrmc -q actuate "nrm-dummy-extra-actuator" $choice
 	[ "$status" -eq 0 ]
 }
 
