@@ -21,6 +21,7 @@
 
 static int ask_help = 0;
 static int ask_version = 0;
+static int log_level = NRM_LOG_DEBUG;
 static char *upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
 static int pub_port = NRM_DEFAULT_UPSTREAM_PUB_PORT;
 static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
@@ -29,19 +30,21 @@ static nrm_client_t *client;
 static struct option long_options[] = {
         {"help", no_argument, &ask_help, 1},
         {"version", no_argument, &ask_version, 1},
+        {"quiet", no_argument, NULL, 'q'},
         {"uri", required_argument, NULL, 'u'},
         {"rpc-port", required_argument, NULL, 'r'},
         {"pub-port", required_argument, NULL, 'p'},
         {0, 0, 0, 0},
 };
 
-static const char *short_options = "+hVu:r:p:";
+static const char *short_options = "+hVqu:r:p:";
 
 static const char *help[] = {
         "Usage: nrmc [options]\n\n",
         "Allowed options:\n",
         "--help, -h    : print this help message\n",
         "--version, -V : print program version\n",
+        "--quiet, -q   : no log output\n",
         "--uri, -u     : daemon socket uri to connect to\n",
         "--rpc-port    : daemon rpc port to use\n",
         "--pub-port    : daemon pub/sub port to use\n",
@@ -750,6 +753,9 @@ int main(int argc, char *argv[])
 			pub_port = strtol(optarg, NULL, 0);
 			assert(errno == 0);
 			break;
+		case 'q':
+			log_level = NRM_LOG_QUIET;
+			break;
 		case 'r':
 			errno = 0;
 			rpc_port = strtol(optarg, NULL, 0);
@@ -794,7 +800,7 @@ int main(int argc, char *argv[])
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmc");
-	nrm_log_setlevel(NRM_LOG_DEBUG);
+	nrm_log_setlevel(log_level);
 
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 	              argc, argv[0]);

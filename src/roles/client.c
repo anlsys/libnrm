@@ -178,14 +178,14 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	self->cmd_cb = params->cmd_cb;
 
 	/* init network */
-	fprintf(stderr, "client: creating rpc socket\n");
+	nrm_log_debug("client: creating rpc socket\n");
 	err = nrm_net_rpc_client_init(&self->rpc);
 	assert(!err);
 	err = nrm_net_connect_and_wait_2(self->rpc, params->uri,
 	                                 params->rpc_port);
 	assert(!err);
 
-	fprintf(stderr, "client: creating sub socket\n");
+	nrm_log_debug("client: creating sub socket\n");
 	err = nrm_net_sub_init(&self->sub);
 	assert(!err);
 	err = nrm_net_connect_and_wait_2(self->sub, params->uri,
@@ -193,7 +193,7 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	assert(!err);
 
 	/* set ourselves up to handle messages */
-	fprintf(stderr, "client: finishing setup\n");
+	nrm_log_debug("client: finishing setup\n");
 	self->loop = zloop_new();
 	assert(self->loop != NULL);
 

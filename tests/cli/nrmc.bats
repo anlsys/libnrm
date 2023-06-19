@@ -4,7 +4,7 @@
 setup() {
 	nrmd &>/dev/null 3>&- &
 	NRMD_PID=$!
-	nrm-dummy-extra  3>&- &
+	nrm-dummy-extra &>/dev/null 3>&- &
 	NRMD_DUMMY_PID=$!
 }
 
@@ -22,16 +22,14 @@ setup() {
 }
 
 @test "list dummy sensor" {
-	[[ $(type -t bats_require_minimum_version) == function ]] && bats_require_minimum_version 1.5.0
 	# can we find the dummy sensor
-	run --separate-stderr nrmc list-sensors
+	run nrmc -q list-sensors
 	echo "$output" | jq .[0].uuid | grep "nrm-dummy-extra-sensor"
 }
 
 @test "find dummy sensor" {
-	[[ $(type -t bats_require_minimum_version) == function ]] && bats_require_minimum_version 1.5.0
 	# can we find the dummy sensor
-	run --separate-stderr nrmc list-sensors
+	run nrmc -q list-sensors
 	echo "$output" | jq .[0].uuid | grep "nrm-dummy-extra-sensor"
 }
 
