@@ -2,9 +2,9 @@
 # vim: set ft=bash:
 
 setup() {
-	nrmd &>/dev/null &
+	nrmd &>/dev/null 3>&- &
 	NRMD_PID=$!
-	nrm-dummy-extra &
+	nrm-dummy-extra  3>&- &
 	NRMD_DUMMY_PID=$!
 }
 
