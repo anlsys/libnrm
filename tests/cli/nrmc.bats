@@ -24,12 +24,14 @@ setup() {
 @test "list dummy sensor" {
 	# can we find the dummy sensor
 	run nrmc -q list-sensors
+	[ "$status" -q 0 ]
 	echo "$output" | jq .[0].uuid | grep "nrm-dummy-extra-sensor"
 }
 
 @test "find dummy sensor" {
 	# can we find the dummy sensor
 	run nrmc -q list-sensors
+	[ "$status" -q 0 ]
 	echo "$output" | jq .[0].uuid | grep "nrm-dummy-extra-sensor"
 }
 
