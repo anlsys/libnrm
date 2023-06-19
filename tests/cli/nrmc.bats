@@ -2,13 +2,13 @@
 # vim: set ft=bash:
 
 setup() {
-	sleep 1
+	sleep 0.1
 	nrmd &>/dev/null 3>&- &
 	NRMD_PID=$!
-	sleep 1
+	sleep 0.1
 	nrm-dummy-extra &>/dev/null 3>&- &
 	NRMD_DUMMY_PID=$!
-	sleep 1
+	sleep 0.1
 }
 
 @test "--version works" {
