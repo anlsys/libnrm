@@ -124,6 +124,8 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	ret->uuid = strdup(actuator->uuid);
 	if (actuator->clientid)
 		ret->clientid = strdup(nrm_uuid_to_char(actuator->clientid));
+	else
+		ret->clientid = NULL;
 	ret->value = actuator->value;
 	nrm_vector_length(actuator->choices, &ret->n_choices);
 	ret->choices = calloc(ret->n_choices, sizeof(double));
