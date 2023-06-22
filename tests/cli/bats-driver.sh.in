@@ -2,4 +2,4 @@
 # none of our bats tests should take more than a few seconds
 BATS_TEST_TIMEOUT=10
 PATH=@abs_top_builddir@:$PATH
-@BATS@ $@
+@BATS@ -x --verbose-run $@
