@@ -160,14 +160,18 @@ int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port)
 	if (!nrm_transmit)
 		return 0;
 
+	nrm_log_debug("creating socket monitor\n");
 	zactor_t *monitor = zactor_new(zmonitor, socket);
 	assert(monitor != NULL);
 
+	nrm_log_debug("configuring socket monitor\n");
 	zstr_sendx(monitor, "LISTEN", "CONNECTED", NULL);
 	zstr_send(monitor, "START");
+	nrm_log_debug("waiting socket monitor\n");
 	zsock_wait(monitor);
 
 	/* now connect the original client */
+	nrm_log_debug("connecting to %s:%d\n", uri, port);
 	err = zsock_connect(socket, "%s:%d", uri, port);
 	assert(err == 0);
 
@@ -179,11 +183,13 @@ int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port)
 
 		char *event = zmsg_popstr(msg);
 
+		nrm_log_debug("monitor event %s\n", event);
 		if (!strcmp(event, "CONNECTED"))
 			connected = 1;
 		free(event);
 		zmsg_destroy(&msg);
 	}
+	nrm_log_debug("connection established\n");
 	/* cleanup monitor */
 	zactor_destroy(&monitor);
 	return 0;
