@@ -9,8 +9,8 @@
 	timeout 5 nrmd &>/dev/null 3>&- &
 	NRMD_PID=$!
 	sleep 1
-	run timeout 2 nrmc exit
-	[ "$status" -eq 0 ]
+	timeout 2 nrmc exit
+	[ "$?" -eq 0 ]
 	wait $NRMD_PID
 	[ "$?" -eq 0 ]
 }
