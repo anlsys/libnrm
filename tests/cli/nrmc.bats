@@ -77,6 +77,26 @@ setup() {
 	[ "$status" -eq 0 ]
 }
 
+@test "list slices" {
+	# can we list slices
+	run nrmc -q list-slices
+	[ "$status" -eq 0 ]
+	# print the output in case of errors
+	echo "$output"
+	# actual check: just make sure that it's valid json
+	echo "$output" | jq
+}
+
+@test "list scopes" {
+	# can we list scopes
+	run nrmc -q list-scopes
+	[ "$status" -eq 0 ]
+	# print the output in case of errors
+	echo "$output"
+	# actual check: just make sure that it's valid json
+	echo "$output" | jq
+}
+
 teardown() {
 	kill $NRMD_DUMMY_PID
 	kill $NRMD_PID
