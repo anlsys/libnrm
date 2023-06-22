@@ -21,22 +21,12 @@
 #include "internal/messages.h"
 #include "internal/roles.h"
 
-struct nrm_server_user_callbacks_s {
-	int(*event)(nrm_server_t *, nrm_string_t, nrm_scope_t *,
-		    nrm_time_t, double value, void *);
-	int(*actuate)(nrm_server_t *, nrm_actuator_t *, double value, void *);
-	int(*signal)(nrm_server_t *, int, void *);
-	int(*timer)(nrm_server_t *, void *);
-};
-
-typedef struct nrm_server_user_callbacks_s nrm_server_user_callbacks_t;
 
 struct nrm_server_s {
 	nrm_role_t *role;
 	nrm_state_t *state;
 	zloop_t *loop;
 	nrm_server_user_callbacks_t callbacks;
-	void *user_arg;
 };
 
 int nrm_server_actuate_callback(nrm_server_t *self, nrm_uuid_t *clientid,
@@ -49,8 +39,7 @@ int nrm_server_actuate_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 		/* we use the callback to figure out if we want to allow the
 		 * action or not
 		 */
-		int ret = self->callbacks.actuate(self, a, msg->value,
-				self->user_arg);
+		int ret = self->callbacks.actuate(self, a, msg->value);
 		if (ret == 0) {
 			nrm_log_debug("actuating %s: %f\n", a->uuid, msg->value);
 			nrm_msg_t *action = nrm_msg_create();
@@ -72,7 +61,7 @@ int nrm_server_event_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
 	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->scope);
 	nrm_time_t time = nrm_time_fromns(msg->time);
-	self->callbacks.event(self, uuid, scope, time, msg->value, self->user_arg);
+	self->callbacks.event(self, uuid, scope, time, msg->value);
 	return 0;
 }
 
@@ -264,6 +253,15 @@ int nrm_server_remove_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 	return 0;
 }
 
+int nrm_server_exit_callback(nrm_server_t *self, nrm_uuid_t *uuid)
+{
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	nrm_role_send(self->role, ret, uuid);
+	/* trigger exit */
+	return -1;
+}
+
 int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
@@ -293,6 +291,9 @@ int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 	case NRM_MSG_TYPE_REMOVE:
 		err = nrm_server_remove_callback(self, uuid, msg->remove);
 		break;
+	case NRM_MSG_TYPE_EXIT:
+		err = nrm_server_exit_callback(self, uuid);
+		break;
 	default:
 		nrm_log_error("message type not handled\n");
 		return -NRM_EINVAL;
@@ -315,7 +316,7 @@ int nrm_server_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void
 	/* we default to exit */
 	int ret = -1;
 	if (self->callbacks.signal != NULL)
-		ret = self->callbacks.signal(self, signalid, self->user_arg);
+		ret = self->callbacks.signal(self, signalid);
 	return ret;
 }
 
@@ -327,7 +328,7 @@ int nrm_server_timer_callback(zloop_t *loop, int timerid, void *arg)
 
 	int ret = 0;
 	if (self->callbacks.timer != NULL)
-		ret = self->callbacks.timer(self, self->user_arg);
+		ret = self->callbacks.timer(self);
 	return ret;
 }
 
@@ -364,6 +365,31 @@ int nrm_server_create(nrm_server_t **server, nrm_state_t *state,
 						  nrm_server_role_callback,
 						  ret);
 	*server = ret;
+	return 0;
+}
+
+/* this function bypass the user validation on actuation */
+int nrm_server_actuate(nrm_server_t *self, nrm_string_t uuid, double value)
+{
+	nrm_actuator_t *a = NULL;
+	nrm_hash_find(self->state->actuators, uuid, (void *)&a);
+	if (a != NULL) {
+		nrm_log_debug("actuating %s: %f\n", a->uuid, value);
+		nrm_msg_t *action = nrm_msg_create();
+		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
+		nrm_msg_set_actuate(action, a->uuid, value);
+		nrm_role_send(self->role, action, a->clientid);
+	}
+	return 0;
+}
+
+int nrm_server_setcallbacks(nrm_server_t *server, nrm_server_user_callbacks_t
+			    callbacks)
+{
+	if (server == NULL)
+		return -NRM_EINVAL;
+
+	server->callbacks = callbacks;
 	return 0;
 }
 
