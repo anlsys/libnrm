@@ -243,6 +243,10 @@ start:
 	/* start the whole thing */
 	nrm_server_start(my_daemon.server);
 
+	nrm_log_info("exiting daemon\n");
+	/* wait a tiny bit before going out */
+	sleep(1);
+
 	/* teardown NRM */
 	nrm_string_decref(my_daemon.mytopic);
 	nrm_sensor_destroy(&my_daemon.mysensor);
