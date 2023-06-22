@@ -33,8 +33,11 @@ struct nrm_daemon_s {
 int signo;
 struct nrm_daemon_s my_daemon;
 
-int nrmd_event_callback(nrm_server_t *server, nrm_string_t uuid,
-			nrm_scope_t *scope, nrm_time_t time, double value)
+int nrmd_event_callback(nrm_server_t *server,
+                        nrm_string_t uuid,
+                        nrm_scope_t *scope,
+                        nrm_time_t time,
+                        double value)
 {
 	(void)server;
 	/* TODO also publish the raw events */
@@ -71,7 +74,7 @@ int nrmd_timer_callback(nrm_server_t *server)
 	nrm_time_gettime(&now);
 
 	nrm_server_publish(server, my_daemon.mytopic, now, my_daemon.mysensor,
-			   my_daemon.myscope, 1.0);
+	                   my_daemon.myscope, 1.0);
 
 	/* tick the event base */
 	nrm_log_debug("eventbase tick\n");
@@ -220,16 +223,17 @@ start:
 
 	/* start the server */
 	err = nrm_server_create(&my_daemon.server, my_daemon.state,
-	        NRM_DEFAULT_UPSTREAM_URI, NRM_DEFAULT_UPSTREAM_PUB_PORT,
-	        NRM_DEFAULT_UPSTREAM_RPC_PORT);
+	                        NRM_DEFAULT_UPSTREAM_URI,
+	                        NRM_DEFAULT_UPSTREAM_PUB_PORT,
+	                        NRM_DEFAULT_UPSTREAM_RPC_PORT);
 	assert(err == 0);
 
 	/* setting up the callbacks */
 	nrm_server_user_callbacks_t callbacks = {
-		.event = nrmd_event_callback,
-		.actuate = nrmd_actuate_callback,
-		.signal = NULL,
-		.timer = nrmd_timer_callback,
+	        .event = nrmd_event_callback,
+	        .actuate = nrmd_actuate_callback,
+	        .signal = NULL,
+	        .timer = nrmd_timer_callback,
 	};
 	nrm_server_setcallbacks(my_daemon.server, callbacks);
 

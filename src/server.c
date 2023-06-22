@@ -18,9 +18,9 @@
 #include <sys/signalfd.h>
 
 #include "internal/nrmi.h"
+
 #include "internal/messages.h"
 #include "internal/roles.h"
-
 
 struct nrm_server_s {
 	nrm_role_t *role;
@@ -29,8 +29,9 @@ struct nrm_server_s {
 	nrm_server_user_callbacks_t callbacks;
 };
 
-int nrm_server_actuate_callback(nrm_server_t *self, nrm_uuid_t *clientid,
-		nrm_msg_actuate_t *msg)
+int nrm_server_actuate_callback(nrm_server_t *self,
+                                nrm_uuid_t *clientid,
+                                nrm_msg_actuate_t *msg)
 {
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
 	nrm_actuator_t *a = NULL;
@@ -41,7 +42,8 @@ int nrm_server_actuate_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 		 */
 		int ret = self->callbacks.actuate(self, a, msg->value);
 		if (ret == 0) {
-			nrm_log_debug("actuating %s: %f\n", a->uuid, msg->value);
+			nrm_log_debug("actuating %s: %f\n", a->uuid,
+			              msg->value);
 			nrm_msg_t *action = nrm_msg_create();
 			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 			nrm_msg_set_actuate(action, a->uuid, msg->value);
@@ -54,8 +56,9 @@ int nrm_server_actuate_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 	return 0;
 }
 
-int nrm_server_event_callback(nrm_server_t *self, nrm_uuid_t *clientid,
-		nrm_msg_event_t *msg)
+int nrm_server_event_callback(nrm_server_t *self,
+                              nrm_uuid_t *clientid,
+                              nrm_msg_event_t *msg)
 {
 	(void)clientid;
 	nrm_string_t uuid = nrm_string_fromchar(msg->uuid);
@@ -65,11 +68,14 @@ int nrm_server_event_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 	return 0;
 }
 
-nrm_msg_t *nrm_server_add_actuator(nrm_server_t *self, nrm_uuid_t *clientid, nrm_msg_actuator_t *msg)
+nrm_msg_t *nrm_server_add_actuator(nrm_server_t *self,
+                                   nrm_uuid_t *clientid,
+                                   nrm_msg_actuator_t *msg)
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_actuator_t *actuator = nrm_actuator_create_frommsg(msg);
-	actuator->clientid = nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
+	actuator->clientid =
+	        nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid));
 
 	int err = nrm_state_add_actuator(self->state, actuator);
 	if (err) {
@@ -82,29 +88,31 @@ nrm_msg_t *nrm_server_add_actuator(nrm_server_t *self, nrm_uuid_t *clientid, nrm
 	return ret;
 }
 
-#define NRM_SERVER_ADD_FUNC(type) \
-nrm_msg_t *nrm_server_add_ ## type (nrm_server_t *self, nrm_msg_ ## type ## _t *msg) \
-{ \
-	nrm_msg_t *ret = nrm_msg_create(); \
-	nrm_ ## type ## _t *r = nrm_ ## type ## _create_frommsg(msg); \
-\
-	int err = nrm_state_add_ ## type (self->state, r); \
-	if (err) { \
-		/* TODO: NACK */ \
-		nrm_msg_fill(ret, NRM_MSG_TYPE_ACK); \
-		return ret; \
-	} \
-	nrm_msg_fill(ret, NRM_MSG_TYPE_ADD); \
-	nrm_msg_set_add_ ## type (ret, r); \
-	return ret; \
-}
+#define NRM_SERVER_ADD_FUNC(type)                                              \
+	nrm_msg_t *nrm_server_add_##type(nrm_server_t *self,                   \
+	                                 nrm_msg_##type##_t *msg)              \
+	{                                                                      \
+		nrm_msg_t *ret = nrm_msg_create();                             \
+		nrm_##type##_t *r = nrm_##type##_create_frommsg(msg);          \
+                                                                               \
+		int err = nrm_state_add_##type(self->state, r);                \
+		if (err) {                                                     \
+			/* TODO: NACK */                                       \
+			nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);                   \
+			return ret;                                            \
+		}                                                              \
+		nrm_msg_fill(ret, NRM_MSG_TYPE_ADD);                           \
+		nrm_msg_set_add_##type(ret, r);                                \
+		return ret;                                                    \
+	}
 
 NRM_SERVER_ADD_FUNC(scope)
 NRM_SERVER_ADD_FUNC(sensor)
 NRM_SERVER_ADD_FUNC(slice)
 
-int nrm_server_add_callback(nrm_server_t *self, nrm_uuid_t *clientid,
-			     nrm_msg_add_t *msg)
+int nrm_server_add_callback(nrm_server_t *self,
+                            nrm_uuid_t *clientid,
+                            nrm_msg_add_t *msg)
 {
 	nrm_msg_t *ret = NULL;
 	switch (msg->type) {
@@ -140,32 +148,33 @@ int nrm_server_add_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 	return 0;
 }
 
-#define NRM_SERVER_LIST_FUNC(type) \
-nrm_msg_t *nrm_server_list_ ## type ## s(nrm_server_t *self) \
-{ \
-	nrm_msg_t *ret = nrm_msg_create(); \
-	nrm_vector_t *vec; \
-	nrm_vector_create(&vec, sizeof(nrm_ ## type ## _t)); \
-	int err = nrm_state_list_ ## type ## s(self->state, vec); \
-	if (err) { \
-		/* TODO: NACK */ \
-		nrm_msg_fill(ret, NRM_MSG_TYPE_ACK); \
-		goto end; \
-	} \
-	nrm_msg_fill(ret, NRM_MSG_TYPE_LIST); \
-	nrm_msg_set_list_ ## type ## s(ret, vec); \
-end: \
-	nrm_vector_destroy(&vec); \
-	return ret; \
-}
+#define NRM_SERVER_LIST_FUNC(type)                                             \
+	nrm_msg_t *nrm_server_list_##type##s(nrm_server_t *self)               \
+	{                                                                      \
+		nrm_msg_t *ret = nrm_msg_create();                             \
+		nrm_vector_t *vec;                                             \
+		nrm_vector_create(&vec, sizeof(nrm_##type##_t));               \
+		int err = nrm_state_list_##type##s(self->state, vec);          \
+		if (err) {                                                     \
+			/* TODO: NACK */                                       \
+			nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);                   \
+			goto end;                                              \
+		}                                                              \
+		nrm_msg_fill(ret, NRM_MSG_TYPE_LIST);                          \
+		nrm_msg_set_list_##type##s(ret, vec);                          \
+	end:                                                                   \
+		nrm_vector_destroy(&vec);                                      \
+		return ret;                                                    \
+	}
 
 NRM_SERVER_LIST_FUNC(actuator)
 NRM_SERVER_LIST_FUNC(scope)
 NRM_SERVER_LIST_FUNC(slice)
 NRM_SERVER_LIST_FUNC(sensor)
 
-int nrm_server_list_callback(nrm_server_t *self, nrm_uuid_t *clientid,
-			     nrm_msg_list_t *msg)
+int nrm_server_list_callback(nrm_server_t *self,
+                             nrm_uuid_t *clientid,
+                             nrm_msg_list_t *msg)
 {
 	nrm_msg_t *ret = NULL;
 	switch (msg->type) {
@@ -201,23 +210,25 @@ int nrm_server_list_callback(nrm_server_t *self, nrm_uuid_t *clientid,
 	return 0;
 }
 
-#define NRM_SERVER_REMOVE_FUNC(type) \
-nrm_msg_t *nrm_server_remove_ ## type (nrm_server_t *self, const char *uuid) \
-{ \
-	nrm_msg_t *ret = nrm_msg_create(); \
-	nrm_state_remove_ ## type (self->state, uuid); \
-	/* TODO: NACK */ \
-	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK); \
-	return ret; \
-}
+#define NRM_SERVER_REMOVE_FUNC(type)                                           \
+	nrm_msg_t *nrm_server_remove_##type(nrm_server_t *self,                \
+	                                    const char *uuid)                  \
+	{                                                                      \
+		nrm_msg_t *ret = nrm_msg_create();                             \
+		nrm_state_remove_##type(self->state, uuid);                    \
+		/* TODO: NACK */                                               \
+		nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);                           \
+		return ret;                                                    \
+	}
 
 NRM_SERVER_REMOVE_FUNC(actuator)
 NRM_SERVER_REMOVE_FUNC(scope)
 NRM_SERVER_REMOVE_FUNC(sensor)
 NRM_SERVER_REMOVE_FUNC(slice)
 
-int nrm_server_remove_callback(nrm_server_t *self, nrm_uuid_t *clientid,
-			     nrm_msg_remove_t *msg)
+int nrm_server_remove_callback(nrm_server_t *self,
+                               nrm_uuid_t *clientid,
+                               nrm_msg_remove_t *msg)
 {
 	nrm_msg_t *ret = NULL;
 	switch (msg->type) {
@@ -275,7 +286,7 @@ int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	int err;
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_MSG_TYPE_ACTUATE:
 		err = nrm_server_actuate_callback(self, uuid, msg->actuate);
 		break;
@@ -302,8 +313,7 @@ int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 	return err;
 }
 
-int nrm_server_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void
-				*arg)
+int nrm_server_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
 {
 	(void)loop;
 	nrm_server_t *self = (nrm_server_t *)arg;
@@ -332,9 +342,11 @@ int nrm_server_timer_callback(zloop_t *loop, int timerid, void *arg)
 	return ret;
 }
 
-
-int nrm_server_create(nrm_server_t **server, nrm_state_t *state,
-		const char *uri, int pub_port, int rpc_port)
+int nrm_server_create(nrm_server_t **server,
+                      nrm_state_t *state,
+                      const char *uri,
+                      int pub_port,
+                      int rpc_port)
 {
 	if (server == NULL || uri == NULL || state == NULL)
 		return -NRM_EINVAL;
@@ -343,8 +355,8 @@ int nrm_server_create(nrm_server_t **server, nrm_state_t *state,
 	if (ret == NULL)
 		return -NRM_ENOMEM;
 
-	ret->role = nrm_role_controller_create_fromparams(uri, pub_port,
-							  rpc_port);
+	ret->role =
+	        nrm_role_controller_create_fromparams(uri, pub_port, rpc_port);
 	if (ret->role == NULL)
 		return -NRM_EINVAL;
 	ret->loop = zloop_new();
@@ -359,11 +371,11 @@ int nrm_server_create(nrm_server_t **server, nrm_state_t *state,
 	int sfd = signalfd(-1, &sigmask, 0);
 	assert(sfd != -1);
 	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
-	zloop_poller(ret->loop, &signal_poller, nrm_server_signal_callback, NULL);
+	zloop_poller(ret->loop, &signal_poller, nrm_server_signal_callback,
+	             NULL);
 
-	nrm_role_controller_register_recvcallback(ret->role, ret->loop,
-						  nrm_server_role_callback,
-						  ret);
+	nrm_role_controller_register_recvcallback(
+	        ret->role, ret->loop, nrm_server_role_callback, ret);
 	*server = ret;
 	return 0;
 }
@@ -383,8 +395,8 @@ int nrm_server_actuate(nrm_server_t *self, nrm_string_t uuid, double value)
 	return 0;
 }
 
-int nrm_server_setcallbacks(nrm_server_t *server, nrm_server_user_callbacks_t
-			    callbacks)
+int nrm_server_setcallbacks(nrm_server_t *server,
+                            nrm_server_user_callbacks_t callbacks)
 {
 	if (server == NULL)
 		return -NRM_EINVAL;
@@ -399,14 +411,16 @@ int nrm_server_settimer(nrm_server_t *server, int millisecs)
 		return -NRM_EINVAL;
 
 	zloop_timer(server->loop, millisecs, 0, nrm_server_timer_callback,
-		    server);
+	            server);
 	return 0;
 }
 
-int nrm_server_publish(nrm_server_t *server, nrm_string_t topic,
-		       nrm_time_t now, nrm_sensor_t *sensor,
-		       nrm_scope_t *scope,
-		       double value)
+int nrm_server_publish(nrm_server_t *server,
+                       nrm_string_t topic,
+                       nrm_time_t now,
+                       nrm_sensor_t *sensor,
+                       nrm_scope_t *scope,
+                       double value)
 {
 	if (server == NULL || topic == NULL || sensor == NULL || scope == NULL)
 		return -NRM_EINVAL;

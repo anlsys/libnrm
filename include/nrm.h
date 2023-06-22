@@ -429,14 +429,17 @@ typedef struct nrm_server_s nrm_server_t;
 /** User-level callbacks on server events */
 struct nrm_server_user_callbacks_s {
 	/* receiving a sensor event */
-	int(*event)(nrm_server_t *, nrm_string_t, nrm_scope_t *,
-		    nrm_time_t, double value);
+	int (*event)(nrm_server_t *,
+	             nrm_string_t,
+	             nrm_scope_t *,
+	             nrm_time_t,
+	             double value);
 	/* receiving a request to actuate */
-	int(*actuate)(nrm_server_t *, nrm_actuator_t *, double value);
+	int (*actuate)(nrm_server_t *, nrm_actuator_t *, double value);
 	/* receiving a POSIX signal */
-	int(*signal)(nrm_server_t *, int);
+	int (*signal)(nrm_server_t *, int);
 	/* timer trigger */
-	int(*timer)(nrm_server_t *);
+	int (*timer)(nrm_server_t *);
 };
 
 typedef struct nrm_server_user_callbacks_s nrm_server_user_callbacks_t;
@@ -455,22 +458,25 @@ typedef struct nrm_server_user_callbacks_s nrm_server_user_callbacks_t;
  * @return 0 if successful, an error code otherwise
  *
  */
-int nrm_server_create(nrm_server_t **server, nrm_state_t *state,
+int nrm_server_create(nrm_server_t **server,
+                      nrm_state_t *state,
                       const char *uri,
                       int pub_port,
                       int rpc_port);
 
-int nrm_server_setcallbacks(nrm_server_t *server, nrm_server_user_callbacks_t
-			    callbacks);
+int nrm_server_setcallbacks(nrm_server_t *server,
+                            nrm_server_user_callbacks_t callbacks);
 
 int nrm_server_settimer(nrm_server_t *server, int millisecs);
 
 int nrm_server_start(nrm_server_t *server);
 
-int nrm_server_publish(nrm_server_t *server, nrm_string_t topic,
-		       nrm_time_t now, nrm_sensor_t *sensor,
-		       nrm_scope_t *scope,
-		       double value);
+int nrm_server_publish(nrm_server_t *server,
+                       nrm_string_t topic,
+                       nrm_time_t now,
+                       nrm_sensor_t *sensor,
+                       nrm_scope_t *scope,
+                       double value);
 
 int nrm_server_actuate(nrm_server_t *server, nrm_string_t uuid, double value);
 
