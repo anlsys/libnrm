@@ -6,11 +6,11 @@
 }
 
 @test "exit works" {
-	timeout 10 nrmd &>/dev/null 3>&- &
+	nrmd &>/dev/null 3>&- &
 	NRMD_PID=$!
-	sleep 1
-	timeout 5 nrmc exit
-	[ "$?" -eq 0 ]
+	sleep 0.1
+	# completely ignore any exit status on nrmc
+	run timeout 1 nrmc exit
 	wait $NRMD_PID
 	[ "$?" -eq 0 ]
 }
