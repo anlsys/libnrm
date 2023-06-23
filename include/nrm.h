@@ -200,14 +200,29 @@ void nrm_sensor_destroy(nrm_sensor_t **);
 
 struct nrm_state_s {
 	nrm_hash_t *actuators;
-	nrm_hash_t *slices;
-	nrm_hash_t *sensors;
 	nrm_hash_t *scopes;
+	nrm_hash_t *sensors;
+	nrm_hash_t *slices;
 };
 
 typedef struct nrm_state_s nrm_state_t;
 
 nrm_state_t *nrm_state_create(void);
+
+int nrm_state_list_actuators(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_scopes(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_sensors(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_slices(nrm_state_t *, nrm_vector_t *);
+
+int nrm_state_add_actuator(nrm_state_t *, nrm_actuator_t *);
+int nrm_state_add_scope(nrm_state_t *, nrm_scope_t *);
+int nrm_state_add_sensor(nrm_state_t *, nrm_sensor_t *);
+int nrm_state_add_slice(nrm_state_t *, nrm_slice_t *);
+
+int nrm_state_remove_actuator(nrm_state_t *, const char *uuid);
+int nrm_state_remove_scope(nrm_state_t *, const char *uuid);
+int nrm_state_remove_sensor(nrm_state_t *, const char *uuid);
+int nrm_state_remove_slice(nrm_state_t *, const char *uuid);
 
 void nrm_state_destroy(nrm_state_t **);
 
@@ -402,6 +417,73 @@ int nrm_client_start_actuate_listener(const nrm_client_t *client);
  * exits.
  */
 void nrm_client_destroy(nrm_client_t **client);
+
+/*******************************************************************************
+ * NRM Server object
+ * Used by any program that wants to act as a control loop: it can receive
+ * requests from clients and send actions back.
+ ******************************************************************************/
+
+typedef struct nrm_server_s nrm_server_t;
+
+/** User-level callbacks on server events */
+struct nrm_server_user_callbacks_s {
+	/* receiving a sensor event */
+	int (*event)(nrm_server_t *,
+	             nrm_string_t,
+	             nrm_scope_t *,
+	             nrm_time_t,
+	             double value);
+	/* receiving a request to actuate */
+	int (*actuate)(nrm_server_t *, nrm_actuator_t *, double value);
+	/* receiving a POSIX signal */
+	int (*signal)(nrm_server_t *, int);
+	/* timer trigger */
+	int (*timer)(nrm_server_t *);
+};
+
+typedef struct nrm_server_user_callbacks_s nrm_server_user_callbacks_t;
+
+/**
+ * Creates a new NRM server.
+ *
+ * Uses a state to keep track of server objects that clients can add/remove
+ * from the system.
+ *
+ * @param server: pointer to a variable that will contain the server handle
+ * @param server: pointer to a valid state handle
+ * @param uri: address for listening to clients
+ * @param pub_port: port for publishing server events
+ * @param rpc_port: port for listening to requests
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_server_create(nrm_server_t **server,
+                      nrm_state_t *state,
+                      const char *uri,
+                      int pub_port,
+                      int rpc_port);
+
+int nrm_server_setcallbacks(nrm_server_t *server,
+                            nrm_server_user_callbacks_t callbacks);
+
+int nrm_server_settimer(nrm_server_t *server, int millisecs);
+
+int nrm_server_start(nrm_server_t *server);
+
+int nrm_server_publish(nrm_server_t *server,
+                       nrm_string_t topic,
+                       nrm_time_t now,
+                       nrm_sensor_t *sensor,
+                       nrm_scope_t *scope,
+                       double value);
+
+int nrm_server_actuate(nrm_server_t *server, nrm_string_t uuid, double value);
+
+/**
+ * Destroys an NRM server. Closes connections.
+ */
+void nrm_server_destroy(nrm_server_t **server);
 
 #ifdef __cplusplus
 }
