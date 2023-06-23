@@ -63,6 +63,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/alloc.h \
 			    include/nrm/utils/bitmaps.h \
 			    include/nrm/utils/error.h \
+			    include/nrm/utils/parsers.h \
 			    include/nrm/utils/ringbuffer.h \
 			    include/nrm/utils/scopes.h \
 			    include/nrm/utils/strings.h \
@@ -73,7 +74,6 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \
-		 include/internal/argtable3.h \
 		 include/internal/control.h \
 		 include/internal/nrmi.h \
 		 include/internal/messages.h \
@@ -108,10 +108,10 @@ libnrm_la_SOURCES = \
 		 src/slices.c \
 		 src/state.c \
 		 src/tools.c \
-		 src/utils/argtable3.c \
 		 src/utils/bitmaps.c \
 		 src/utils/error.c \
 		 src/utils/hashes.c \
+		 src/utils/parsers.c \
 		 src/utils/ringbuffer.c \
 		 src/utils/scopes.c \
 		 src/utils/strings.c \

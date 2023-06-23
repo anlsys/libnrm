@@ -29,6 +29,7 @@ extern "C" {
 #include "nrm/utils/alloc.h"
 #include "nrm/utils/bitmaps.h"
 #include "nrm/utils/error.h"
+#include "nrm/utils/parsers.h"
 #include "nrm/utils/ringbuffer.h"
 #include "nrm/utils/strings.h"
 #include "nrm/utils/scopes.h"

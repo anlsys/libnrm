@@ -12,68 +12,93 @@
 
 #include "nrm-tools.h"
 
-#include "internal/argtable3.h"
-
 /* parse common command-line arguments, consuming them */
 int nrm_tools_parse_common_args(int *argc, char **argv[],
 				nrm_tools_common_args_t *args)
 {
-	struct arg_lit *help, *version;
-	struct arg_str *uri;
-	struct arg_lit *verbose, *quiet, *log_level;
-	struct arg_int *rpc, *pub;
-	struct arg_end *end;
-
-	void *argtable[] = {
-		help = arg_lit0("h", "help", "display this help and exit"),
-		version = arg_lit0("V", "version", "output version information and exit"),
-		uri = arg_str0("u", "uri", "zmq uri", "server socket uri"),
-		verbose = arg_litn("v", "verbose", 0, NRM_LOG_DEBUG - NRM_LOG_NORMAL,
-				   "verbose level (repeat for more verbosity)"),
-		quiet = arg_lit0("q", "quiet", "force quiet output"),
-		log_level = arg_int0("l", "log-level", "log level (0 is quiet, 5 is debug)"),
-		end = arg_end(20),
+	static const char *shortopts = "+vh:u:r:p:";
+	static struct option long_options[] = {
+		{"help", no_argument, 0, 'h'},
+		{"log-level", required_argument, 0, 'l'},
+		{"quiet", no_argument, 0, 'q'},
+		{"verbose", no_argument, 0, 'v'},
+		{"uri", required_argument, 0, 'u'},
+		{"rpc", required_argument, 0, 'r'},
+		{"pub", required_argument, 0, 'p'},
+		{0, 0, 0, 0}
 	};
-
-	int err;
-	err = arg_nullcheck(argtable);
-	assert(err == 0);
-
-	int nerrors;
-	nerrors = arg_parse(*argc, *argv, argtable);
-
-	if (nerrors > 0)
-	{
-		arg_print_errors(stderr, end, *argv[0]);
-		return EXIT_FAILURE;
+	while (1) {
+		int option_index = 0;
+		int c = getopt_long(*argc, *argv, shortopts, long_options,
+		                &option_index);
+		if (c == -1)
+			break;
+		switch (c) {
+		case 0:
+			break;
+		case 'f':
+			errno = 0;
+			args->freq = strtod(optarg, NULL);
+			if (errno != 0) {
+				fprintf(stderr,
+					"Error during conversion to double: %d\n",
+				        errno);
+				return 1;
+			}
+			if (args->freq <= 0) {
+				fprintf(stderr,
+					"Wrong frequency value: %f\n",
+					args->freq);
+				return 1;
+			}
+			break;
+		case 'h':
+			args->help = 1;
+			break;
+		case 'p':
+			errno = 0;
+			args->pub_port = (int) strtoul(optarg, NULL, 10);
+			if (errno != 0) {
+				fprintf(stderr,
+					"Error during conversion to int: %d\n",
+					errno);
+				return 1;
+			}
+			if (args->pub_port <= 0) {
+				fprintf(stderr,
+					"Wrong port value: %d\n",
+					args->pub_port);
+				return 1;
+			}
+			break;
+		case 'r':
+			errno = 0;
+			args->rpc_port = (int) strtoul(optarg, NULL, 10);
+			if (errno != 0) {
+				fprintf(stderr,
+					"Error during conversion to int: %d\n",
+					errno);
+				return 1;
+			}
+			if (args->rpc_port <= 0) {
+				fprintf(stderr,
+					"Wrong port value: %d\n",
+					args->rpc_port);
+				return 1;
+			}
+			break;
+		case 'u':
+			args->upstream_uri = strdup(optarg);
+			break;
+		case 'v':
+			args->log_level = NRM_LOG_DEBUG;
+			break;
+		case '?':
+		default:
+			fprintf(stderr, "Wrong option argument\n");
+			return 1;
+		}
 	}
-
-	if (help->count > 0)
-		args->ask_help = 1;
-	if (version->count > 0)
-		args->ask_version = 1;
-
-	/* handle all the verbosity logic, parsing verbose first, then
-	 * log_level, then quiet
-	 */
-	args->log_level = verbose->count + NRM_LOG_NORMAL;
-	if (log_level->count > 0)
-		args->log_level = log_level->ival[0];
-	if (args->log_level < NRM_LOG_QUIET)
-		args->log_level = NRM_LOG_QUIET;
-	if (args->log_level > NRM_LOG_DEBUG)
-		args->log_level = NRM_LOG_DEBUG;
-	/* quiet always forces quiet */
-	if (quiet->count > 0)
-		args->log_level = NRM_LOG_QUIET;
-
-	/* handle connection options */
-	if (uri->count > 0)
-		args->uri = nrm_string_fromchar(uri->sval[0]);
-	if (rpc->count > 0)
-		args->rpc = rpc->ival[0];
-	if (pub->count > 0)
-		args->pub = pub->ival[0];
 
 	return 0;
 }
