@@ -55,7 +55,8 @@ SUFFIXES = .proto .pb-c.c .pb-c.h
 # Includes
 ###############################################################################
 
-include_HEADERS = include/nrm.h
+include_HEADERS = include/nrm.h \
+		  include/nrm-tools.h
 
 include_nrm_utilsdir=$(includedir)/nrm/utils
 include_nrm_utils_HEADERS = \
@@ -72,6 +73,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \
+		 include/internal/argtable3.h \
 		 include/internal/control.h \
 		 include/internal/nrmi.h \
 		 include/internal/messages.h \
@@ -105,6 +107,8 @@ libnrm_la_SOURCES = \
 		 src/server.c \
 		 src/slices.c \
 		 src/state.c \
+		 src/tools.c \
+		 src/utils/argtable3.c \
 		 src/utils/bitmaps.c \
 		 src/utils/error.c \
 		 src/utils/hashes.c \
