@@ -42,8 +42,10 @@ int nrm_log_init(FILE *f, const char *nm)
 
 int nrm_log_setlevel(int level)
 {
-	if (level < 0 || level > NRM_LOG_DEBUG)
-		return -NRM_EINVAL;
+	if (level < 0)
+		level = 0;
+	if (level > NRM_LOG_DEBUG)
+		level = NRM_LOG_DEBUG;
 	nrm_log_level = level;
 	return 0;
 }

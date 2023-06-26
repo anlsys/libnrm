@@ -98,7 +98,7 @@ json_t *nrm_scope_to_json(nrm_scope_t *scope)
 	cpu = nrm_bitmap_to_json(&scope->maps[0]);
 	numa = nrm_bitmap_to_json(&scope->maps[1]);
 	gpu = nrm_bitmap_to_json(&scope->maps[2]);
-	return json_pack("{s:o, s:o, s:o}", "cpu", cpu, "numa", numa, "gpu",
+	return json_pack("{s:s*, s:o, s:o, s:o}", "uuid", scope->uuid, "cpu", cpu, "numa", numa, "gpu",
 	                 gpu);
 }
 
