@@ -11,6 +11,8 @@
 #include "config.h"
 
 #include "nrm.h"
+#include "nrm-tools.h"
+
 #include <getopt.h>
 #include <sys/signalfd.h>
 
@@ -114,78 +116,32 @@ int nrmd_timer_callback(nrm_server_t *server)
 	return 0;
 }
 
-static int ask_help = 0;
-static int ask_version = 0;
-
-static struct option long_options[] = {
-        {"help", no_argument, &ask_help, 1},
-        {"version", no_argument, &ask_version, 1},
-        {0, 0, 0, 0},
-};
-
-static const char *short_options = ":hV";
-
-static const char *help[] = {"Usage: nrmd-shim [options]\n\n",
-                             "Allowed options:\n",
-                             "--help, -h    : print this help message\n",
-                             "--version, -V : print program version\n", NULL};
-
-void print_help()
-{
-	for (int i = 0; help[i] != NULL; i++)
-		fprintf(stdout, "%s", help[i]);
-}
-
-void print_version()
-{
-	fprintf(stdout, "nrmd: version %s\n", nrm_version_string);
-}
-
 int main(int argc, char *argv[])
 {
-	int c, sfd, retval;
-	int option_index = 0;
-
-	while (1) {
-		c = getopt_long(argc, argv, short_options, long_options,
-		                &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'h':
-			ask_help = 1;
-			break;
-		case 'V':
-			ask_version = 1;
-			break;
-		case '?':
-			fprintf(stderr, "nrmd-shim: invalid options: %s\n",
-			        argv[optind - 1]);
-			exit(EXIT_FAILURE);
-		default:
-			fprintf(stderr, "nrmd_shim: this should not happen\n");
-			exit(EXIT_FAILURE);
-		}
+	int err;
+	nrm_tools_common_args_t args;
+	err = nrm_tools_parse_common_args(argc, argv, &args);
+	if (err < 0) {
+		fprintf(stderr, "nrmd: errors during argument parsing\n");
+		exit(EXIT_FAILURE);
 	}
 
 	/* remove the parsed part */
-	argc -= optind;
-	argv = &(argv[optind]);
+	argc -= err;
+	argv = &(argv[err]);
 
-	if (ask_help) {
-		print_help();
+	if (args.ask_help) {
+		nrm_tools_print_common_help("nrmc");
 		exit(EXIT_SUCCESS);
 	}
-	if (ask_version) {
-		print_version();
+	if (args.ask_version) {
+		nrm_tools_print_common_version("nrmc");
 		exit(EXIT_SUCCESS);
 	}
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmd");
-	nrm_log_setlevel(NRM_LOG_DEBUG);
+	nrm_log_setlevel(args.log_level);
 
 	/* init state */
 	my_daemon.state = nrm_state_create();
@@ -206,7 +162,6 @@ int main(int argc, char *argv[])
 	}
 
 	json_error_t jerror;
-	int err;
 	FILE *config = fopen(argv[0], "r");
 	assert(config != NULL);
 	json_t *jconfig = json_loadf(config, 0, &jerror);
@@ -223,9 +178,10 @@ start:
 
 	/* start the server */
 	err = nrm_server_create(&my_daemon.server, my_daemon.state,
-	                        NRM_DEFAULT_UPSTREAM_URI,
-	                        NRM_DEFAULT_UPSTREAM_PUB_PORT,
-	                        NRM_DEFAULT_UPSTREAM_RPC_PORT);
+				args.upstream_uri,
+	                        args.pub_port,
+				args.rpc_port
+	                        );
 	assert(err == 0);
 
 	/* setting up the callbacks */
