@@ -13,136 +13,73 @@
 #include <getopt.h>
 
 #include "nrm.h"
+#include "nrm-tools.h"
 
 #include "internal/messages.h"
 #include "internal/nrmi.h"
 #include "internal/roles.h"
 
-static int ask_help = 0;
-static int ask_version = 0;
-static char *upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
-static int pub_port = NRM_DEFAULT_UPSTREAM_PUB_PORT;
-static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 static nrm_client_t *client;
-static double freq = 1.0;
-
-static struct option long_options[] = {
-        {"help", no_argument, &ask_help, 1},
-        {"version", no_argument, &ask_version, 1},
-        {"uri", required_argument, NULL, 'u'},
-        {"rpc-port", required_argument, NULL, 'r'},
-        {"pub-port", required_argument, NULL, 'p'},
-        {"frequency", required_argument, NULL, 'f'},
-        {0, 0, 0, 0},
-};
-
-static const char *short_options = "+hVu:r:p:f:";
-
-static const char *help[] = {"Usage: nrm-dummy-extra [options]\n\n",
-                             "Allowed options:\n",
-                             "--help, -h    : print this help message\n",
-                             "--version, -V : print program version\n", NULL};
-
-void print_help()
-{
-	for (int i = 0; help[i] != NULL; i++)
-		fprintf(stdout, "%s", help[i]);
-}
-
-void print_version()
-{
-	fprintf(stdout, "nrm-dummy-extra: version %s\n", nrm_version_string);
-}
 
 int nrm_dummy_extra_callback(nrm_uuid_t *uuid, double value)
 {
+	(void)uuid;
 	nrm_log_debug("action %f\n", value);
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
-	int c;
-	int option_index = 0;
-
-	while (1) {
-		c = getopt_long(argc, argv, short_options, long_options,
-		                &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'f':
-			errno = 0;
-			freq = strtod(optarg, NULL);
-			if (errno != 0 || freq == 0.0) {
-				fprintf(stderr,
-				        "nrm-dummy-extra: wrong argument: %d\n:",
-				        errno);
-				exit(EXIT_FAILURE);
-			}
-			break;
-		case 'h':
-			ask_help = 1;
-			break;
-		case 'p':
-			errno = 0;
-			pub_port = strtol(optarg, NULL, 0);
-			assert(errno == 0);
-			break;
-		case 'r':
-			errno = 0;
-			rpc_port = strtol(optarg, NULL, 0);
-			assert(errno == 0);
-			break;
-		case 'u':
-			upstream_uri = optarg;
-			break;
-		case 'V':
-			ask_version = 1;
-			break;
-		case ':':
-			fprintf(stderr, "nrm-dummy-extra: missing argument\n");
-			exit(EXIT_FAILURE);
-		case '?':
-			fprintf(stderr, "nrm-dummy-extra: invalid option: %s\n",
-			        argv[optind - 1]);
-			exit(EXIT_FAILURE);
-		default:
-			fprintf(stderr,
-			        "nrm-dummy-extra: this should not happen\n");
-			exit(EXIT_FAILURE);
-		}
+	int err;
+	nrm_tools_common_args_t args;
+	err = nrm_tools_parse_common_args(argc, argv, &args);
+	if (err < 0) {
+		fprintf(stderr,
+			"nrm-dummy-extra: errors during argument parsing\n");
+		exit(EXIT_FAILURE);
 	}
 
-	/* remove the parsed part */
-	argc -= optind;
-	argv = &(argv[optind]);
+	/* remove the parsed part, but keep argv[0] around:
+	 *  - err is the position of the next unparsed argv
+	 *  - we need to reduce argc by the amount of argument parsed
+	 *  - argv is updated to match
+	 */
+	argc = (argc - err) + 1;
+	for (int i = 0; i < argc - 1; i++)
+		argv[i+1] = argv[err+i];
 
-	if (ask_help) {
-		print_help();
+	nrm_tools_extra_args_t extra_args;
+	err = nrm_tools_parse_extra_args(argc, argv, &extra_args, 
+					 NRM_TOOLS_EXTRA_ARG_FREQ);
+	if (err < 0) {
+		fprintf(stderr,
+			"nrm-dummy-extra: error during extra arg parsing\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (args.ask_help) {
+		nrm_tools_print_common_help("nrm-dummy-extra");
 		exit(EXIT_SUCCESS);
 	}
-	if (ask_version) {
-		print_version();
+	if (args.ask_version) {
+		nrm_tools_print_common_version("nrm-dummy-extra");
 		exit(EXIT_SUCCESS);
 	}
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrm-dummy-extra");
-	nrm_log_setlevel(NRM_LOG_DEBUG);
+	nrm_log_setlevel(args.log_level);
 
+	nrm_log_debug("frequency setting: %f\n", extra_args.freq);
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 	              argc, argv[0]);
 
 	nrm_log_info("creating client\n");
-	nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
+	nrm_client_create(&client, args.upstream_uri, args.pub_port, args.rpc_port);
 
 	nrm_sensor_t *sensor;
 	nrm_scope_t *scope;
 	nrm_actuator_t *actuator;
-	int err;
 
 	nrm_log_info("creating dummy sensor\n");
 	sensor = nrm_sensor_create("nrm-dummy-extra-sensor");
@@ -183,7 +120,7 @@ int main(int argc, char *argv[])
 		nrm_client_send_event(client, time, sensor, scope, counter++);
 
 		/* sleep */
-		double sleeptime = 1 / freq;
+		double sleeptime = 1 / extra_args.freq;
 		struct timespec req, rem;
 		req.tv_sec = ceil(sleeptime);
 		req.tv_nsec = sleeptime * 1e9 - ceil(sleeptime) * 1e9;

@@ -38,6 +38,15 @@ int nrm_tools_print_common_help(const char *str);
 
 int nrm_tools_print_common_version(const char *str);
 
+typedef struct nrm_tools_extra_args_s {
+	double freq;
+} nrm_tools_extra_args_t;
+
+#define NRM_TOOLS_EXTRA_ARG_FREQ 1
+
+int nrm_tools_parse_extra_args(int argc, char *argv[],
+				nrm_tools_extra_args_t *args, int flags);
+
 #ifdef __cplusplus
 }
 #endif

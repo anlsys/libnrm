@@ -19,7 +19,7 @@
 int nrm_tools_parse_common_args(int argc, char *argv[],
 				nrm_tools_common_args_t *args)
 {
-	static const char *shortopts = "+vhqVl:u:r:p:";
+	static const char *shortopts = "+:vhqVl:u:r:p:";
 	static struct option long_options[] = {
 		{"help", no_argument, 0, 'h'},
 		{"version", no_argument, 0, 'V'},
@@ -31,7 +31,7 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 		{"pub", required_argument, 0, 'p'},
 		{0, 0, 0, 0}
 	};
-	
+
 	/* default values */
 	args->ask_help = 0;
 	args->ask_version = 0;
@@ -40,7 +40,8 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 	args->rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 	args->upstream_uri = NULL;
 
-	while (1) {
+	int done = 0;
+	while (!done) {
 		int err;
 		int option_index = 0;
 		int c = getopt_long(argc, argv, shortopts, long_options,
@@ -93,6 +94,12 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 			}
 			break;
 		case '?':
+			/* we just saw an unknown option, stop here and return
+			 * to user for extra parsing */
+			optind--;
+			done = 1;
+			break;
+		case ':':
 		default:
 			fprintf(stderr, "Wrong option argument\n");
 			return -NRM_EINVAL;
@@ -131,3 +138,49 @@ int nrm_tools_print_common_version(const char *str)
 	return 0;
 }
 
+int nrm_tools_parse_extra_args(int argc, char *argv[], nrm_tools_extra_args_t
+			       *args, int flags)
+{
+	static const char *shortopts = "+f:";
+	static struct option long_options[] = {
+		{"freq", no_argument, 0, 'f'},
+		{0, 0, 0, 0}
+	};
+
+	/* reset getopt */
+	optind = 1;
+
+	/* default values */
+	args->freq = 1.0;
+
+	while (1) {
+		int err;
+		int option_index = 0;
+		int c = getopt_long(argc, argv, shortopts, long_options,
+		                &option_index);
+		if (c == -1)
+			break;
+		switch (c) {
+		case 0:
+			break;
+		case 'f':
+			if ((flags & NRM_TOOLS_EXTRA_ARG_FREQ) == 0) {
+				fprintf(stderr, "unexpected option freq\n");
+				return -NRM_EINVAL;
+			}
+			err = nrm_parse_double(optarg, &args->freq);
+			if (err) {
+				fprintf(stderr,
+					"Error during conversion to double: %d\n",
+					err);
+				return err;
+			}
+			break;
+		case '?':
+		default:
+			fprintf(stderr, "Wrong option argument\n");
+			return -NRM_EINVAL;
+		}
+	}
+	return optind;
+}
