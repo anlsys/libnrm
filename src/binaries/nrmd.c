@@ -120,6 +120,9 @@ int main(int argc, char *argv[])
 {
 	int err;
 	nrm_tools_common_args_t args;
+	nrm_init(NULL, NULL);
+	nrm_log_init(stderr, "nrmd");
+
 	err = nrm_tools_parse_common_args(argc, argv, &args);
 	if (err < 0) {
 		fprintf(stderr, "nrmd: errors during argument parsing\n");
@@ -139,8 +142,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	nrm_init(NULL, NULL);
-	nrm_log_init(stderr, "nrmd");
 	nrm_log_setlevel(args.log_level);
 
 	/* init state */

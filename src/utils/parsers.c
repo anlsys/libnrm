@@ -21,7 +21,7 @@ int nrm_parse_int(const char *str, int *p)
 	errno = 0;
 	ret = (int) strtoul(str, NULL, 10);
 	if (errno != 0) {
-		perror("error during conversion to int\n");
+		nrm_log_perror("error during conversion to int\n");
 		return -NRM_EINVAL;
 	}
 	*p = (int) ret;
@@ -34,7 +34,7 @@ int nrm_parse_uint(const char *str, unsigned int *p)
 	errno = 0;
 	ret = (int) strtoul(str, NULL, 10);
 	if (errno != 0) {
-		perror("error during conversion to int\n");
+		nrm_log_perror("error during conversion to int\n");
 		return -NRM_EINVAL;
 	}
 	if (ret < 0) {
@@ -48,9 +48,14 @@ int nrm_parse_double(const char *str, double *p)
 {
 	double ret;
 	errno = 0;
-	ret = strtod(str, NULL);
+	char *endptr;
+	ret = strtod(str, &endptr);
 	if (errno != 0) {
-		perror("error during conversion to double\n");
+		nrm_log_perror("error during conversion to double\n");
+		return -NRM_EINVAL;
+	}
+	if (ret == 0 && endptr == str) {
+		nrm_log_error("error during conversion to double\n");
 		return -NRM_EINVAL;
 	}
 	*p = ret;

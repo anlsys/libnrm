@@ -696,6 +696,9 @@ int main(int argc, char *argv[])
 {
 	int err;
 	nrm_tools_common_args_t args;
+	nrm_init(NULL, NULL);
+	nrm_log_init(stderr, "nrmc");
+
 	err = nrm_tools_parse_common_args(argc, argv, &args);
 	if (err < 0) {
 		fprintf(stderr, "nrmc: errors during argument parsing\n");
@@ -720,10 +723,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	nrm_init(NULL, NULL);
-	nrm_log_init(stderr, "nrmc");
 	nrm_log_setlevel(args.log_level);
-
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 	              argc, argv[0]);
 

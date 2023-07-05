@@ -60,18 +60,14 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 		case 'p':
 			err = nrm_parse_uint(optarg, &args->pub_port);
 			if (err) {
-				fprintf(stderr,
-					"Error during conversion to int: %d\n",
-					err);
+				nrm_log_error("Can't parse 'p' option argument: '%s'\n", optarg);
 				return err;
 			}
 			break;
 		case 'r':
 			err = nrm_parse_uint(optarg, &args->rpc_port);
 			if (err) {
-				fprintf(stderr,
-					"Error during conversion to int: %d\n",
-					err);
+				nrm_log_error("Can't parse 'r' option argument: '%s'\n", optarg);
 				return err;
 			}
 			break;
@@ -87,9 +83,7 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 		case 'l':
 			err = nrm_parse_int(optarg, &args->log_level);
 			if (err) {
-				fprintf(stderr,
-					"Error during conversion to int: %d\n",
-					err);
+				nrm_log_error("Can't parse 'l' option argument: '%s'\n", optarg);
 				return err;
 			}
 			break;
@@ -101,7 +95,7 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 			break;
 		case ':':
 		default:
-			fprintf(stderr, "Wrong option argument\n");
+			nrm_log_error("Wrong option argument\n");
 			return -NRM_EINVAL;
 		}
 	}
@@ -143,7 +137,7 @@ int nrm_tools_parse_extra_args(int argc, char *argv[], nrm_tools_extra_args_t
 {
 	static const char *shortopts = "+f:";
 	static struct option long_options[] = {
-		{"freq", no_argument, 0, 'f'},
+		{"freq", required_argument, 0, 'f'},
 		{0, 0, 0, 0}
 	};
 
@@ -165,20 +159,19 @@ int nrm_tools_parse_extra_args(int argc, char *argv[], nrm_tools_extra_args_t
 			break;
 		case 'f':
 			if ((flags & NRM_TOOLS_EXTRA_ARG_FREQ) == 0) {
-				fprintf(stderr, "unexpected option freq\n");
+				nrm_log_error("unexpected option freq\n");
 				return -NRM_EINVAL;
 			}
 			err = nrm_parse_double(optarg, &args->freq);
 			if (err) {
-				fprintf(stderr,
-					"Error during conversion to double: %d\n",
-					err);
+				nrm_log_error("Error during frequency parsing of '%s'\n",
+					optarg);
 				return err;
 			}
 			break;
 		case '?':
 		default:
-			fprintf(stderr, "Wrong option argument\n");
+			nrm_log_error("Wrong option argument\n");
 			return -NRM_EINVAL;
 		}
 	}

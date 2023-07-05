@@ -22,7 +22,7 @@
  * Logging functions
  *******************************************************************************/
 
-int nrm_log_level;
+int nrm_log_level = NRM_LOG_NORMAL;
 static FILE *nrm_log_fd = NULL;
 static const char *nrm_log_namespace;
 

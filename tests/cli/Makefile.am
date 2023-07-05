@@ -5,6 +5,7 @@ AM_COLOR_TESTS = yes
 
 BATS_TESTS = \
 	     nrmc.bats \
+	     nrm-dummy-extra.bats \
 	     nrmd.bats
 
 TEST_EXTENSIONS = .bats

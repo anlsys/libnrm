@@ -32,10 +32,13 @@ int main(int argc, char *argv[])
 {
 	int err;
 	nrm_tools_common_args_t args;
+
+	nrm_init(NULL, NULL);
+	nrm_log_init(stderr, "nrm-dummy-extra");
+
 	err = nrm_tools_parse_common_args(argc, argv, &args);
 	if (err < 0) {
-		fprintf(stderr,
-			"nrm-dummy-extra: errors during argument parsing\n");
+		nrm_log_error("errors during argument parsing\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -52,8 +55,7 @@ int main(int argc, char *argv[])
 	err = nrm_tools_parse_extra_args(argc, argv, &extra_args, 
 					 NRM_TOOLS_EXTRA_ARG_FREQ);
 	if (err < 0) {
-		fprintf(stderr,
-			"nrm-dummy-extra: error during extra arg parsing\n");
+		nrm_log_error("error during extra arg parsing\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -66,8 +68,6 @@ int main(int argc, char *argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	nrm_init(NULL, NULL);
-	nrm_log_init(stderr, "nrm-dummy-extra");
 	nrm_log_setlevel(args.log_level);
 
 	nrm_log_debug("frequency setting: %f\n", extra_args.freq);
