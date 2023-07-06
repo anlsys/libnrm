@@ -10,13 +10,13 @@
 
 #include "config.h"
 
+#include "nrm-tools.h"
+#include "nrm.h"
 #include <getopt.h>
 
-#include "nrm.h"
-#include "nrm-tools.h"
+#include "internal/nrmi.h"
 
 #include "internal/messages.h"
-#include "internal/nrmi.h"
 #include "internal/roles.h"
 
 static nrm_client_t *client;
@@ -61,7 +61,8 @@ int main(int argc, char *argv[])
 	              argc, argv[0]);
 
 	nrm_log_info("creating client\n");
-	nrm_client_create(&client, args.upstream_uri, args.pub_port, args.rpc_port);
+	nrm_client_create(&client, args.upstream_uri, args.pub_port,
+	                  args.rpc_port);
 
 	nrm_sensor_t *sensor;
 	nrm_scope_t *scope;

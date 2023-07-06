@@ -11,7 +11,6 @@
 #include "config.h"
 
 #include "nrm.h"
-
 #include <errno.h>
 #include <stdlib.h>
 
@@ -19,20 +18,20 @@ int nrm_parse_int(const char *str, int *p)
 {
 	int ret;
 	errno = 0;
-	ret = (int) strtoul(str, NULL, 10);
+	ret = (int)strtoul(str, NULL, 10);
 	if (errno != 0) {
 		nrm_log_perror("error during conversion to int\n");
 		return -NRM_EINVAL;
 	}
-	*p = (int) ret;
+	*p = (int)ret;
 	return 0;
 }
 
 int nrm_parse_uint(const char *str, unsigned int *p)
-{	
+{
 	int ret;
 	errno = 0;
-	ret = (int) strtoul(str, NULL, 10);
+	ret = (int)strtoul(str, NULL, 10);
 	if (errno != 0) {
 		nrm_log_perror("error during conversion to int\n");
 		return -NRM_EINVAL;
@@ -40,7 +39,7 @@ int nrm_parse_uint(const char *str, unsigned int *p)
 	if (ret < 0) {
 		return -NRM_EDOM;
 	}
-	*p = (unsigned int) ret;
+	*p = (unsigned int)ret;
 	return 0;
 }
 
@@ -61,4 +60,3 @@ int nrm_parse_double(const char *str, double *p)
 	*p = ret;
 	return 0;
 }
-

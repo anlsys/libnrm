@@ -114,13 +114,14 @@ int nrm_log_setlevel(int level);
 	nrm_log_printf(NRM_LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define nrm_log_debug(...)                                                     \
 	nrm_log_printf(NRM_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
-#define nrm_log_perror(...)						       \
-	do {								       \
-		char *__nrm_errstr = strerror(errno);			       \
-		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__, __VA_ARGS__);\
-		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__, "perror: %s",\
-			       __nrm_errstr);				       \
-	} while(0)
+#define nrm_log_perror(...)                                                    \
+	do {                                                                   \
+		char *__nrm_errstr = strerror(errno);                          \
+		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
+		               __VA_ARGS__);                                   \
+		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
+		               "perror: %s", __nrm_errstr);                    \
+	} while (0)
 
 /*******************************************************************************
  * Actuator: something capable of actions on the system

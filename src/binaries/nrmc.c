@@ -10,16 +10,14 @@
 
 #include "config.h"
 
-#include <getopt.h>
-
-#include "nrm.h"
 #include "nrm-tools.h"
+#include "nrm.h"
+#include <getopt.h>
 
 #include "internal/messages.h"
 #include "internal/roles.h"
 
 static nrm_client_t *client;
-
 
 struct client_cmd {
 	const char *name;
@@ -739,7 +737,8 @@ int main(int argc, char *argv[])
 	              argc, argv[0]);
 
 	nrm_log_info("creating client\n");
-	nrm_client_create(&client, args.upstream_uri, args.pub_port, args.rpc_port);
+	nrm_client_create(&client, args.upstream_uri, args.pub_port,
+	                  args.rpc_port);
 
 	for (int i = 0; commands[i].name != NULL; i++) {
 		if (!strcmp(argv[0], commands[i].name)) {

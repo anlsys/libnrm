@@ -43,8 +43,7 @@ typedef struct nrm_tools_args_s {
  * at the end of the function, argc and argv point to unparsed options or
  * positional arguments.
  */
-int nrm_tools_parse_args(int argc, char *argv[],
-				nrm_tools_args_t *args);
+int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args);
 
 int nrm_tools_print_help(const nrm_tools_args_t *args);
 

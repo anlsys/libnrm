@@ -10,9 +10,8 @@
 
 #include "config.h"
 
-#include "nrm.h"
 #include "nrm-tools.h"
-
+#include "nrm.h"
 #include <getopt.h>
 #include <sys/signalfd.h>
 
@@ -181,10 +180,8 @@ start:
 
 	/* start the server */
 	err = nrm_server_create(&my_daemon.server, my_daemon.state,
-				args.upstream_uri,
-	                        args.pub_port,
-				args.rpc_port
-	                        );
+	                        args.upstream_uri, args.pub_port,
+	                        args.rpc_port);
 	assert(err == 0);
 
 	/* setting up the callbacks */
