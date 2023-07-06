@@ -92,8 +92,14 @@ AC_SEARCH_LIBS([dlsym], [dl dld], [], [
 
 # dependencies
 ##############
+PKG_CHECK_MODULES([CHECK],[check],,
+		  AC_MSG_ERROR([unable to find check]))
+
 PKG_CHECK_MODULES([HWLOC],[hwloc >= 2.5],,
 		  AC_MSG_ERROR([unable to find libhwloc]))
+
+PKG_CHECK_MODULES([JANSSON],[jansson],,
+		  AC_MSG_ERROR([unable to find jansson]))
 
 PKG_CHECK_MODULES([LIBZMQ],[libzmq],,
 		  AC_MSG_ERROR([unable to find libzmq]))
@@ -101,12 +107,8 @@ PKG_CHECK_MODULES([LIBZMQ],[libzmq],,
 PKG_CHECK_MODULES([LIBCZMQ],[libczmq],,
 		  AC_MSG_ERROR([unable to find libczmq]))
 
-PKG_CHECK_MODULES([JANSSON],[jansson],,
-		  AC_MSG_ERROR([unable to find jansson]))
-
-PKG_CHECK_MODULES([CHECK],[check],,
-		  AC_MSG_ERROR([unable to find check]))
-
+PKG_CHECK_MODULES([PAPI],[papi],,
+		  AC_MSG_ERROR([unable to find papi]))
 
 AC_CHECK_LIB(m, ceil,,[AC_MSG_ERROR([unable to find libm])])
 
@@ -134,3 +136,52 @@ AC_CONFIG_FILES([Makefile
 		 tests/cli/bats-driver.sh
 		 include/nrm/utils/version.h])
 AC_OUTPUT
+
+# print out what was configured
+cat <<EOF
+-------------------------------------------------------------------------------
+LIBNRM
+
+Version: $PACKAGE_VERSION
+
+FEATURES:
+---------
+
+CHECK:
+=======
+
+CFLAGS:  $CHECK_CFLAGS
+LDFLAGS: $CHECK_LIBS
+
+HWLOC:
+=======
+
+CFLAGS:  $HWLOC_CFLAGS
+LDFLAGS: $HWLOC_LIBS
+
+JANSSON:
+=======
+
+CFLAGS:  $JANSSON_CFLAGS
+LDFLAGS: $JANSSON_LIBS
+
+LIBZMQ:
+=======
+
+CFLAGS:  $LIBZMQ_CFLAGS
+LDFLAGS: $LIBZMQ_LIBS
+
+LIBCZMQ:
+=======
+
+CFLAGS:  $LIBCZMQ_CFLAGS
+LDFLAGS: $LIBCZMQ_LIBS
+
+PAPI:
+=======
+
+CFLAGS:  $PAPI_CFLAGS
+LDFLAGS: $PAPI_LIBS
+
+-------------------------------------------------------------------------------
+EOF
