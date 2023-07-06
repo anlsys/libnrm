@@ -31,46 +31,32 @@ int nrm_dummy_extra_callback(nrm_uuid_t *uuid, double value)
 int main(int argc, char *argv[])
 {
 	int err;
-	nrm_tools_common_args_t args;
+	nrm_tools_args_t args;
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrm-dummy-extra");
 
-	err = nrm_tools_parse_common_args(argc, argv, &args);
+	args.progname = "nrm-dummy-extra";
+	args.flags = NRM_TOOLS_ARGS_FLAG_FREQ;
+
+	err = nrm_tools_parse_args(argc, argv, &args);
 	if (err < 0) {
 		nrm_log_error("errors during argument parsing\n");
 		exit(EXIT_FAILURE);
 	}
 
-	/* remove the parsed part, but keep argv[0] around:
-	 *  - err is the position of the next unparsed argv
-	 *  - we need to reduce argc by the amount of argument parsed
-	 *  - argv is updated to match
-	 */
-	argc = (argc - err) + 1;
-	for (int i = 0; i < argc - 1; i++)
-		argv[i+1] = argv[err+i];
-
-	nrm_tools_extra_args_t extra_args;
-	err = nrm_tools_parse_extra_args(argc, argv, &extra_args, 
-					 NRM_TOOLS_EXTRA_ARG_FREQ);
-	if (err < 0) {
-		nrm_log_error("error during extra arg parsing\n");
-		exit(EXIT_FAILURE);
-	}
-
 	if (args.ask_help) {
-		nrm_tools_print_common_help("nrm-dummy-extra");
+		nrm_tools_print_help(&args);
 		exit(EXIT_SUCCESS);
 	}
 	if (args.ask_version) {
-		nrm_tools_print_common_version("nrm-dummy-extra");
+		nrm_tools_print_version(&args);
 		exit(EXIT_SUCCESS);
 	}
 
 	nrm_log_setlevel(args.log_level);
 
-	nrm_log_debug("frequency setting: %f\n", extra_args.freq);
+	nrm_log_debug("frequency setting: %f\n", args.freq);
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 	              argc, argv[0]);
 
@@ -120,7 +106,7 @@ int main(int argc, char *argv[])
 		nrm_client_send_event(client, time, sensor, scope, counter++);
 
 		/* sleep */
-		double sleeptime = 1 / extra_args.freq;
+		double sleeptime = 1 / args.freq;
 		struct timespec req, rem;
 		req.tv_sec = ceil(sleeptime);
 		req.tv_nsec = sleeptime * 1e9 - ceil(sleeptime) * 1e9;

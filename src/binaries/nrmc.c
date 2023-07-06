@@ -692,16 +692,26 @@ static struct client_cmd commands[] = {
         {0, 0},
 };
 
+void nrmc_list_commands()
+{
+	fprintf(stdout, "\nAvailable Commands:\n");
+	for (size_t i = 0; commands[i].name != NULL; i++)
+		fprintf(stdout, "%s\n", commands[i].name);
+}
+
 int main(int argc, char *argv[])
 {
 	int err;
-	nrm_tools_common_args_t args;
+	nrm_tools_args_t args;
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmc");
 
-	err = nrm_tools_parse_common_args(argc, argv, &args);
+	args.progname = "nrmc";
+	args.flags = 0;
+
+	err = nrm_tools_parse_args(argc, argv, &args);
 	if (err < 0) {
-		fprintf(stderr, "nrmc: errors during argument parsing\n");
+		nrm_log_error("errors during argument parsing\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -710,16 +720,17 @@ int main(int argc, char *argv[])
 	argv = &(argv[err]);
 
 	if (args.ask_help) {
-		nrm_tools_print_common_help("nrmc");
+		nrm_tools_print_help(&args);
 		exit(EXIT_SUCCESS);
 	}
 	if (args.ask_version) {
-		nrm_tools_print_common_version("nrmc");
+		nrm_tools_print_version(&args);
 		exit(EXIT_SUCCESS);
 	}
 
 	if (argc == 0) {
-		nrm_tools_print_common_help("nrmc");
+		nrm_tools_print_help(&args);
+		nrmc_list_commands();
 		exit(EXIT_FAILURE);
 	}
 

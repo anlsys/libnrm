@@ -21,31 +21,34 @@ extern "C" {
  * Command Line Parsing Helpers
  ******************************************************************************/
 
-typedef struct nrm_tools_common_args_s {
+#define NRM_TOOLS_ARGS_FLAG_FREQ 1
+#define NRM_TOOLS_ARGS_FLAG_MAX 2
+
+typedef struct nrm_tools_args_s {
+	/* needs to be set ahead of time */
+	char *progname;
+	int flags;
+	/* common options */
 	nrm_string_t upstream_uri;
 	unsigned int pub_port;
 	unsigned int rpc_port;
 	int log_level;
 	int ask_help;
 	int ask_version;
-} nrm_tools_common_args_t;
-
-/* parse common command-line arguments, consuming them */
-int nrm_tools_parse_common_args(int argc, char *argv[],
-				nrm_tools_common_args_t *args);
-
-int nrm_tools_print_common_help(const char *str);
-
-int nrm_tools_print_common_version(const char *str);
-
-typedef struct nrm_tools_extra_args_s {
+	/* beginning of extra options */
 	double freq;
-} nrm_tools_extra_args_t;
+} nrm_tools_args_t;
 
-#define NRM_TOOLS_EXTRA_ARG_FREQ 1
+/* parse command-line arguments, consuming them,
+ * at the end of the function, argc and argv point to unparsed options or
+ * positional arguments.
+ */
+int nrm_tools_parse_args(int argc, char *argv[],
+				nrm_tools_args_t *args);
 
-int nrm_tools_parse_extra_args(int argc, char *argv[],
-				nrm_tools_extra_args_t *args, int flags);
+int nrm_tools_print_help(const nrm_tools_args_t *args);
+
+int nrm_tools_print_version(const nrm_tools_args_t *args);
 
 #ifdef __cplusplus
 }

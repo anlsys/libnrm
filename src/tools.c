@@ -15,12 +15,11 @@
 #include "nrm-tools.h"
 #include "internal/nrmi.h"
 
-/* parse common command-line arguments, consuming them */
-int nrm_tools_parse_common_args(int argc, char *argv[],
-				nrm_tools_common_args_t *args)
+int nrm_tools_parse_args(int argc, char *argv[],
+				nrm_tools_args_t *args)
 {
-	static const char *shortopts = "+:vhqVl:u:r:p:";
-	static struct option long_options[] = {
+	static const char common_shortopts[] = "+:vhqVl:u:r:p:";
+	static struct option common_longopts[] = {
 		{"help", no_argument, 0, 'h'},
 		{"version", no_argument, 0, 'V'},
 		{"log-level", required_argument, 0, 'l'},
@@ -31,6 +30,43 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 		{"pub", required_argument, 0, 'p'},
 		{0, 0, 0, 0}
 	};
+	/* keep the short_size like strlen, but number of elements for long_size
+	 */
+	size_t common_short_size = sizeof(common_shortopts);
+	size_t common_long_size =
+		sizeof(common_longopts)/sizeof(common_longopts[0]);
+
+	/* as much as we would like this to stay simple, we need to handle
+	 * extra options at the same time.
+	 *
+	 * The way we do that is by building a list of extra options to parse at
+	 * runtime.
+	 */
+
+	/* at most two extra characters per extra option */
+	size_t full_short_size = common_short_size + (2*NRM_TOOLS_ARGS_FLAG_MAX);
+	size_t full_long_size = common_long_size + NRM_TOOLS_ARGS_FLAG_MAX;
+	char full_shortopts[full_short_size];
+	struct option full_longopts[full_long_size];
+
+	/* make sure there's nothing in there */
+	memset(full_shortopts, 0, full_short_size);
+	memset(full_longopts, 0 , full_long_size * sizeof(struct option));
+	
+	/* set to the common ones */
+	strcpy(full_shortopts, common_shortopts);
+	/* last field of common is {0,0,0,0} */
+	memcpy(full_longopts, common_longopts, (common_long_size -1) *
+	       sizeof(struct option));
+
+	/* handle flags */
+	if ((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0) {
+		args->freq = 1.0;
+		char *fs = "f:";
+		struct option fl = {"freq", required_argument, 0, 'f'};
+		memcpy(full_shortopts + common_short_size -1, fs, 2);
+		full_longopts[common_long_size - 1] = fl;
+	}
 
 	/* default values */
 	args->ask_help = 0;
@@ -40,11 +76,11 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 	args->rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 	args->upstream_uri = NULL;
 
-	int done = 0;
-	while (!done) {
+	/* parsing itself */
+	while (1) {
 		int err;
 		int option_index = 0;
-		int c = getopt_long(argc, argv, shortopts, long_options,
+		int c = getopt_long(argc, argv, full_shortopts, full_longopts,
 		                &option_index);
 		if (c == -1)
 			break;
@@ -87,13 +123,24 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 				return err;
 			}
 			break;
-		case '?':
-			/* we just saw an unknown option, stop here and return
-			 * to user for extra parsing */
-			optind--;
-			done = 1;
+		/* beginning of extra options */
+		case 'f':
+			assert(args->flags & NRM_TOOLS_ARGS_FLAG_FREQ != 0);
+			err = nrm_parse_double(optarg, &args->freq);
+			if (err) {
+				nrm_log_error("Error during frequency parsing of '%s'\n",
+					optarg);
+				return err;
+			}
 			break;
 		case ':':
+			nrm_log_error("Missing command line argument after: '%s'\n",
+				      argv[optind-1]);
+			return -NRM_EINVAL;
+		case '?':
+			nrm_log_error("Wrong command line option: '%s'\n",
+				      argv[optind-1]);
+			return -NRM_EINVAL;
 		default:
 			nrm_log_error("Wrong option argument\n");
 			return -NRM_EINVAL;
@@ -106,9 +153,9 @@ int nrm_tools_parse_common_args(int argc, char *argv[],
 	return optind;
 }
 
-int nrm_tools_print_common_help(const char *str)
+int nrm_tools_print_help(const nrm_tools_args_t *args)
 {
-	static const char *help[] = {
+	static const char *common_help[] = {
 		"Allowed options:\n",
 		"--help, -h             : print this help message\n",
 		"--version, -V          : print program version\n",
@@ -119,61 +166,19 @@ int nrm_tools_print_common_help(const char *str)
 		"--rpc-port, -r  <uint> : daemon rpc port to use\n",
 		"--pub-port, -p  <uint> : daemon pub/sub port to use\n",
 		NULL};
-
-	fprintf(stdout, "Usage: %s [options]\n\n", str);
-	for (int i = 0; help[i] != NULL; i++)
-		fprintf(stdout, "%s", help[i]);
-	return 0;
-}
-
-int nrm_tools_print_common_version(const char *str)
-{
-	fprintf(stdout, "%s: version %s\n", str, nrm_version_string);
-	return 0;
-}
-
-int nrm_tools_parse_extra_args(int argc, char *argv[], nrm_tools_extra_args_t
-			       *args, int flags)
-{
-	static const char *shortopts = "+f:";
-	static struct option long_options[] = {
-		{"freq", required_argument, 0, 'f'},
-		{0, 0, 0, 0}
-	};
-
-	/* reset getopt */
-	optind = 1;
-
-	/* default values */
-	args->freq = 1.0;
-
-	while (1) {
-		int err;
-		int option_index = 0;
-		int c = getopt_long(argc, argv, shortopts, long_options,
-		                &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'f':
-			if ((flags & NRM_TOOLS_EXTRA_ARG_FREQ) == 0) {
-				nrm_log_error("unexpected option freq\n");
-				return -NRM_EINVAL;
-			}
-			err = nrm_parse_double(optarg, &args->freq);
-			if (err) {
-				nrm_log_error("Error during frequency parsing of '%s'\n",
-					optarg);
-				return err;
-			}
-			break;
-		case '?':
-		default:
-			nrm_log_error("Wrong option argument\n");
-			return -NRM_EINVAL;
-		}
+	const char *freq_help =
+		"--freq, -f <double>    : signal frequency (in Hz)\n";
+	fprintf(stdout, "Usage: %s [options]\n\n", args->progname);
+	for (int i = 0; common_help[i] != NULL; i++)
+		fprintf(stdout, "%s", common_help[i]);
+	if (args->flags & NRM_TOOLS_ARGS_FLAG_FREQ != 0) {
+		fprintf(stdout, "%s", freq_help);
 	}
-	return optind;
+	return 0;
+}
+
+int nrm_tools_print_version(const nrm_tools_args_t *args)
+{
+	fprintf(stdout, "%s: version %s\n", args->progname, nrm_version_string);
+	return 0;
 }
