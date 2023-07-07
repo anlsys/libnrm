@@ -12,11 +12,10 @@
 
 #include "nrm.h"
 #include "nrm/tools.h"
-
+#include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#include <errno.h>
 
 static nrm_client_t *client;
 

@@ -55,7 +55,8 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 	/* set to the common ones */
 	strcpy(full_shortopts, common_shortopts);
 	/* last field of common is {0,0,0,0} */
-	memcpy(full_longopts, common_longopts, common_long_size * sizeof(struct option));
+	memcpy(full_longopts, common_longopts,
+	       common_long_size * sizeof(struct option));
 
 	/* handle flags */
 	if ((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0) {

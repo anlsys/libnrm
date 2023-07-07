@@ -12,7 +12,6 @@
 
 #include "nrm.h"
 #include "nrm/tools.h"
-
 #include <getopt.h>
 
 #include "internal/messages.h"
