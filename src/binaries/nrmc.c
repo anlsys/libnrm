@@ -10,8 +10,9 @@
 
 #include "config.h"
 
-#include "nrm-tools.h"
 #include "nrm.h"
+#include "nrm/tools.h"
+
 #include <getopt.h>
 
 #include "internal/messages.h"
@@ -690,8 +691,10 @@ static struct client_cmd commands[] = {
         {0, 0},
 };
 
-void nrmc_list_commands()
+void nrmc_print_help(nrm_tools_args_t *args)
 {
+	nrm_tools_print_help(args);
+
 	fprintf(stdout, "\nAvailable Commands:\n");
 	for (size_t i = 0; commands[i].name != NULL; i++)
 		fprintf(stdout, "%s\n", commands[i].name);
@@ -710,6 +713,7 @@ int main(int argc, char *argv[])
 	err = nrm_tools_parse_args(argc, argv, &args);
 	if (err < 0) {
 		nrm_log_error("errors during argument parsing\n");
+		nrmc_print_help(&args);
 		exit(EXIT_FAILURE);
 	}
 
@@ -718,7 +722,7 @@ int main(int argc, char *argv[])
 	argv = &(argv[err]);
 
 	if (args.ask_help) {
-		nrm_tools_print_help(&args);
+		nrmc_print_help(&args);
 		exit(EXIT_SUCCESS);
 	}
 	if (args.ask_version) {
@@ -727,8 +731,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (argc == 0) {
-		nrm_tools_print_help(&args);
-		nrmc_list_commands();
+		nrmc_print_help(&args);
 		exit(EXIT_FAILURE);
 	}
 

@@ -53,7 +53,7 @@ IncludeCategories:
     Priority:        1
   - Regex:           'nrm\.h'
     Priority:        2
-  - Regex:           'nrm-.*\.h'
+  - Regex:           'nrm/.*\.h'
     Priority:        2
   - Regex:           'nrmi\.h'
     Priority:        3

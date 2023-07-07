@@ -12,16 +12,21 @@
 
 #include "nrm.h"
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 
 int nrm_parse_int(const char *str, int *p)
 {
-	int ret;
+	long ret;
 	errno = 0;
-	ret = (int)strtoul(str, NULL, 10);
+	ret = strtol(str, NULL, 10);
 	if (errno != 0) {
 		nrm_log_perror("error during conversion to int\n");
 		return -NRM_EINVAL;
+	}
+	if (ret < INT_MIN || ret > INT_MAX) {
+		nrm_log_error("value outside of int range\n");
+		return -NRM_EDOM;
 	}
 	*p = (int)ret;
 	return 0;
@@ -29,14 +34,15 @@ int nrm_parse_int(const char *str, int *p)
 
 int nrm_parse_uint(const char *str, unsigned int *p)
 {
-	int ret;
+	long ret;
 	errno = 0;
-	ret = (int)strtoul(str, NULL, 10);
+	ret = strtol(str, NULL, 10);
 	if (errno != 0) {
 		nrm_log_perror("error during conversion to int\n");
 		return -NRM_EINVAL;
 	}
-	if (ret < 0) {
+	if (ret < 0 || ret > INT_MAX) {
+		nrm_log_error("value outside of uint range\n");
 		return -NRM_EDOM;
 	}
 	*p = (unsigned int)ret;

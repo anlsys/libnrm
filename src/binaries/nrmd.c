@@ -10,16 +10,13 @@
 
 #include "config.h"
 
-#include "nrm-tools.h"
 #include "nrm.h"
-#include <getopt.h>
+#include "nrm/tools.h"
 #include <sys/signalfd.h>
 
 #include "internal/nrmi.h"
 
 #include "internal/control.h"
-#include "internal/messages.h"
-#include "internal/roles.h"
 
 struct nrm_daemon_s {
 	nrm_state_t *state;
@@ -126,7 +123,8 @@ int main(int argc, char *argv[])
 	args.flags = 0;
 	err = nrm_tools_parse_args(argc, argv, &args);
 	if (err < 0) {
-		fprintf(stderr, "nrmd: errors during argument parsing\n");
+		nrm_log_error("Errors during argument parsing\n");
+		nrm_tools_print_help(&args);
 		exit(EXIT_FAILURE);
 	}
 

@@ -10,14 +10,13 @@
 
 #include "config.h"
 
-#include "nrm-tools.h"
 #include "nrm.h"
-#include <getopt.h>
+#include "nrm/tools.h"
 
-#include "internal/nrmi.h"
-
-#include "internal/messages.h"
-#include "internal/roles.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <errno.h>
 
 static nrm_client_t *client;
 
@@ -42,6 +41,7 @@ int main(int argc, char *argv[])
 	err = nrm_tools_parse_args(argc, argv, &args);
 	if (err < 0) {
 		nrm_log_error("errors during argument parsing\n");
+		nrm_tools_print_help(&args);
 		exit(EXIT_FAILURE);
 	}
 
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
 	nrm_client_start_actuate_listener(client);
 
 	uint64_t counter = 0;
-	while (true) {
+	while (1) {
 		nrm_time_t time;
 		nrm_time_gettime(&time);
 		nrm_client_send_event(client, time, sensor, scope, counter++);

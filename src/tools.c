@@ -10,7 +10,7 @@
 
 #include "config.h"
 
-#include "nrm-tools.h"
+#include "nrm/tools.h"
 #include <getopt.h>
 
 #include "internal/nrmi.h"
@@ -55,15 +55,15 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 	/* set to the common ones */
 	strcpy(full_shortopts, common_shortopts);
 	/* last field of common is {0,0,0,0} */
-	memcpy(full_longopts, common_longopts,
-	       (common_long_size - 1) * sizeof(struct option));
+	memcpy(full_longopts, common_longopts, common_long_size * sizeof(struct option));
 
 	/* handle flags */
 	if ((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0) {
 		args->freq = 1.0;
 		char *fs = "f:";
 		struct option fl = {"freq", required_argument, 0, 'f'};
-		memcpy(full_shortopts + common_short_size - 1, fs, 2);
+		/* it's okay, we know we have enough room */
+		strcat(full_shortopts, fs);
 		full_longopts[common_long_size - 1] = fl;
 	}
 

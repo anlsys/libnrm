@@ -55,8 +55,11 @@ SUFFIXES = .proto .pb-c.c .pb-c.h
 # Includes
 ###############################################################################
 
-include_HEADERS = include/nrm.h \
-		  include/nrm-tools.h
+include_HEADERS = include/nrm.h
+
+include_nrmdir=$(includedir)/nrm
+include_nrm_HEADERS = \
+		      include/nrm/tools.h
 
 include_nrm_utilsdir=$(includedir)/nrm/utils
 include_nrm_utils_HEADERS = \
