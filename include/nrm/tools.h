@@ -22,7 +22,7 @@ extern "C" {
  ******************************************************************************/
 
 #define NRM_TOOLS_ARGS_FLAG_FREQ 1
-#define NRM_TOOLS_ARGS_FLAG_MAX 2
+#define NRM_TOOLS_ARGS_FLAG_MAX 1
 
 typedef struct nrm_tools_args_s {
 	/* needs to be set ahead of time */
@@ -40,8 +40,8 @@ typedef struct nrm_tools_args_s {
 } nrm_tools_args_t;
 
 /* parse command-line arguments, consuming them,
- * at the end of the function, argc and argv point to unparsed options or
- * positional arguments.
+ *
+ * returns the index of first unrecognized option or positional argument.
  */
 int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args);
 

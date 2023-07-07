@@ -75,6 +75,9 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 	args->rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 	args->upstream_uri = NULL;
 
+	/* make sure the parser is reset */
+	optind = 1;
+
 	/* parsing itself */
 	while (1) {
 		int err;
@@ -130,7 +133,7 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 			break;
 		/* beginning of extra options */
 		case 'f':
-			assert(args->flags & NRM_TOOLS_ARGS_FLAG_FREQ != 0);
+			assert((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0);
 			err = nrm_parse_double(optarg, &args->freq);
 			if (err) {
 				nrm_log_error(
@@ -149,7 +152,7 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 			              argv[optind - 1]);
 			return -NRM_EINVAL;
 		default:
-			nrm_log_error("Wrong option argument\n");
+			nrm_log_error("Logic error in option parser\n");
 			return -NRM_EINVAL;
 		}
 	}
@@ -178,7 +181,7 @@ int nrm_tools_print_help(const nrm_tools_args_t *args)
 	fprintf(stdout, "Usage: %s [options]\n\n", args->progname);
 	for (int i = 0; common_help[i] != NULL; i++)
 		fprintf(stdout, "%s", common_help[i]);
-	if (args->flags & NRM_TOOLS_ARGS_FLAG_FREQ != 0) {
+	if ((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0) {
 		fprintf(stdout, "%s", freq_help);
 	}
 	return 0;
