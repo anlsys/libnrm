@@ -31,6 +31,7 @@ launch_dummy_extra() {
 		if [ "$?" -eq 0 ]; then
 			break
 		fi
+		sleep 0.1
 	done
 	[ "$?" -eq 0 ] 
 }
