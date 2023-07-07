@@ -1,10 +1,6 @@
 #!/usr/bin/env bats
 # vim: set ft=bash:
 
-setup_file() {
-	run pkill -9 nrm
-}
-
 launch_daemon() {
 	nrmd &>/dev/null 3>&- &
 	NRMD_PID=$!
@@ -36,7 +32,7 @@ launch_dummy_extra() {
 	[ "$?" -eq 0 ] 
 }
 
-setup() {
+setup_file() {
 	launch_daemon
 	launch_dummy_extra
 }
@@ -119,11 +115,7 @@ setup() {
 	echo "$output" | jq
 }
 
-teardown() {
-	kill $NRMD_DUMMY_PID
-	kill $NRMD_PID
-}
-
 teardown_file() {
-	run pkill -9 nrm
+	run kill -9 $NRMD_DUMMY_PID
+	run kill -9 $NRMD_PID
 }
