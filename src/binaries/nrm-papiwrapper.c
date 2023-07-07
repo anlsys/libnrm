@@ -38,6 +38,40 @@
 #define RPC_PORT 3456
 
 int find_allowed_scope(nrm_client_t *client, nrm_scope_t **scope)
+{
+	/* create a scope based on hwloc_allowed, althouth we know for a fact
+	 * that the daemon should already have this scope.
+	 */
+	nrm_string_t name = nrm_string_fromprintf("nrm.extra.papi.%u",
+						  getpid());
+	nrm_scope_t *allowed = nrm_scope_create_hwloc_allowed(name);
+	nrm_string_decref(name);
+	
+	nrm_vector_t *nrmd_scopes;
+	nrm_client_list_scopes(client, &nrmd_scopes);
+
+	size_t numscopes;
+	int newscope = 0;
+	nrm_vector_length(nrmd_scopes, &numscopes);
+	for (size_t i = 0; i < numscopes; i++) {
+		nrm_scope_t *s;
+		nrm_vector_pop_back(nrmd_scopes, &s);
+		if (!nrm_scope_cmp(s, allowed)) {
+			nrm_scope_destroy(allowed);
+			allowed = s;
+			newscope = 1;
+			continue;
+		}
+		nrm_scope_destroy(s);
+	}
+	if (!newscope) {
+		nrm_log_error("Could not find an existing scope to match\n");
+		return -NRM_EINVAL;
+	}
+	nrm_vector_destroy(&nrmd_scopes);
+	*scope = allowed;
+	return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -50,7 +84,6 @@ int main(int argc, char **argv)
 	nrm_client_t *client;
 	nrm_scope_t *scope;
 	nrm_sensor_t **sensors = NULL;
-	int custom_scope = 0;
 	long long *counters = NULL;
 
 	int log_level = NRM_LOG_ERROR;
@@ -153,8 +186,8 @@ int main(int argc, char **argv)
 		goto cleanup_client;
 	}
 
-	if (nrm_extra_find_allowed_scope(client, "nrm.extra.perf", &scope,
-	                                 &custom_scope) != 0) {
+
+	if (find_allowed_scope(client, &scope) != 0) {
 		nrm_log_error("Finding scope failed\n");
 		goto cleanup_client;
 	}
@@ -354,11 +387,6 @@ cleanup_sensor:
 			nrm_sensor_destroy(&sensors[i]);
 	free(sensors);
 cleanup_scope:
-	/* if we had to add the scope to the daemon, make sure to clean up after
-	 * ourselves
-	 */
-	if (custom_scope)
-		nrm_client_remove_scope(client, scope);
 	nrm_scope_destroy(scope);
 cleanup_client:
 	nrm_client_destroy(&client);
