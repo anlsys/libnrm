@@ -67,6 +67,31 @@ nrm_string_t nrm_string_frombuf(const char *string, size_t len)
 	memcpy(ret, string, len);
 	return ret;
 }
+
+nrm_string_t nrm_string_fromprintf(const char *format, ...)
+{
+	va_list ap;
+	size_t slen;
+	nrm_realstring_t *rs;
+	
+	va_start(ap, format);
+	/* memory needed to print this */
+	slen = vsnprintf(NULL, 0, format, ap);
+	va_end(ap);
+
+	rs = nrm_string_new(slen);
+	if (rs == NULL)
+		return NULL;
+
+	/* print at the end */
+	nrm_string_t ret = NRM_STRING_S2C(rs);
+	va_start(ap, format);
+	vsnprintf(ret, rs->mlen, format, ap);
+	va_end(ap);
+
+	return ret;
+}
+
 void nrm_string_incref(nrm_string_t s)
 {
 	nrm_realstring_t *r = NRM_STRING_C2S(s);

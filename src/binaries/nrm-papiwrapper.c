@@ -37,6 +37,8 @@
 #define PUB_PORT 2345
 #define RPC_PORT 3456
 
+int find_allowed_scope(nrm_client_t *client, nrm_scope_t **scope)
+
 int main(int argc, char **argv)
 {
 	int c, err;
@@ -164,23 +166,21 @@ int main(int argc, char **argv)
 		goto cleanup_scope;
 	}
 	for (int i = 0; i < EventCodeCnt; i++) {
-		char pattern[PAPI_MAX_STR_LEN + 20];
-		char *sensor_name;
-		sprintf(pattern, "nrm.extra.perf.%s", EventCodeStrs[i]);
-		if (nrm_extra_create_name(pattern, &sensor_name) != 0) {
-			nrm_log_error("Name creation failed\n");
-			goto cleanup_sensor;
-		}
+		nrm_string_t sensor_name =
+			nrm_string_fromprintf("nrm.extra.perf.%s.%u",
+					      getpid(), EventCodeStrs[i]);
 		if ((sensors[i] = nrm_sensor_create(sensor_name)) == NULL) {
 			nrm_log_error("Sensor creation failed\n");
-			free(sensor_name);
+			nrm_string_decref(sensor_name);
 			goto cleanup_sensor;
 		}
 		free(sensor_name);
 		if (nrm_client_add_sensor(client, sensors[i]) != 0) {
+			nrm_string_decref(sensor_name);
 			nrm_log_error("Adding sensor failed\n");
 			goto cleanup_sensor;
 		}
+		nrm_string_decref(sensor_name);
 	}
 
 	// initialize PAPI

@@ -182,7 +182,8 @@ COMPILED_TESTS = \
 		tests/utils/hash \
 		tests/utils/vector \
 		tests/utils/ringbuffer \
-		tests/utils/scope
+		tests/utils/scope \
+		tests/utils/string
 
 # unit tests
 UNIT_TESTS = \
