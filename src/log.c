@@ -22,7 +22,7 @@
  * Logging functions
  *******************************************************************************/
 
-int nrm_log_level;
+int nrm_log_level = NRM_LOG_NORMAL;
 static FILE *nrm_log_fd = NULL;
 static const char *nrm_log_namespace;
 
@@ -42,8 +42,10 @@ int nrm_log_init(FILE *f, const char *nm)
 
 int nrm_log_setlevel(int level)
 {
-	if (level < 0 || level > NRM_LOG_DEBUG)
-		return -NRM_EINVAL;
+	if (level < 0)
+		level = 0;
+	if (level > NRM_LOG_DEBUG)
+		level = NRM_LOG_DEBUG;
 	nrm_log_level = level;
 	return 0;
 }

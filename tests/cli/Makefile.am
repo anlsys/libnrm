@@ -4,8 +4,9 @@ AM_COLOR_TESTS = yes
 .NOTPARALLEL:
 
 BATS_TESTS = \
-	     nrmc.bats \
-	     nrmd.bats
+	     standalone.bats \
+	     daemon-only.bats \
+	     full-setup.bats
 
 TEST_EXTENSIONS = .bats
 BATS_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \

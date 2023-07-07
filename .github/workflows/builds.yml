@@ -10,7 +10,7 @@ env:
 jobs:
   generic:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats
@@ -34,7 +34,7 @@ jobs:
             *.log
   out-of-tree:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats
@@ -63,7 +63,7 @@ jobs:
             out/*.log
   valgrind:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev valgrind bats
@@ -96,7 +96,7 @@ jobs:
       - run: nix-build -A libnrm
   distcheck:
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - run: sudo apt-get update
       - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats

@@ -57,11 +57,16 @@ SUFFIXES = .proto .pb-c.c .pb-c.h
 
 include_HEADERS = include/nrm.h
 
+include_nrmdir=$(includedir)/nrm
+include_nrm_HEADERS = \
+		      include/nrm/tools.h
+
 include_nrm_utilsdir=$(includedir)/nrm/utils
 include_nrm_utils_HEADERS = \
 			    include/nrm/utils/alloc.h \
 			    include/nrm/utils/bitmaps.h \
 			    include/nrm/utils/error.h \
+			    include/nrm/utils/parsers.h \
 			    include/nrm/utils/ringbuffer.h \
 			    include/nrm/utils/scopes.h \
 			    include/nrm/utils/strings.h \
@@ -105,9 +110,11 @@ libnrm_la_SOURCES = \
 		 src/server.c \
 		 src/slices.c \
 		 src/state.c \
+		 src/tools.c \
 		 src/utils/bitmaps.c \
 		 src/utils/error.c \
 		 src/utils/hashes.c \
+		 src/utils/parsers.c \
 		 src/utils/ringbuffer.c \
 		 src/utils/scopes.c \
 		 src/utils/strings.c \
