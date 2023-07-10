@@ -13,7 +13,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats libpapi-dev
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -37,7 +37,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats libpapi-dev
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -66,7 +66,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev valgrind bats
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev valgrind bats libpapi-dev
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -99,7 +99,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - run: sudo apt-get update
-      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev bats libpapi-dev
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
