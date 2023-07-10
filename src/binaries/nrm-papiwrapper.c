@@ -18,7 +18,6 @@
 
 #include "nrm.h"
 #include "nrm/tools.h"
-
 #include <errno.h>
 #include <math.h>
 #include <papi.h>
@@ -37,11 +36,11 @@ int find_allowed_scope(nrm_client_t *client, nrm_scope_t **scope)
 	/* create a scope based on hwloc_allowed, althouth we know for a fact
 	 * that the daemon should already have this scope.
 	 */
-	nrm_string_t name = nrm_string_fromprintf("nrm.extra.papi.%u",
-						  getpid());
+	nrm_string_t name =
+	        nrm_string_fromprintf("nrm.extra.papi.%u", getpid());
 	nrm_scope_t *allowed = nrm_scope_create_hwloc_allowed(name);
 	nrm_string_decref(name);
-	
+
 	nrm_vector_t *nrmd_scopes;
 	nrm_client_list_scopes(client, &nrmd_scopes);
 
@@ -106,7 +105,7 @@ int main(int argc, char **argv)
 		nrm_log_error("Expected command after options.\n");
 		exit(EXIT_FAILURE);
 	}
-	
+
 	/* remove the parsed part */
 	argc -= err;
 	argv = &(argv[err]);
@@ -122,7 +121,8 @@ int main(int argc, char **argv)
 
 	// create client
 	if (nrm_client_create(&client, args.upstream_uri, args.pub_port,
-			      args.rpc_port) != 0 || client == NULL) {
+	                      args.rpc_port) != 0 ||
+	    client == NULL) {
 		nrm_log_error("Client creation failed\n");
 		goto cleanup_postinit;
 	}
@@ -130,7 +130,8 @@ int main(int argc, char **argv)
 	nrm_log_debug("NRM client initialized.\n");
 
 	nrm_log_debug("Events:\n");
-	nrm_vector_foreach(args.events, iterator) {
+	nrm_vector_foreach(args.events, iterator)
+	{
 		nrm_string_t *s = nrm_vector_iterator_get(iterator);
 		nrm_log_debug("%s\n", *s);
 	}
@@ -151,8 +152,10 @@ int main(int argc, char **argv)
 		nrm_string_t *eventName;
 		nrm_string_t sensor_name;
 
-		nrm_vector_get_withtype(nrm_string_t, args.events, i, eventName);
-		sensor_name = nrm_string_fromprintf("nrm.extra.perf.%s.%u", *eventName, getpid());
+		nrm_vector_get_withtype(nrm_string_t, args.events, i,
+		                        eventName);
+		sensor_name = nrm_string_fromprintf("nrm.extra.perf.%s.%u",
+		                                    *eventName, getpid());
 		nrm_sensor_t *sensor = nrm_sensor_create(sensor_name);
 		nrm_string_decref(sensor_name);
 		if (sensor == NULL) {
@@ -195,7 +198,8 @@ int main(int argc, char **argv)
 	for (size_t i = 0; i < EventCodeCnt; i++) {
 		int EventCode;
 		nrm_string_t *EventName;
-		nrm_vector_get_withtype(nrm_string_t, args.events, i, EventName);
+		nrm_vector_get_withtype(nrm_string_t, args.events, i,
+		                        EventName);
 		err = PAPI_event_name_to_code(*EventName, &EventCode);
 		if (err != PAPI_OK) {
 			nrm_log_error("PAPI event_name translation error: %s\n",
@@ -305,10 +309,10 @@ int main(int argc, char **argv)
 
 		for (size_t i = 0; i < EventCodeCnt; i++) {
 			nrm_sensor_t **sensor;
-			nrm_vector_get_withtype(nrm_sensor_t *, sensors,
-						i, sensor);
-			if (nrm_client_send_event(client, time, *sensor,
-			                          scope, counters[i]) != 0) {
+			nrm_vector_get_withtype(nrm_sensor_t *, sensors, i,
+			                        sensor);
+			if (nrm_client_send_event(client, time, *sensor, scope,
+			                          counters[i]) != 0) {
 				nrm_log_error(
 				        "Sending event to the daemon error\n");
 				goto cleanup;

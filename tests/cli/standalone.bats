@@ -16,6 +16,11 @@
 	echo $output | grep nrm-dummy-extra
 }
 
+@test "nrm-papiwrapper --version works" {
+	run nrm-papiwrapper --version
+	echo $output | grep nrm-papiwrapper
+}
+
 @test "nrmc --help works" {
 	run nrmc --help
 	echo $output | grep nrmc
@@ -31,6 +36,11 @@
 	echo $output | grep nrm-dummy-extra
 }
 
+@test "nrm-papiwrapper --help works" {
+	run nrm-papiwrapper --help
+	echo $output | grep nrm-papiwrapper
+}
+
 @test "nrmc wrong extra option" {
 	run ! nrmc --freq 10
 }
@@ -41,4 +51,12 @@
 
 @test "nrm-dummy-extra bad freq" {
 	run ! nrm-dummy-extra --freq aa
+}
+
+@test "nrm-papiwrapper bad freq" {
+	run ! nrm-papiwrapper --freq aa
+}
+
+@test "nrm-papiwrapper no command" {
+	run ! nrm-papiwrapper
 }

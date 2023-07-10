@@ -9,7 +9,6 @@
  ******************************************************************************/
 
 #include "nrm.h"
-
 #include <check.h>
 #include <stdlib.h>
 #include <time.h>
@@ -27,7 +26,7 @@ END_TEST
 
 START_TEST(test_frombuf)
 {
-	nrm_string_t s = nrm_string_fromchar("test", 4);
+	nrm_string_t s = nrm_string_frombuf("test", 4);
 	ck_assert_ptr_nonnull(s);
 	ck_assert_str_eq(s, "test");
 	size_t len = nrm_string_strlen(s);
@@ -80,4 +79,3 @@ int main(void)
 	nrm_finalize();
 	return (failed == 0) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
-

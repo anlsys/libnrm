@@ -59,7 +59,7 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 	       common_long_size * sizeof(struct option));
 
 	/* handle flags */
-	size_t longopts_idx = common_long_size -1;
+	size_t longopts_idx = common_long_size - 1;
 
 	if (NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_FREQ)) {
 		args->freq = 1.0;
@@ -89,7 +89,6 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 
 	/* make sure the parser is reset */
 	optind = 1;
-
 
 	/* parsing itself */
 	while (1) {
@@ -147,7 +146,8 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 			break;
 		/* beginning of extra options */
 		case 'f':
-			assert(NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_FREQ));
+			assert(NRM_TOOLS_FLAGS_ISSET(args->flags,
+			                             NRM_TOOLS_ARGS_FLAG_FREQ));
 			err = nrm_parse_double(optarg, &args->freq);
 			if (err) {
 				nrm_log_error(
@@ -157,9 +157,10 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 			}
 			break;
 		case 'e':
-			assert(NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_EVENT));
+			assert(NRM_TOOLS_FLAGS_ISSET(
+			        args->flags, NRM_TOOLS_ARGS_FLAG_EVENT));
 			event = nrm_string_fromchar(optarg);
-			nrm_vector_push_back(args->events,&event);
+			nrm_vector_push_back(args->events, &event);
 			break;
 		case ':':
 			nrm_log_error(
@@ -198,8 +199,8 @@ int nrm_tools_print_help(const nrm_tools_args_t *args)
 	};
 	static const char *extra_help[] = {
 	        "--freq, -f <double>    : signal frequency (in Hz)\n",
-		"--event, -e <string>   : event(s) name\n",
-		NULL,
+	        "--event, -e <string>   : event(s) name\n",
+	        NULL,
 	};
 	fprintf(stdout, "Usage: %s [options]\n\n", args->progname);
 	for (int i = 0; common_help[i] != NULL; i++)
@@ -219,7 +220,8 @@ int nrm_tools_print_version(const nrm_tools_args_t *args)
 int nrm_tools_args_destroy(nrm_tools_args_t *args)
 {
 	if (NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_EVENT)) {
-		nrm_vector_foreach(args->events, iter) {
+		nrm_vector_foreach(args->events, iter)
+		{
 			nrm_string_t *s = nrm_vector_iterator_get(iter);
 			nrm_string_decref(*s);
 		}

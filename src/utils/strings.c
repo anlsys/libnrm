@@ -73,7 +73,7 @@ nrm_string_t nrm_string_fromprintf(const char *format, ...)
 	va_list ap;
 	size_t slen;
 	nrm_realstring_t *rs;
-	
+
 	va_start(ap, format);
 	/* memory needed to print this */
 	slen = vsnprintf(NULL, 0, format, ap);

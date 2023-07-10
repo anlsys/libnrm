@@ -21,13 +21,13 @@ extern "C" {
  * Command Line Parsing Helpers
  ******************************************************************************/
 
-#define NRM_TOOLS_ARGS_FLAG_FREQ	(1 << 0)
-#define NRM_TOOLS_ARGS_FLAG_EVENT	(1 << 1)
+#define NRM_TOOLS_ARGS_FLAG_FREQ (1 << 0)
+#define NRM_TOOLS_ARGS_FLAG_EVENT (1 << 1)
 #define NRM_TOOLS_ARGS_FLAG_MAX 2
 
 #define NRM_TOOLS_FLAGS_GET(f, i) (f & i)
 #define NRM_TOOLS_FLAGS_SET(f, i) (f | i)
-#define NRM_TOOLS_FLAGS_ISSET(f, i) (NRM_TOOLS_FLAGS_GET(f,i) != 0)
+#define NRM_TOOLS_FLAGS_ISSET(f, i) (NRM_TOOLS_FLAGS_GET(f, i) != 0)
 
 typedef struct nrm_tools_args_s {
 	/* needs to be set ahead of time */
