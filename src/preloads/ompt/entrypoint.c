@@ -20,7 +20,6 @@ ompt_set_callback_t nrm_ompt_set_callback;
 char *upstream_uri = "tcp://127.0.0.1";
 int pub_port = 2345;
 int rpc_port = 3456;
-int global_added;
 
 nrm_client_t *global_client;
 nrm_scope_t *global_scope;
@@ -33,7 +32,7 @@ int find_allowed_scope(nrm_client_t *client, nrm_scope_t **scope)
 	 * that the daemon should already have this scope.
 	 */
 	nrm_string_t name =
-	        nrm_string_fromprintf("nrm.extra.papi.%u", getpid());
+	        nrm_string_fromprintf("nrm.ompt.global.%u", getpid());
 	nrm_scope_t *allowed = nrm_scope_create_hwloc_allowed(name);
 	nrm_string_decref(name);
 
@@ -83,8 +82,7 @@ int nrm_ompt_initialize(ompt_function_lookup_t lookup,
 	nrm_client_create(&global_client, upstream_uri, pub_port, rpc_port);
 
 	// create global scope;
-	nrm_extra_find_allowed_scope(global_client, "nrm.ompt.global",
-	                             &global_scope, &global_added);
+	find_allowed_scope(global_client, &global_scope);
 
 	// global sensor
 	char *name = "nrm-ompt";
@@ -120,8 +118,6 @@ int nrm_ompt_initialize(ompt_function_lookup_t lookup,
 void nrm_ompt_finalize(ompt_data_t *tool_data)
 {
 	nrm_log_debug("finalize tool\n");
-	if (global_added)
-		nrm_client_remove_scope(global_client, global_scope);
 	nrm_scope_destroy(global_scope);
 	nrm_client_remove_sensor(global_client, global_sensor);
 	nrm_sensor_destroy(&global_sensor);

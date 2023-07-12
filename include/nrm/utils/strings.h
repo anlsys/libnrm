@@ -25,4 +25,6 @@ int nrm_string_cmp(const nrm_string_t, const nrm_string_t);
 
 size_t nrm_string_strlen(const nrm_string_t);
 
+int nrm_string_append(nrm_string_t *dest, nrm_string_t src);
+
 #endif

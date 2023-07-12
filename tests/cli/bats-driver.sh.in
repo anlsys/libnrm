@@ -1,5 +1,6 @@
 #!/bin/sh
 # none of our bats tests should take more than a few seconds
-BATS_TEST_TIMEOUT=10
-PATH=@abs_top_builddir@:$PATH
-@BATS@ $@
+export BATS_TEST_TIMEOUT=10
+export PATH=@abs_top_builddir@:$PATH
+export ABS_TOP_BUILDDIR=@abs_top_builddir@
+@BATS@ -x --verbose-run $@

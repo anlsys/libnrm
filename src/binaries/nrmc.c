@@ -59,14 +59,19 @@ int cmd_run(int argc, char **argv)
 {
 
 	int err;
-	char *manifest_name = NULL;
+	nrm_vector_t *preloads;
 	static struct option cmd_run_long_options[] = {
-	        {"manifest", required_argument, NULL, 'm'},
+	        {"preload", required_argument, NULL, 'd'},
 	        {0, 0, 0, 0},
 	};
 
-	static const char *cmd_run_short_options = ":m:";
+	static const char *cmd_run_short_options = ":d:";
 
+	nrm_vector_create(&preloads, sizeof(nrm_string_t));
+	nrm_string_t path;
+
+	optind = 1;
+	
 	int c;
 	int option_index = 0;
 	while (1) {
@@ -77,8 +82,10 @@ int cmd_run(int argc, char **argv)
 		switch (c) {
 		case 0:
 			break;
-		case 'm':
-			manifest_name = optarg;
+		case 'd':
+			path = nrm_string_fromchar(optarg);
+			nrm_vector_push_back(preloads, &path);
+			nrm_log_debug("preload: %s\n", path);
 			break;
 		case '?':
 			return EXIT_FAILURE;
@@ -86,6 +93,7 @@ int cmd_run(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 	}
+
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
@@ -95,7 +103,22 @@ int cmd_run(int argc, char **argv)
 	if (argc < 1)
 		return EXIT_FAILURE;
 
+
+	nrm_string_t ld_preload;
+	char *ldenv = getenv("LD_PRELOAD");
+	if (ldenv == NULL)
+		ld_preload = nrm_string_fromchar("");
+	else
+		ld_preload = nrm_string_fromchar(ldenv);
+
+	nrm_vector_foreach(preloads, iter) {
+		nrm_string_t *s = nrm_vector_iterator_get(iter);
+		nrm_string_append(&ld_preload, *s);
+		nrm_log_debug("preload append: %s %s\n", ld_preload, *s);
+	}
+	nrm_log_info("LD_PRELOAD=%s\n", ld_preload);
 	nrm_log_info("exec: argc: %u, argv[0]: %s\n", argc, argv[0]);
+	setenv("LD_PRELOAD", ld_preload, 1);
 	err = execvp(argv[0], &argv[0]);
 	return err;
 }

@@ -126,3 +126,24 @@ size_t nrm_string_strlen(const nrm_string_t s)
 	nrm_realstring_t *r = NRM_STRING_C2S(s);
 	return r->slen;
 }
+
+/* not thread safe */
+int nrm_string_append(nrm_string_t *dest, nrm_string_t src)
+{
+	if (dest == NULL)
+		return -NRM_EINVAL;
+
+	if (src == NULL)
+		return 0;
+	
+	nrm_realstring_t *r = NRM_STRING_C2S(*dest);
+	nrm_realstring_t *s = NRM_STRING_C2S(src);
+
+	nrm_realstring_t *t = nrm_string_new(r->slen + s->slen);
+	nrm_string_t ret = NRM_STRING_S2C(t);
+	memcpy(ret, *dest, r->slen);
+	memcpy(ret+ r->slen, src, s->slen);
+	nrm_string_decref(*dest);
+	*dest = ret;
+	return 0;
+}
