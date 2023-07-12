@@ -3,5 +3,5 @@
 let
   callPackage = pkgs.lib.callPackageWith pkgs;
 in pkgs // {
-  libnrm = callPackage ./nix/libnrm.nix {};
+  libnrm = callPackage ./nix/libnrm.nix { openmp = pkgs.llvmPackages_15.openmp; };
 }
