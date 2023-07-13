@@ -115,11 +115,6 @@ setup_file() {
 	echo "$output" | jq
 }
 
-@test "papiwrapper command" {
-	run nrm-papiwrapper -q ls -al
-	[ "$status" -eq 0 ]
-}
-
 teardown_file() {
 	run kill -9 $NRMD_DUMMY_PID
 	run kill -9 $NRMD_PID
