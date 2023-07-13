@@ -49,7 +49,7 @@ setup_file() {
 	echo "$output"
 }
 
-{
+@test "preload, stream omp" {
 	run nrmc run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so omp_stream
 	[ "$status" -eq 0 ]
 	echo "$output"
@@ -57,5 +57,5 @@ setup_file() {
 
 teardown_file() {
 	run kill -9 $NRMD_DUMMY_PID
-	run kill -9 $NRMD_PID
+	run kill $NRMD_PID
 }

@@ -128,7 +128,7 @@ size_t nrm_string_strlen(const nrm_string_t s)
 }
 
 /* not thread safe */
-int nrm_string_append(nrm_string_t *dest, nrm_string_t src)
+int nrm_string_join(nrm_string_t *dest, char c, nrm_string_t src)
 {
 	if (dest == NULL)
 		return -NRM_EINVAL;
@@ -139,10 +139,11 @@ int nrm_string_append(nrm_string_t *dest, nrm_string_t src)
 	nrm_realstring_t *r = NRM_STRING_C2S(*dest);
 	nrm_realstring_t *s = NRM_STRING_C2S(src);
 
-	nrm_realstring_t *t = nrm_string_new(r->slen + s->slen);
+	nrm_realstring_t *t = nrm_string_new(r->slen + s->slen + 1);
 	nrm_string_t ret = NRM_STRING_S2C(t);
 	memcpy(ret, *dest, r->slen);
-	memcpy(ret+ r->slen, src, s->slen);
+	ret[r->slen] = c;
+	memcpy(ret+ r->slen + 1, src, s->slen);
 	nrm_string_decref(*dest);
 	*dest = ret;
 	return 0;

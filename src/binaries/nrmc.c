@@ -85,7 +85,7 @@ int cmd_run(int argc, char **argv)
 		case 'd':
 			path = nrm_string_fromchar(optarg);
 			nrm_vector_push_back(preloads, &path);
-			nrm_log_debug("preload: %s\n", path);
+			nrm_log_debug("asked to preload: %s\n", path);
 			break;
 		case '?':
 			return EXIT_FAILURE;
@@ -103,7 +103,6 @@ int cmd_run(int argc, char **argv)
 	if (argc < 1)
 		return EXIT_FAILURE;
 
-
 	nrm_string_t ld_preload;
 	char *ldenv = getenv("LD_PRELOAD");
 	if (ldenv == NULL)
@@ -113,7 +112,7 @@ int cmd_run(int argc, char **argv)
 
 	nrm_vector_foreach(preloads, iter) {
 		nrm_string_t *s = nrm_vector_iterator_get(iter);
-		nrm_string_append(&ld_preload, *s);
+		nrm_string_join(&ld_preload, ':', *s);
 		nrm_log_debug("preload append: %s %s\n", ld_preload, *s);
 	}
 	nrm_log_info("LD_PRELOAD=%s\n", ld_preload);
