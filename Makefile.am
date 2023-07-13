@@ -201,5 +201,13 @@ COMPILED_TESTS = \
 UNIT_TESTS = \
 	     $(COMPILED_TESTS)
 
-check_PROGRAMS += $(COMPILED_TESTS)
+check_PROGRAMS += $(COMPILED_TESTS) 
 TESTS += $(UNIT_TESTS)
+
+if HAVE_OMPT
+OMPT_BINARIES = \
+		tests/ompt/omp_basic \
+		tests/ompt/omp_stream
+
+check_PROGRAMS += $(OMPT_BINARIES)
+endif

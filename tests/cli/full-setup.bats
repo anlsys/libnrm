@@ -115,12 +115,6 @@ setup_file() {
 	echo "$output" | jq
 }
 
-@test "run OMPT preload" {
-	run nrmc run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ls -al
-	[ "$status" -eq 0 ]
-	echo "$output"
-}
-
 teardown_file() {
 	run kill -9 $NRMD_DUMMY_PID
 	run kill -9 $NRMD_PID
