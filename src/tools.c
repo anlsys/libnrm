@@ -59,13 +59,24 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 	       common_long_size * sizeof(struct option));
 
 	/* handle flags */
-	if ((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0) {
+	size_t longopts_idx = common_long_size - 1;
+
+	if (NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_FREQ)) {
 		args->freq = 1.0;
 		char *fs = "f:";
 		struct option fl = {"freq", required_argument, 0, 'f'};
 		/* it's okay, we know we have enough room */
 		strcat(full_shortopts, fs);
-		full_longopts[common_long_size - 1] = fl;
+		full_longopts[longopts_idx] = fl;
+		longopts_idx++;
+	}
+	if (NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_EVENT)) {
+		nrm_vector_create(&args->events, sizeof(nrm_string_t));
+		char *fs = "e:";
+		struct option fl = {"event", required_argument, 0, 'e'};
+		/* it's okay, we know we have enough room */
+		strcat(full_shortopts, fs);
+		full_longopts[longopts_idx] = fl;
 	}
 
 	/* default values */
@@ -83,6 +94,7 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 	while (1) {
 		int err;
 		int option_index = 0;
+		nrm_string_t event;
 		int c = getopt_long(argc, argv, full_shortopts, full_longopts,
 		                    &option_index);
 		if (c == -1)
@@ -134,7 +146,8 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 			break;
 		/* beginning of extra options */
 		case 'f':
-			assert((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0);
+			assert(NRM_TOOLS_FLAGS_ISSET(args->flags,
+			                             NRM_TOOLS_ARGS_FLAG_FREQ));
 			err = nrm_parse_double(optarg, &args->freq);
 			if (err) {
 				nrm_log_error(
@@ -142,6 +155,12 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 				        optarg);
 				return err;
 			}
+			break;
+		case 'e':
+			assert(NRM_TOOLS_FLAGS_ISSET(
+			        args->flags, NRM_TOOLS_ARGS_FLAG_EVENT));
+			event = nrm_string_fromchar(optarg);
+			nrm_vector_push_back(args->events, &event);
 			break;
 		case ':':
 			nrm_log_error(
@@ -176,20 +195,37 @@ int nrm_tools_print_help(const nrm_tools_args_t *args)
 	        "--uri, -u <str>        : daemon socket uri to connect to\n",
 	        "--rpc-port, -r  <uint> : daemon rpc port to use\n",
 	        "--pub-port, -p  <uint> : daemon pub/sub port to use\n",
-	        NULL};
-	const char *freq_help =
-	        "--freq, -f <double>    : signal frequency (in Hz)\n";
+	        NULL,
+	};
+	static const char *extra_help[] = {
+	        "--freq, -f <double>    : signal frequency (in Hz)\n",
+	        "--event, -e <string>   : event(s) name\n",
+	        NULL,
+	};
 	fprintf(stdout, "Usage: %s [options]\n\n", args->progname);
 	for (int i = 0; common_help[i] != NULL; i++)
 		fprintf(stdout, "%s", common_help[i]);
-	if ((args->flags & NRM_TOOLS_ARGS_FLAG_FREQ) != 0) {
-		fprintf(stdout, "%s", freq_help);
-	}
+	for (int i = 0; extra_help[i] != NULL; i++)
+		if (NRM_TOOLS_FLAGS_ISSET(args->flags, (1 << i)))
+			fprintf(stdout, "%s", extra_help[i]);
 	return 0;
 }
 
 int nrm_tools_print_version(const nrm_tools_args_t *args)
 {
 	fprintf(stdout, "%s: version %s\n", args->progname, nrm_version_string);
+	return 0;
+}
+
+int nrm_tools_args_destroy(nrm_tools_args_t *args)
+{
+	if (NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_EVENT)) {
+		nrm_vector_foreach(args->events, iter)
+		{
+			nrm_string_t *s = nrm_vector_iterator_get(iter);
+			nrm_string_decref(*s);
+		}
+		nrm_vector_destroy(&args->events);
+	}
 	return 0;
 }

@@ -15,13 +15,15 @@ AM_CFLAGS = $(LIBZMQ_CFLAGS) \
 	    $(LIBCZMQ_CFLAGS) \
 	    $(JANSSON_CFLAGS) \
 	    $(LIBPROTOC_CFLAGS) \
-	    $(HWLOC_CFLAGS)
+	    $(HWLOC_CFLAGS) \
+	    $(PAPI_CFLAGS)
 
 AM_LDFLAGS = $(LIBZMQ_LIBS) \
 	     $(LIBCZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
 	     $(LIBPROTOC_LIBS) \
-	     $(HWLOC_LIBS)
+	     $(HWLOC_LIBS) \
+	     $(PAPI_LIBS)
 
 EXTRA_DIST += autogen.sh libnrm.pc README.md LICENSE CONTRIBUTING.markdown
 
@@ -87,7 +89,7 @@ noinst_HEADERS = \
 		 include/internal/utringbuffer.h
 
 ###############################################################################
-# Includes
+# Library
 ###############################################################################
 
 lib_LTLIBRARIES = libnrm.la
@@ -128,17 +130,27 @@ nodist_libnrm_la_SOURCES = \
 
 libnrm_la_LIBADD = $(LTLIBOBJS)
 
-nrmd_SOURCES = src/binaries/nrmd.c
-nrmd_LDADD = libnrm.la
-nrmc_SOURCES = src/binaries/nrmc.c
-nrmc_LDADD = libnrm.la
-nrm_dummy_extra_SOURCES = src/binaries/nrm-dummy-extra.c
-nrm_dummy_extra_LDADD = libnrm.la
-bin_PROGRAMS += nrmd nrmc nrm-dummy-extra
-
 dist_noinst_DATA = src/msg.proto
 BUILT_SOURCES += src/msg.pb-c.h
 CLEANFILES += src/msg.pb-c.c src/msg.pb-c.h
+
+###############################################################################
+# Programs
+###############################################################################
+
+nrmd_SOURCES = src/binaries/nrmd.c
+nrmd_LDADD = libnrm.la
+
+nrmc_SOURCES = src/binaries/nrmc.c
+nrmc_LDADD = libnrm.la
+
+nrm_dummy_extra_SOURCES = src/binaries/nrm-dummy-extra.c
+nrm_dummy_extra_LDADD = libnrm.la
+
+nrm_papiwrapper_SOURCES = src/binaries/nrm-papiwrapper.c
+nrm_papiwrapper_LDADD = libnrm.la
+
+bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 
 ###############################################################################
 # Documentation
@@ -170,7 +182,8 @@ COMPILED_TESTS = \
 		tests/utils/hash \
 		tests/utils/vector \
 		tests/utils/ringbuffer \
-		tests/utils/scope
+		tests/utils/scope \
+		tests/utils/string
 
 # unit tests
 UNIT_TESTS = \

@@ -21,8 +21,13 @@ extern "C" {
  * Command Line Parsing Helpers
  ******************************************************************************/
 
-#define NRM_TOOLS_ARGS_FLAG_FREQ 1
-#define NRM_TOOLS_ARGS_FLAG_MAX 1
+#define NRM_TOOLS_ARGS_FLAG_FREQ (1 << 0)
+#define NRM_TOOLS_ARGS_FLAG_EVENT (1 << 1)
+#define NRM_TOOLS_ARGS_FLAG_MAX 2
+
+#define NRM_TOOLS_FLAGS_GET(f, i) (f & i)
+#define NRM_TOOLS_FLAGS_SET(f, i) (f | i)
+#define NRM_TOOLS_FLAGS_ISSET(f, i) (NRM_TOOLS_FLAGS_GET(f, i) != 0)
 
 typedef struct nrm_tools_args_s {
 	/* needs to be set ahead of time */
@@ -37,6 +42,7 @@ typedef struct nrm_tools_args_s {
 	int ask_version;
 	/* beginning of extra options */
 	double freq;
+	nrm_vector_t *events;
 } nrm_tools_args_t;
 
 /* parse command-line arguments, consuming them,
@@ -48,6 +54,8 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args);
 int nrm_tools_print_help(const nrm_tools_args_t *args);
 
 int nrm_tools_print_version(const nrm_tools_args_t *args);
+
+int nrm_tools_args_destroy(nrm_tools_args_t *args);
 
 #ifdef __cplusplus
 }

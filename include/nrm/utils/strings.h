@@ -15,6 +15,7 @@ typedef char *nrm_string_t;
 
 nrm_string_t nrm_string_fromchar(const char *buf);
 nrm_string_t nrm_string_frombuf(const char *buf, size_t len);
+nrm_string_t nrm_string_fromprintf(const char *format, ...);
 
 void nrm_string_incref(nrm_string_t s);
 
