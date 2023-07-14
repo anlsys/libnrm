@@ -38,21 +38,21 @@ setup_file() {
 }
 
 @test "preload, no callbacks" {
-	run nrmc run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ls -al
-	[ "$status" -eq 0 ]
+	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ls -al
 	echo "$output"
+	[ "$status" -eq 0 ]
 }
 
 @test "preload, basic omp" {
-	run nrmc run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so omp_basic
-	[ "$status" -eq 0 ]
+	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ./omp_basic
 	echo "$output"
+	[ "$status" -eq 0 ]
 }
 
 @test "preload, stream omp" {
-	run nrmc run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so omp_stream
-	[ "$status" -eq 0 ]
+	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ./omp_stream
 	echo "$output"
+	[ "$status" -eq 0 ]
 }
 
 teardown_file() {

@@ -176,7 +176,7 @@ SUBDIRS = doc
 ###############################################################################
 
 # bats tests use a different driver, so we configure them in a different subdir
-SUBDIRS += tests/cli
+SUBDIRS += tests/cli tests/ompt
 
 AM_COLOR_TESTS = yes
 AM_CPPFLAGS += $(CHECK_CFLAGS)
@@ -204,10 +204,3 @@ UNIT_TESTS = \
 check_PROGRAMS += $(COMPILED_TESTS) 
 TESTS += $(UNIT_TESTS)
 
-if HAVE_OMPT
-OMPT_BINARIES = \
-		tests/ompt/omp_basic \
-		tests/ompt/omp_stream
-
-check_PROGRAMS += $(OMPT_BINARIES)
-endif

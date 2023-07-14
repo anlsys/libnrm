@@ -13,9 +13,5 @@ BATS_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
 		$(top_srcdir)/build-aux/tap-driver.sh
 BATS_LOG_COMPILER = $(SHELL) $(top_builddir)/tests/cli/bats-driver.sh
 
-if HAVE_OMPT
-BATS_TESTS += ompt.bats
-endif
-
 TESTS = $(BATS_TESTS)
 EXTRA_DIST = $(BATS_TESTS)

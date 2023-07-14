@@ -146,6 +146,7 @@ AC_CONFIG_FILES([Makefile
 	 	 doc/Makefile
 		 tests/cli/Makefile
 		 tests/cli/bats-driver.sh
+		 tests/ompt/Makefile
 		 include/nrm/utils/version.h])
 AC_OUTPUT
 
