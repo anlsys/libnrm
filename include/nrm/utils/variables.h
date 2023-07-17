@@ -36,7 +36,7 @@
 #define NRM_ENV_VAR_RATELIMIT "NRM_RATELIMIT"
 
 /**
- * name of the environment variable for disabling message transmission 
+ * name of the environment variable for disabling message transmission
  * (if 0, the library will not open sockets or send messages
  */
 #define NRM_ENV_VAR_TRANSMIT "NRM_TRANSMIT"
@@ -60,7 +60,7 @@
  */
 #define NRM_DEFAULT_UPSTREAM_PUB_PORT 2345
 
-/** 
+/**
  * default ratelimit threshold to avoid overflowing the socket, as an
  * interval between two messages in nanoseconds
  */
@@ -74,7 +74,7 @@
 /*******************************************************************************
  * Runtime variables storing these values:
  * - before nrm_init, contain default values
- * - after nrm_init, contain values updated by environment variables 
+ * - after nrm_init, contain values updated by environment variables
  ******************************************************************************/
 
 extern char *nrm_upstream_uri;

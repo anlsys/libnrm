@@ -47,7 +47,8 @@ int nrm_init(int *argc, char **argv[])
 	if (upstream_rpc != NULL) {
 		err = nrm_parse_uint(upstream_rpc, &nrm_upstream_rpc_port);
 		if (err) {
-			nrm_log_error("can't parse %s variable\n", NRM_ENV_VAR_UPSTREAM_RPC_PORT);
+			nrm_log_error("can't parse %s variable\n",
+			              NRM_ENV_VAR_UPSTREAM_RPC_PORT);
 			return err;
 		}
 	}
@@ -55,7 +56,8 @@ int nrm_init(int *argc, char **argv[])
 	if (upstream_pub != NULL) {
 		err = nrm_parse_uint(upstream_pub, &nrm_upstream_pub_port);
 		if (err) {
-			nrm_log_error("can't parse %s variable\n", NRM_ENV_VAR_UPSTREAM_PUB_PORT);
+			nrm_log_error("can't parse %s variable\n",
+			              NRM_ENV_VAR_UPSTREAM_PUB_PORT);
 			return err;
 		}
 	}
@@ -63,7 +65,8 @@ int nrm_init(int *argc, char **argv[])
 	if (rate != NULL) {
 		err = nrm_parse_llu(rate, &nrm_ratelimit);
 		if (err) {
-			nrm_log_error("can't parse %s variable\n", NRM_ENV_VAR_RATELIMIT);
+			nrm_log_error("can't parse %s variable\n",
+			              NRM_ENV_VAR_RATELIMIT);
 			return err;
 		}
 	}
@@ -71,7 +74,8 @@ int nrm_init(int *argc, char **argv[])
 	if (transmit != NULL) {
 		err = nrm_parse_int(transmit, &nrm_transmit);
 		if (err) {
-			nrm_log_error("can't parse %s variable\n", NRM_ENV_VAR_TRANSMIT);
+			nrm_log_error("can't parse %s variable\n",
+			              NRM_ENV_VAR_TRANSMIT);
 			return err;
 		}
 	}

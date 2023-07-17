@@ -75,8 +75,8 @@ int nrm_ompt_initialize(ompt_function_lookup_t lookup,
 	nrm_log_debug("initialize tool\n");
 
 	// initialize global client
-	nrm_client_create(&global_client, nrm_upstream_uri, nrm_upstream_pub_port,
-			  nrm_upstream_rpc_port);
+	nrm_client_create(&global_client, nrm_upstream_uri,
+	                  nrm_upstream_pub_port, nrm_upstream_rpc_port);
 
 	// create global scope;
 	find_allowed_scope(global_client, &global_scope);
