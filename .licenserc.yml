@@ -19,4 +19,5 @@ header:
     - '**/*.f90'
     - '**/nrmf.h'
     - '**/ut*.h'
+    - '**/*stream.c'
   comment: never

@@ -2,18 +2,17 @@
  * Copyright 2019 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
- * This file is part of the nrm-extra project.
- * For more info, see https://github.com/anlsys/nrm-extra
+ * This file is part of the libnrm project.
+ * For more info, see https://github.com/anlsys/libnrm
  *
  * SPDX-License-Identifier: BSD-3-Clause
- *******************************************************************************/
+ ******************************************************************************/
 
 #ifndef NRM_OMP_H
 #define NRM_OMP_H 1
 
-#include <omp-tools.h>
-
 #include <nrm.h>
+#include <omp-tools.h>
 
 #ifdef __cplusplus
 extern "C" {

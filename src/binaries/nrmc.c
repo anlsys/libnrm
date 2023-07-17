@@ -71,7 +71,7 @@ int cmd_run(int argc, char **argv)
 	nrm_string_t path;
 
 	optind = 1;
-	
+
 	int c;
 	int option_index = 0;
 	while (1) {
@@ -110,7 +110,8 @@ int cmd_run(int argc, char **argv)
 	else
 		ld_preload = nrm_string_fromchar(ldenv);
 
-	nrm_vector_foreach(preloads, iter) {
+	nrm_vector_foreach(preloads, iter)
+	{
 		nrm_string_t *s = nrm_vector_iterator_get(iter);
 		nrm_string_join(&ld_preload, ':', *s);
 		nrm_log_debug("preload append: %s %s\n", ld_preload, *s);
