@@ -23,6 +23,7 @@
  *******************************************************************************/
 
 int nrm_log_level = NRM_LOG_NORMAL;
+int nrm_log_initialized = 0;
 static FILE *nrm_log_fd = NULL;
 static const char *nrm_log_namespace;
 
@@ -37,6 +38,7 @@ int nrm_log_init(FILE *f, const char *nm)
 	nrm_log_fd = f;
 	nrm_log_level = NRM_LOG_NORMAL;
 	nrm_log_namespace = nm;
+	nrm_log_initialized = 1;
 	return 0;
 }
 

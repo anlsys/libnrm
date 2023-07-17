@@ -17,10 +17,6 @@
 static ompt_start_tool_result_t nrm_ompt_start;
 ompt_set_callback_t nrm_ompt_set_callback;
 
-char *upstream_uri = "tcp://127.0.0.1";
-int pub_port = 2345;
-int rpc_port = 3456;
-
 nrm_client_t *global_client;
 nrm_scope_t *global_scope;
 nrm_sensor_t *global_sensor;
@@ -79,7 +75,8 @@ int nrm_ompt_initialize(ompt_function_lookup_t lookup,
 	nrm_log_debug("initialize tool\n");
 
 	// initialize global client
-	nrm_client_create(&global_client, upstream_uri, pub_port, rpc_port);
+	nrm_client_create(&global_client, nrm_upstream_uri, nrm_upstream_pub_port,
+			  nrm_upstream_rpc_port);
 
 	// create global scope;
 	find_allowed_scope(global_client, &global_scope);

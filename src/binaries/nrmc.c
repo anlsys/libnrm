@@ -726,8 +726,8 @@ int main(int argc, char *argv[])
 {
 	int err;
 	nrm_tools_args_t args;
-	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrmc");
+	nrm_init(NULL, NULL);
 
 	args.progname = "nrmc";
 	args.flags = 0;

@@ -78,6 +78,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/uuids.h \
 			    include/nrm/utils/vectors.h \
 			    include/nrm/utils/hashes.h \
+			    include/nrm/utils/variables.h \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \

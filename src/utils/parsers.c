@@ -66,3 +66,21 @@ int nrm_parse_double(const char *str, double *p)
 	*p = ret;
 	return 0;
 }
+
+int nrm_parse_llu(const char *str, unsigned long long *p)
+{
+	unsigned long long ret;
+	errno = 0;
+	char *endptr;
+	ret = strtoull(str, &endptr, 10);
+	if (errno != 0) {
+		nrm_log_perror("error during conversion to llu\n");
+		return -NRM_EINVAL;
+	}
+	if (ret == 0 && endptr == str) {
+		nrm_log_error("error during conversion to llu\n");
+		return -NRM_EINVAL;
+	}
+	*p = ret;
+	return 0;
+}
