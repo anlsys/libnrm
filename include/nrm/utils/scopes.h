@@ -22,15 +22,26 @@
  **/
 typedef struct nrm_scope nrm_scope_t;
 
-/**
- * Creates and returns a new NRM scope
- */
-nrm_scope_t *nrm_scope_create(const char *name);
-
 #define NRM_SCOPE_TYPE_CPU 0
 #define NRM_SCOPE_TYPE_NUMA 1
 #define NRM_SCOPE_TYPE_GPU 2
 #define NRM_SCOPE_TYPE_MAX 3
+
+/**
+ * a named scope, as maintained by the daemon.
+ */
+typedef struct nrm_named_scope_s {
+	nrm_string_t name;
+	nrm_scope_t *scope;
+} nrm_named_scope_t;
+
+nrm_named_scope_t *nrm_named_scope_create(const char *name, nrm_scope_t *scope);
+int nrm_named_scope_destroy(nrm_named_scope_t **);
+
+/**
+ * Creates and returns a new NRM scope
+ */
+nrm_scope_t *nrm_scope_create();
 
 /**
  * Add an int corresponding to some hardware ID to the list

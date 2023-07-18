@@ -16,11 +16,24 @@
 #include "internal/messages.h"
 #include "internal/nrmi.h"
 
+START_TEST(named_from_json)
+{
+
+	json_t *valid_named_scope = json_loads("{\"uuid\": \"test\", \"cpu\": [0]}", 0, NULL);
+	nrm_named_scope_t *scope = nrm_named_scope_create_fromjson(valid_named_scope);
+	ck_assert_ptr_nonnull(scope);
+	ck_assert_int_eq(nrm_bitmap_isset(&(scope->scope->maps[NRM_SCOPE_TYPE_CPU]), 0), 0);
+	nrm_named_scope_destroy(&scope);
+	json_decref(valid_cpu_scope);
+}
+END_TEST
+
+
 START_TEST(test_from_json)
 {
 
 	json_t *valid_cpu_scope = json_loads("{\"cpu\": [0]}", 0, NULL);
-	nrm_scope_t *scope = nrm_scope_create("test");
+	nrm_scope_t *scope = nrm_scope_create();
 	nrm_scope_from_json(scope, valid_cpu_scope);
 	assert(nrm_bitmap_isset(&scope->maps[NRM_SCOPE_TYPE_CPU], 0));
 	nrm_scope_destroy(scope);
@@ -36,6 +49,7 @@ Suite *scope_suite(void)
 
 	TCase *tc_json = tcase_create("json");
 	tcase_add_test(tc_json, test_from_json);
+	tcase_add_test(tc_json, test_named_from_json);
 	suite_add_tcase(s, tc_json);
 
 	return s;
