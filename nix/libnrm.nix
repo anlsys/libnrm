@@ -6,6 +6,7 @@
 , git
 , hwloc
 , jansson
+, openmp
 , papi
 , pkgconfig
 , protobufc
@@ -21,6 +22,7 @@ stdenv.mkDerivation {
     czmq
     hwloc
     jansson
+    openmp
     papi
     protobufc
     zeromq

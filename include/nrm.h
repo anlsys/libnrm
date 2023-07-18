@@ -38,6 +38,7 @@ extern "C" {
 #include "nrm/utils/uuids.h"
 #include "nrm/utils/vectors.h"
 #include "nrm/utils/hashes.h"
+#include "nrm/utils/variables.h"
 #include "nrm/utils/version.h"
 // clang-format on
 //
@@ -77,6 +78,12 @@ int nrm_finalize(void);
 #define NRM_LOG_NORMAL 3
 #define NRM_LOG_INFO 4
 #define NRM_LOG_DEBUG 5
+
+/**
+ * Set to one by the library if at least one nrm_log_init has
+ * been called
+ */
+extern int nrm_log_initialized;
 
 /**
  * Initializes NRM logging

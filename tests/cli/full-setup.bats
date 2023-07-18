@@ -117,5 +117,5 @@ setup_file() {
 
 teardown_file() {
 	run kill -9 $NRMD_DUMMY_PID
-	run kill -9 $NRMD_PID
+	run kill $NRMD_PID
 }

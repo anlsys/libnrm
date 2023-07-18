@@ -112,6 +112,18 @@ PKG_CHECK_MODULES([PAPI],[papi],,
 
 AC_CHECK_LIB(m, ceil,,[AC_MSG_ERROR([unable to find libm])])
 
+# omp-tools support
+AC_OPENMP
+save_CFLAGS="$CFLAGS"
+CFLAGS="$OPENMP_CFLAGS"
+AC_CHECK_HEADER([omp-tools.h],have_ompt="true",
+		[AC_MSG_WARN([Can't find omp-tools.h, deactivating OMPT])
+		OPENMP_CFLAGS=""
+		have_ompt="false"
+		])
+CFLAGS="$save_CFLAGS"
+AM_CONDITIONAL([HAVE_OMPT], [test "x$have_ompt" == "xtrue"])
+
 # protobuf-c
 ##############
 
@@ -134,6 +146,7 @@ AC_CONFIG_FILES([Makefile
 	 	 doc/Makefile
 		 tests/cli/Makefile
 		 tests/cli/bats-driver.sh
+		 tests/ompt/Makefile
 		 include/nrm/utils/version.h])
 AC_OUTPUT
 

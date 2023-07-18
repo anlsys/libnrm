@@ -16,14 +16,16 @@ AM_CFLAGS = $(LIBZMQ_CFLAGS) \
 	    $(JANSSON_CFLAGS) \
 	    $(LIBPROTOC_CFLAGS) \
 	    $(HWLOC_CFLAGS) \
-	    $(PAPI_CFLAGS)
+	    $(PAPI_CFLAGS) \
+	    $(OPENMP_CFLAGS)
 
 AM_LDFLAGS = $(LIBZMQ_LIBS) \
 	     $(LIBCZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
 	     $(LIBPROTOC_LIBS) \
 	     $(HWLOC_LIBS) \
-	     $(PAPI_LIBS)
+	     $(PAPI_LIBS) \
+	     $(OPENMP_CFLAGS)
 
 EXTRA_DIST += autogen.sh libnrm.pc README.md LICENSE CONTRIBUTING.markdown
 
@@ -37,9 +39,9 @@ pkgconfig_DATA = libnrm.pc
 EXTRA_DIST += $(top_srcdir)/.version
 BUILT_SOURCES += $(top_srcdir)/.version
 $(top_srcdir)/.version:
-		echo $(VERSION) > $@-t && mv $@-t $@
+	echo $(VERSION) > $@-t && mv $@-t $@
 dist-hook:
-		echo $(VERSION) > $(distdir)/.tarball-version
+	echo $(VERSION) > $(distdir)/.tarball-version
 
 ###############################################################################
 # Proto-c
@@ -76,6 +78,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/uuids.h \
 			    include/nrm/utils/vectors.h \
 			    include/nrm/utils/hashes.h \
+			    include/nrm/utils/variables.h \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \
@@ -95,40 +98,50 @@ noinst_HEADERS = \
 lib_LTLIBRARIES = libnrm.la
 
 libnrm_la_SOURCES = \
-		 src/actuator.c \
-		 src/client.c \
-		 src/eventbase.c \
-		 src/net.c \
-		 src/nrm.c \
-		 src/messages.c \
-		 src/log.c \
-		 src/control/control.c \
-		 src/control/europar21.c \
-		 src/hwloc.c \
-		 src/roles/client.c \
-		 src/roles/controller.c \
-		 src/roles/role.c \
-		 src/sensor.c \
-		 src/server.c \
-		 src/slices.c \
-		 src/state.c \
-		 src/tools.c \
-		 src/utils/bitmaps.c \
-		 src/utils/error.c \
-		 src/utils/hashes.c \
-		 src/utils/parsers.c \
-		 src/utils/ringbuffer.c \
-		 src/utils/scopes.c \
-		 src/utils/strings.c \
-		 src/utils/timers.c \
-		 src/utils/uuids.c \
-		 src/utils/vectors.c
+		    src/actuator.c \
+		    src/client.c \
+		    src/eventbase.c \
+		    src/net.c \
+		    src/nrm.c \
+		    src/messages.c \
+		    src/log.c \
+		    src/control/control.c \
+		    src/control/europar21.c \
+		    src/hwloc.c \
+		    src/roles/client.c \
+		    src/roles/controller.c \
+		    src/roles/role.c \
+		    src/sensor.c \
+		    src/server.c \
+		    src/slices.c \
+		    src/state.c \
+		    src/tools.c \
+		    src/utils/bitmaps.c \
+		    src/utils/error.c \
+		    src/utils/hashes.c \
+		    src/utils/parsers.c \
+		    src/utils/ringbuffer.c \
+		    src/utils/scopes.c \
+		    src/utils/strings.c \
+		    src/utils/timers.c \
+		    src/utils/uuids.c \
+		    src/utils/vectors.c
 
 nodist_libnrm_la_SOURCES = \
 			   src/msg.pb-c.c \
 			   src/msg.pb-c.h
 
 libnrm_la_LIBADD = $(LTLIBOBJS)
+
+if HAVE_OMPT
+lib_LTLIBRARIES += libnrm-ompt.la
+libnrm_ompt_la_SOURCES = \
+		src/preloads/ompt/entrypoint.c \
+		src/preloads/ompt/nrm_omp_callbacks.c \
+		src/preloads/ompt/nrm_omp.h
+
+libnrm_ompt_la_LIBADD = libnrm.la
+endif
 
 dist_noinst_DATA = src/msg.proto
 BUILT_SOURCES += src/msg.pb-c.h
@@ -166,6 +179,10 @@ SUBDIRS = doc
 # bats tests use a different driver, so we configure them in a different subdir
 SUBDIRS += tests/cli
 
+if HAVE_OMPT
+SUBDIRS += tests/ompt
+endif
+
 AM_COLOR_TESTS = yes
 AM_CPPFLAGS += $(CHECK_CFLAGS)
 AM_CFLAGS += $(CHECK_CFLAGS)
@@ -189,5 +206,6 @@ COMPILED_TESTS = \
 UNIT_TESTS = \
 	     $(COMPILED_TESTS)
 
-check_PROGRAMS += $(COMPILED_TESTS)
+check_PROGRAMS += $(COMPILED_TESTS) 
 TESTS += $(UNIT_TESTS)
+

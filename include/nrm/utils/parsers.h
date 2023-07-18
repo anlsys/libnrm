@@ -14,5 +14,6 @@
 int nrm_parse_int(const char *, int *);
 int nrm_parse_uint(const char *, unsigned int *);
 int nrm_parse_double(const char *, double *);
+int nrm_parse_llu(const char *, unsigned long long *);
 
 #endif
