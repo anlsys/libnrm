@@ -46,9 +46,9 @@ nrmd = subprocess.Popen([nrmd_path, '-vvv'], stdin=None, stdout=nrmd_stdout,
                         stderr=nrmd_stderr)
 children.append(nrmd)
 running.append(nrmd)
+err = 0
 while not done:
     time.sleep(1)
-    err = 0
     newr = []
     for c in running:
         ret = c.poll()
@@ -59,5 +59,16 @@ while not done:
             newr.append(c)
     running = newr
     if not running:
-        err = 1
         break
+
+# cleanup
+for c in children:
+    r = 0
+    if c in running:
+        r = c.poll()
+        if not r:
+            os.kill(c.pid, signal.SIGKILL)
+            r = 1
+    err = err or r
+
+exit(err)

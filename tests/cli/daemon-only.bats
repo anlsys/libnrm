@@ -2,7 +2,7 @@
 # vim: set ft=bash:
 
 setup() {
-	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_TEST_TMPDIR
+	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_TEST_TMPDIR &
 	NRM_SETUP_PID=$!
 }
 
@@ -14,11 +14,12 @@ setup() {
 }
 
 @test "--freq works" {
-	run timeout 2 nrm-dummy-extra --freq 0.5
+	run timeout 2 nrm-dummy-extra --freq 2
 	kill $NRM_SETUP_PID
+	cat $BATS_TEST_TMPDIR/nrmd-stderr.log
 	event_count=`grep EVENT $BATS_TEST_TMPDIR/nrmd-stderr.log | wc -l`
-	# debug log makes every event appear twice
-	[ $event_count -ge 8 ]
+	# debug log makes every event appear 3 times
+	[ $event_count -ge 12 ]
 }
 
 teardown_file() {

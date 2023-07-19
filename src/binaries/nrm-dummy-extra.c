@@ -110,10 +110,8 @@ int main(int argc, char *argv[])
 		nrm_client_send_event(client, time, sensor, scope, counter++);
 
 		/* sleep */
-		double sleeptime = 1 / args.freq;
 		struct timespec req, rem;
-		req.tv_sec = ceil(sleeptime);
-		req.tv_nsec = sleeptime * 1e9 - ceil(sleeptime) * 1e9;
+		req = nrm_time_fromfreq(args.freq);
 		/* possible signal interrupt here */
 		err = nanosleep(&req, &rem);
 		if (err == -1 && errno == EINTR) {
