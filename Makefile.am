@@ -184,6 +184,15 @@ nrm_geopm_LDADD = libnrm.la
 bin_PROGRAMS += nrm-geopm
 endif
 
+dist_bin_SCRIPTS = nrm-setup
+
+nrm-setup: src/python/nrm-setup.py
+	cp $^ $@
+	chmod +x $@
+
+CLEANFILES += $(dist_bin_SCRIPTS)
+EXTRA_DIST += src/python/nrm-setup.py
+
 bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 
 ###############################################################################
