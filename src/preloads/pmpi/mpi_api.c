@@ -2,11 +2,11 @@
  * Copyright 2019 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
- * This file is part of the nrm-extra project.
- * For more info, see https://github.com/anlsys/nrm-extra
+ * This file is part of the libnrm project.
+ * For more info, see https://github.com/anlsys/libnrm
  *
  * SPDX-License-Identifier: BSD-3-Clause
- *******************************************************************************/
+ ******************************************************************************/
 
 /* Filename: mpi_api.c
  *
@@ -21,6 +21,7 @@
  */
 
 #define _GNU_SOURCE
+#include "nrm.h"
 #include <assert.h>
 #include <ctype.h>
 #include <dlfcn.h>
@@ -28,8 +29,6 @@
 #include <sched.h> // sched_getcpu
 #include <stdio.h> // printf
 #include <stdlib.h> // exit, atoi
-
-#include "nrm.h"
 
 #include "nrm_mpi.h"
 
@@ -95,10 +94,9 @@ NRM_MPI_DECL(MPI_Finalize, int, void)
 
 int find_scope(nrm_client_t *client, int rank, nrm_scope_t **scope)
 {
-	/* create a scope based on current processor, 
+	/* create a scope based on current processor,
 	 */
-	nrm_string_t name = 
-		nrm_string_fromprintf("nrm.pmpi.%u", rank);
+	nrm_string_t name = nrm_string_fromprintf("nrm.pmpi.%u", rank);
 	nrm_scope_t *ret = nrm_scope_create(name);
 	nrm_string_decref(name);
 	nrm_scope_threadshared(ret);
@@ -129,7 +127,6 @@ int find_scope(nrm_client_t *client, int rank, nrm_scope_t **scope)
 	return 0;
 }
 
-
 NRM_MPI_DECL(MPI_Init, int, int *argc, char ***argv)
 {
 
@@ -143,12 +140,11 @@ NRM_MPI_DECL(MPI_Init, int, int *argc, char ***argv)
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrm.pmpi");
 	nrm_client_create(&client, nrm_upstream_uri, nrm_upstream_pub_port,
-			  nrm_upstream_rpc_port);
+	                  nrm_upstream_rpc_port);
 
 	find_scope(client, rank, &scope);
 
-	nrm_string_t name = 
-		nrm_string_fromprintf("nrm.pmpi.%u", rank);
+	nrm_string_t name = nrm_string_fromprintf("nrm.pmpi.%u", rank);
 	sensor = nrm_sensor_create(name);
 	nrm_string_decref(name);
 	nrm_client_add_sensor(client, sensor);
