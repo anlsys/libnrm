@@ -31,17 +31,11 @@
 
 #include "nrm.h"
 
-#include "extra.h"
 #include "nrm_mpi.h"
 
 static nrm_client_t *client;
 static nrm_scope_t *scope;
 static nrm_sensor_t *sensor;
-int added;
-
-static char *upstream_uri = "tcp://127.0.0.1";
-static int pub_port = 2345;
-static int rpc_port = 3456;
 
 NRM_MPI_DECL(MPI_Allreduce,
              int,
@@ -93,34 +87,70 @@ NRM_MPI_DECL(MPI_Comm_rank, int, MPI_Comm comm, int *rank)
 NRM_MPI_DECL(MPI_Finalize, int, void)
 {
 	NRM_MPI_RESOLVE(MPI_Finalize);
-	if (added)
-		nrm_client_remove_scope(client, scope);
 	nrm_scope_destroy(scope);
 	nrm_client_destroy(&client);
 	nrm_finalize();
 	return NRM_MPI_REALNAME(MPI_Finalize);
 }
 
+int find_scope(nrm_client_t *client, int rank, nrm_scope_t **scope)
+{
+	/* create a scope based on current processor, 
+	 */
+	nrm_string_t name = 
+		nrm_string_fromprintf("nrm.pmpi.%u", rank);
+	nrm_scope_t *ret = nrm_scope_create(name);
+	nrm_string_decref(name);
+	nrm_scope_threadshared(ret);
+
+	nrm_vector_t *nrmd_scopes;
+	nrm_client_list_scopes(client, &nrmd_scopes);
+
+	size_t numscopes;
+	int newscope = 0;
+	nrm_vector_length(nrmd_scopes, &numscopes);
+	for (size_t i = 0; i < numscopes; i++) {
+		nrm_scope_t *s;
+		nrm_vector_pop_back(nrmd_scopes, &s);
+		if (!nrm_scope_cmp(s, ret)) {
+			nrm_scope_destroy(ret);
+			ret = s;
+			newscope = 1;
+			continue;
+		}
+		nrm_scope_destroy(s);
+	}
+	if (!newscope) {
+		nrm_log_error("Could not find an existing scope to match\n");
+		return -NRM_EINVAL;
+	}
+	nrm_vector_destroy(&nrmd_scopes);
+	*scope = ret;
+	return 0;
+}
+
+
 NRM_MPI_DECL(MPI_Init, int, int *argc, char ***argv)
 {
 
-	int ret, rank, cpu;
+	int ret, rank;
 
 	NRM_MPI_RESOLVE(MPI_Init);
 	ret = NRM_MPI_REALNAME(MPI_Init, argc, argv);
-	cpu = sched_getcpu();
 
 	NRM_MPI_INNER_NAME(MPI_Comm_rank, MPI_COMM_WORLD, &rank);
 
 	nrm_init(NULL, NULL);
-	nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
+	nrm_log_init(stderr, "nrm.pmpi");
+	nrm_client_create(&client, nrm_upstream_uri, nrm_upstream_pub_port,
+			  nrm_upstream_rpc_port);
 
-	scope = nrm_scope_create("nrm.pmpi.global");
-	nrm_scope_threadshared(scope);
-	nrm_extra_find_scope(client, &scope, &added);
+	find_scope(client, rank, &scope);
 
-	char *name = "nrm-mpi-init";
+	nrm_string_t name = 
+		nrm_string_fromprintf("nrm.pmpi.%u", rank);
 	sensor = nrm_sensor_create(name);
+	nrm_string_decref(name);
 	nrm_client_add_sensor(client, sensor);
 
 	return ret;

@@ -1,25 +1,11 @@
 AM_COLOR_TESTS = yes
 
-AM_CPPFLAGS = \
-	      -include $(top_builddir)/src/config.h \
-	      -I$(top_srcdir)/include \
-	      -I$(top_builddir)/include
-
-AM_CFLAGS = $(LIBZMQ_CFLAGS) \
-	    $(LIBCZMQ_CFLAGS) \
-	    $(JANSSON_CFLAGS) \
-	    $(LIBPROTOC_CFLAGS) \
-	    $(HWLOC_CFLAGS) \
-	    $(PAPI_CFLAGS) \
+AM_CFLAGS = \
 	    $(OPENMP_CFLAGS)
 
-AM_LDFLAGS = $(LIBZMQ_LIBS) \
-	     $(LIBCZMQ_LIBS) \
-	     $(JANSSON_LIBS) \
-	     $(LIBPROTOC_LIBS) \
-	     $(HWLOC_LIBS) \
-	     $(PAPI_LIBS) \
+AM_LDFLAGS = \
 	     $(OPENMP_CFLAGS)
+
 # can't run those tests in parallel, they launch the daemon
 .NOTPARALLEL:
 
