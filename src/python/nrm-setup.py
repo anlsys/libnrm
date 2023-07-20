@@ -8,6 +8,45 @@ import signal
 import time
 import os
 
+class NRMSetup:
+    def __init__(self):
+        self.returncode = 0
+
+    def launch(self, args):
+        nrmd_path = (args.prefix / "nrmd").absolute()
+        self.nrmd_stdout = open(args.output / "nrmd-stdout.log", 'w+')
+        assert self.nrmd_stdout != None
+        self.nrmd_stderr = open(args.output / "nrmd-stderr.log", 'w+')
+        assert self.nrmd_stderr != None
+        self.nrmd = subprocess.Popen([nrmd_path, '-vvv'], stdin=None,
+                                     stdout=self.nrmd_stdout,
+                                     stderr=self.nrmd_stderr)
+        assert self.nrmd
+
+    def wait(self):
+        self.done = False
+        while not self.done:
+            time.sleep(1)
+            if self.nrmd.poll() is not None:
+                self.done = True
+
+    def exit_handler(self, *args):
+        print("caught signal, exiting")
+        if self.nrmd.poll() is None:
+            os.kill(self.nrmd.pid, signal.SIGTERM)
+        self.done = True
+
+    def child_handler(self, *args):
+        # only one child so exit
+        print("child terminated, exiting")
+        self.done = True
+
+    def cleanup(self):
+        ret = self.nrmd.poll()
+        self.returncode = self.returncode or ret
+        return self.returncode
+
+
 # Make a program that:
 # - launches nrmd, nrm-dummy-extra, all the other sensors,
 # - setup log redirection to proper log files
@@ -22,53 +61,12 @@ parser.add_argument('-p', '--prefix', type=pathlib.Path, default='.')
 args = parser.parse_args()
 print(args)
 
-# SIGTERM Handling:
-# kill everything, exit loop
-done = False
-children = []
-def signal_handler(*args):
-    for c in children:
-        os.kill(c.pid, signal.SIGTERM)
-    done = True
-signal.signal(signal.SIGTERM, signal_handler)
-signal.signal(signal.SIGINT, signal_handler)
+handler = NRMSetup()
+signal.signal(signal.SIGTERM, handler.exit_handler)
+signal.signal(signal.SIGINT, handler.exit_handler)
+signal.signal(signal.SIGCHLD, handler.child_handler)
 
-# Launch everyone
-running = []
-nrmd_path = (args.prefix / "nrmd").absolute()
-nrm_dummy_extra_path = args.prefix / "nrm-dummy-extra"
-
-nrmd_stdout = open(args.output / "nrmd-stdout.log", 'w+')
-assert nrmd_stdout != None
-nrmd_stderr = open(args.output / "nrmd-stderr.log", 'w+')
-assert nrmd_stderr != None
-nrmd = subprocess.Popen([nrmd_path, '-vvv'], stdin=None, stdout=nrmd_stdout,
-                        stderr=nrmd_stderr)
-children.append(nrmd)
-running.append(nrmd)
-err = 0
-while not done:
-    time.sleep(1)
-    newr = []
-    for c in running:
-        ret = c.poll()
-        if ret is not None:
-            print(f"{c} returned with code {ret}")
-            err = err or ret
-        else:
-            newr.append(c)
-    running = newr
-    if not running:
-        break
-
-# cleanup
-for c in children:
-    r = 0
-    if c in running:
-        r = c.poll()
-        if not r:
-            os.kill(c.pid, signal.SIGKILL)
-            r = 1
-    err = err or r
-
+handler.launch(args)
+handler.wait()
+err = handler.cleanup()
 exit(err)
