@@ -143,6 +143,11 @@ libnrm_ompt_la_SOURCES = \
 libnrm_ompt_la_LIBADD = libnrm.la
 endif
 
+if HAVE_PMPI
+# have to keep it separate because we need to change CC for this target
+SUBDIRS += src/preloads/pmpi
+endif
+
 dist_noinst_DATA = src/msg.proto
 BUILT_SOURCES += src/msg.pb-c.h
 CLEANFILES += src/msg.pb-c.c src/msg.pb-c.h
@@ -181,6 +186,10 @@ SUBDIRS += tests/cli
 
 if HAVE_OMPT
 SUBDIRS += tests/ompt
+endif
+
+if HAVE_PMPI
+SUBDIRS += tests/pmpi
 endif
 
 AM_COLOR_TESTS = yes

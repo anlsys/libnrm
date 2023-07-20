@@ -124,6 +124,10 @@ AC_CHECK_HEADER([omp-tools.h],have_ompt="true",
 CFLAGS="$save_CFLAGS"
 AM_CONDITIONAL([HAVE_OMPT], [test "x$have_ompt" == "xtrue"])
 
+# PMPI Support
+AX_MPI([have_pmpi="true"],[have_pmpi="false"])
+AM_CONDITIONAL([HAVE_PMPI], [test "x$have_pmpi" == "xtrue"])
+
 # protobuf-c
 ##############
 
@@ -144,6 +148,7 @@ AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile
 		 libnrm.pc
 	 	 doc/Makefile
+		 src/preloads/pmpi/Makefile
 		 tests/cli/Makefile
 		 tests/cli/bats-driver.sh
 		 tests/ompt/Makefile
@@ -195,6 +200,19 @@ PAPI:
 
 CFLAGS:  $PAPI_CFLAGS
 LDFLAGS: $PAPI_LIBS
+
+OMPT:
+======
+
+ENABLED: $HAVE_OMPT
+CFLAGS: $OPENMP_CFLAGS
+
+PMPI:
+======
+
+ENABLED: $HAVE_PMPI
+MPICC: $MPICC
+MPILIBS: $MPILIBS
 
 -------------------------------------------------------------------------------
 EOF
