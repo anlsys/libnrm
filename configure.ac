@@ -112,7 +112,40 @@ PKG_CHECK_MODULES([PAPI],[papi],,
 
 AC_CHECK_LIB(m, ceil,,[AC_MSG_ERROR([unable to find libm])])
 
+# GEOPM
+#########
+
+AC_ARG_WITH([geopm],
+	    [AS_HELP_STRING([--with-geopm],
+			    [Use geopm @<:@default=no@:>@])],
+	    [with_geopm=$withval], [with_geopm=no])
+AS_IF([test "x$with_geopm" != "xno"],
+      [
+       saved_CFLAGS=$CFLAGS
+       saved_LIBS=$LIBS
+       CFLAGS="$CFLAGS $GEOPM_CFLAGS"
+       LIBS="$LIBS $GEOPM_LIBS"
+       AC_SEARCH_LIBS([geopm_pio_num_signal_name], [geopmd], [], [AC_MSG_ERROR([unable to find GEOPM])])
+       AC_CHECK_HEADERS([geopm_pio.h],,[AC_MSG_ERROR([unable to find geopm_pio.h])])
+       AC_CHECK_HEADERS([geopm_topo.h],,[AC_MSG_ERROR([unable to find geopm_topo.h])])
+       have_geopm=1
+       CFLAGS="$saved_CFLAGS"
+       LIBS="$saved_LIBS"
+      ],
+      [
+       have_geopm=0
+      ]
+)
+
+AC_SUBST(GEOPM_CFLAGS)
+AC_SUBST(GEOPM_LIBS)
+AM_CONDITIONAL([HAVE_GEOPM],[test "$have_geopm" = "1"])
+AC_DEFINE([HAVE_GEOPM],[$have_geopm], [geopm support])
+AC_SUBST([HAVE_GEOPM])
+
 # omp-tools support
+####################
+
 AC_OPENMP
 save_CFLAGS="$CFLAGS"
 CFLAGS="$OPENMP_CFLAGS"
@@ -195,6 +228,13 @@ PAPI:
 
 CFLAGS:  $PAPI_CFLAGS
 LDFLAGS: $PAPI_LIBS
+
+GEOPM:
+=======
+
+Active:  $have_geopm
+CFLAGS:  $GEOPM_CFLAGS
+LDFLAGS: $GEOPM_LIBS
 
 -------------------------------------------------------------------------------
 EOF
