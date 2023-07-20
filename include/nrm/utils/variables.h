@@ -41,6 +41,12 @@
  */
 #define NRM_ENV_VAR_TRANSMIT "NRM_TRANSMIT"
 
+/**
+ * name of the environment variable for default timeout value when
+ * sending/receving messages (in milliseconds)
+ */
+#define NRM_ENV_VAR_TIMEOUT "NRM_TIMEOUT"
+
 /*******************************************************************************
  * Common environment default values
  ******************************************************************************/
@@ -71,6 +77,11 @@
  */
 #define NRM_DEFAULT_TRANSMIT 1
 
+/**
+ * default timeout value (1000: one second)
+ */
+#define NRM_DEFAULT_TIMEOUT 1000
+
 /*******************************************************************************
  * Runtime variables storing these values:
  * - before nrm_init, contain default values
@@ -78,9 +89,10 @@
  ******************************************************************************/
 
 extern char *nrm_upstream_uri;
-extern int nrm_upstream_rpc_port;
-extern int nrm_upstream_pub_port;
+extern unsigned int nrm_upstream_rpc_port;
+extern unsigned int nrm_upstream_pub_port;
 extern unsigned long long nrm_ratelimit;
 extern int nrm_transmit;
+extern unsigned int nrm_timeout;
 
 #endif /* NRM_VARIABLES_H */
