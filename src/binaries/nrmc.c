@@ -10,47 +10,14 @@
 
 #include "config.h"
 
-#include <getopt.h>
-// clang-format off
 #include "nrm.h"
+#include "nrm/tools.h"
+#include <getopt.h>
 
 #include "internal/messages.h"
-#include "internal/nrmi.h"
 #include "internal/roles.h"
-// clang-format on
 
-static int ask_help = 0;
-static int ask_version = 0;
-static char *upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
-static int pub_port = NRM_DEFAULT_UPSTREAM_PUB_PORT;
-static int rpc_port = NRM_DEFAULT_UPSTREAM_RPC_PORT;
 static nrm_client_t *client;
-
-static struct option long_options[] = {
-        {"help", no_argument, &ask_help, 1},
-        {"version", no_argument, &ask_version, 1},
-        {"uri", required_argument, NULL, 'u'},
-        {"rpc-port", required_argument, NULL, 'r'},
-        {"pub-port", required_argument, NULL, 'p'},
-        {0, 0, 0, 0},
-};
-
-static const char *short_options = "+hVu:r:p:";
-
-static const char *help[] = {"Usage: nrmc [options]\n\n", "Allowed options:\n",
-                             "--help, -h    : print this help message\n",
-                             "--version, -V : print program version\n", NULL};
-
-void print_help()
-{
-	for (int i = 0; help[i] != NULL; i++)
-		fprintf(stdout, "%s", help[i]);
-}
-
-void print_version()
-{
-	fprintf(stdout, "nrmc: version %s\n", nrm_version_string);
-}
 
 struct client_cmd {
 	const char *name;
@@ -92,13 +59,18 @@ int cmd_run(int argc, char **argv)
 {
 
 	int err;
-	char *manifest_name = NULL;
+	nrm_vector_t *preloads;
 	static struct option cmd_run_long_options[] = {
-	        {"manifest", required_argument, NULL, 'm'},
+	        {"preload", required_argument, NULL, 'd'},
 	        {0, 0, 0, 0},
 	};
 
-	static const char *cmd_run_short_options = ":m:";
+	static const char *cmd_run_short_options = ":d:";
+
+	nrm_vector_create(&preloads, sizeof(nrm_string_t));
+	nrm_string_t path;
+
+	optind = 1;
 
 	int c;
 	int option_index = 0;
@@ -110,8 +82,10 @@ int cmd_run(int argc, char **argv)
 		switch (c) {
 		case 0:
 			break;
-		case 'm':
-			manifest_name = optarg;
+		case 'd':
+			path = nrm_string_fromchar(optarg);
+			nrm_vector_push_back(preloads, &path);
+			nrm_log_debug("asked to preload: %s\n", path);
 			break;
 		case '?':
 			return EXIT_FAILURE;
@@ -119,6 +93,7 @@ int cmd_run(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 	}
+
 	/* remove the parsed part */
 	argc -= optind;
 	argv = &(argv[optind]);
@@ -128,7 +103,22 @@ int cmd_run(int argc, char **argv)
 	if (argc < 1)
 		return EXIT_FAILURE;
 
+	nrm_string_t ld_preload;
+	char *ldenv = getenv("LD_PRELOAD");
+	if (ldenv == NULL)
+		ld_preload = nrm_string_fromchar("");
+	else
+		ld_preload = nrm_string_fromchar(ldenv);
+
+	nrm_vector_foreach(preloads, iter)
+	{
+		nrm_string_t *s = nrm_vector_iterator_get(iter);
+		nrm_string_join(&ld_preload, ':', *s);
+		nrm_log_debug("preload append: %s %s\n", ld_preload, *s);
+	}
+	nrm_log_info("LD_PRELOAD=%s\n", ld_preload);
 	nrm_log_info("exec: argc: %u, argv[0]: %s\n", argc, argv[0]);
+	setenv("LD_PRELOAD", ld_preload, 1);
 	err = execvp(argv[0], &argv[0]);
 	return err;
 }
@@ -691,6 +681,15 @@ int cmd_send_event(int argc, char **argv)
 	return 0;
 }
 
+int cmd_exit(int argc, char **argv)
+{
+	(void)argc;
+	(void)argv;
+
+	nrm_client_send_exit(client);
+	return 0;
+}
+
 static struct client_cmd commands[] = {
         {"actuate", cmd_actuate},
         {"add-scope", cmd_add_scope},
@@ -710,83 +709,62 @@ static struct client_cmd commands[] = {
         {"remove-slice", cmd_remove_slice},
         {"remove-sensor", cmd_remove_sensor},
         {"run", cmd_run},
+        {"exit", cmd_exit},
         {0, 0},
 };
 
+void nrmc_print_help(nrm_tools_args_t *args)
+{
+	nrm_tools_print_help(args);
+
+	fprintf(stdout, "\nAvailable Commands:\n");
+	for (size_t i = 0; commands[i].name != NULL; i++)
+		fprintf(stdout, "%s\n", commands[i].name);
+}
+
 int main(int argc, char *argv[])
 {
-	int c;
-	int option_index = 0;
+	int err;
+	nrm_tools_args_t args;
+	nrm_log_init(stderr, "nrmc");
+	nrm_init(NULL, NULL);
 
-	while (1) {
-		c = getopt_long(argc, argv, short_options, long_options,
-		                &option_index);
-		if (c == -1)
-			break;
-		switch (c) {
-		case 0:
-			break;
-		case 'h':
-			ask_help = 1;
-			break;
-		case 'p':
-			errno = 0;
-			pub_port = strtol(optarg, NULL, 0);
-			assert(errno == 0);
-			break;
-		case 'r':
-			errno = 0;
-			rpc_port = strtol(optarg, NULL, 0);
-			assert(errno == 0);
-			break;
-		case 'u':
-			upstream_uri = optarg;
-			break;
-		case 'V':
-			ask_version = 1;
-			break;
-		case ':':
-			fprintf(stderr, "nrmc: missing argument\n");
-			exit(EXIT_FAILURE);
-		case '?':
-			fprintf(stderr, "nrmc: invalid option: %s\n",
-			        argv[optind - 1]);
-			exit(EXIT_FAILURE);
-		default:
-			fprintf(stderr, "nrmc: this should not happen\n");
-			exit(EXIT_FAILURE);
-		}
+	args.progname = "nrmc";
+	args.flags = 0;
+
+	err = nrm_tools_parse_args(argc, argv, &args);
+	if (err < 0) {
+		nrm_log_error("errors during argument parsing\n");
+		nrmc_print_help(&args);
+		exit(EXIT_FAILURE);
 	}
 
 	/* remove the parsed part */
-	argc -= optind;
-	argv = &(argv[optind]);
+	argc -= err;
+	argv = &(argv[err]);
 
-	if (ask_help) {
-		print_help();
+	if (args.ask_help) {
+		nrmc_print_help(&args);
 		exit(EXIT_SUCCESS);
 	}
-	if (ask_version) {
-		print_version();
+	if (args.ask_version) {
+		nrm_tools_print_version(&args);
 		exit(EXIT_SUCCESS);
 	}
 
 	if (argc == 0) {
-		print_help();
+		nrmc_print_help(&args);
 		exit(EXIT_FAILURE);
 	}
 
-	nrm_init(NULL, NULL);
-	nrm_log_init(stderr, "nrmc");
-	nrm_log_setlevel(NRM_LOG_DEBUG);
-
+	nrm_log_setlevel(args.log_level);
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 	              argc, argv[0]);
 
 	nrm_log_info("creating client\n");
-	nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
+	nrm_client_create(&client, args.upstream_uri, args.pub_port,
+	                  args.rpc_port);
 
-	int err = 0;
 	for (int i = 0; commands[i].name != NULL; i++) {
 		if (!strcmp(argv[0], commands[i].name)) {
 			err = commands[i].fn(argc, argv);

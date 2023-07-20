@@ -34,7 +34,8 @@ typedef enum _Nrm__MSGTYPE nrm_msg_msgtype_e;
 #define NRM_MSG_TYPE_REMOVE (NRM__MSGTYPE__REMOVE)
 #define NRM_MSG_TYPE_EVENT (NRM__MSGTYPE__EVENT)
 #define NRM_MSG_TYPE_ACTUATE (NRM__MSGTYPE__ACTUATE)
-#define NRM_MSG_TYPE_MAX (6)
+#define NRM_MSG_TYPE_EXIT (NRM__MSGTYPE__EXIT)
+#define NRM_MSG_TYPE_MAX (7)
 
 typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_SLICE (NRM__TARGETTYPE__SLICE)
@@ -49,6 +50,7 @@ typedef Nrm__ActuatorList nrm_msg_actuatorlist_t;
 typedef Nrm__Add nrm_msg_add_t;
 typedef Nrm__Event nrm_msg_event_t;
 typedef Nrm__List nrm_msg_list_t;
+typedef Nrm__Message nrm_msg_t;
 typedef Nrm__Remove nrm_msg_remove_t;
 typedef Nrm__Scope nrm_msg_scope_t;
 typedef Nrm__ScopeList nrm_msg_scopelist_t;
@@ -73,7 +75,9 @@ typedef Nrm__SliceList nrm_msg_slicelist_t;
 #define nrm_msg_slicelist_init(msg) nrm__slice_list__init(msg)
 
 nrm_msg_t *nrm_msg_create(void);
-void nrm_msg_destroy(nrm_msg_t **msg);
+void nrm_msg_destroy_created(nrm_msg_t **msg);
+void nrm_msg_destroy_received(nrm_msg_t **msg);
+void nrm_log_printmsg(int level, nrm_msg_t *msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
 int nrm_msg_set_event(nrm_msg_t *msg,

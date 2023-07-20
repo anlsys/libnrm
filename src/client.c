@@ -55,7 +55,7 @@ int nrm_client_actuate(const nrm_client_t *client,
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
 
-	nrm_log_debug("checking value is valid");
+	nrm_log_debug("checking value is valid\n");
 	size_t i, len;
 	nrm_vector_length(actuator->choices, &len);
 	for (i = 0; i < len; i++) {
@@ -91,6 +91,7 @@ int nrm_client_actuate(const nrm_client_t *client,
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -122,6 +123,7 @@ int nrm_client_add_actuator(const nrm_client_t *client,
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_ACTUATOR);
 	nrm_actuator_update_frommsg(actuator, msg->add->actuator);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -152,6 +154,7 @@ int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SCOPE);
 	nrm_scope_update_frommsg(scope, msg->add->scope);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -182,6 +185,7 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SLICE);
 	nrm_slice_update_frommsg(slice, msg->add->slice);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -212,6 +216,7 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SENSOR);
 	nrm_sensor_update_frommsg(sensor, msg->add->sensor);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -320,6 +325,7 @@ int nrm_client_find(const nrm_client_t *client,
 		}
 	}
 	*results = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -422,6 +428,7 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 		nrm_vector_push_back(ret, &s);
 	}
 	*actuators = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -463,6 +470,7 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 		nrm_vector_push_back(ret, &s);
 	}
 	*scopes = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -504,6 +512,7 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 		nrm_vector_push_back(ret, &s);
 	}
 	*sensors = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -545,6 +554,7 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 		nrm_vector_push_back(ret, &s);
 	}
 	*slices = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -574,6 +584,7 @@ int nrm_client_remove_actuator(const nrm_client_t *client,
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -602,6 +613,7 @@ int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -630,6 +642,7 @@ int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -658,6 +671,7 @@ int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -680,6 +694,30 @@ int nrm_client_send_event(const nrm_client_t *client,
 	nrm_role_send(client->role, msg, NULL);
 	pthread_mutex_unlock(&(client->lock));
 
+	return 0;
+}
+
+int nrm_client_send_exit(const nrm_client_t *client)
+{
+	if (client == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_EXIT);
+	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
+	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
+
+	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
+	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
 	return 0;
 }
 

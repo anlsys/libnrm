@@ -86,6 +86,7 @@ int nrm_client_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 		nrm_log_debug("client sending message\n");
 		nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 		nrm_msg_send(self->rpc, msg);
+		nrm_msg_destroy_created(&msg);
 		break;
 	case NRM_CTRLMSG_TYPE_SUB:
 		NRM_CTRLMSG_2SUB(p, q, s);
@@ -96,8 +97,6 @@ int nrm_client_broker_pipe_handler(zloop_t *loop, zsock_t *socket, void *arg)
 		/* returning -1 exits the loop */
 		return -1;
 	}
-	/* we've taken ownership of the message at this point */
-	nrm_msg_destroy(&msg);
 	return 0;
 }
 
@@ -118,6 +117,7 @@ int nrm_client_broker_rpc_handler(zloop_t *loop, zsock_t *socket, void *arg)
 			self->cmd_cb->fn(msg, self->cmd_cb->arg);
 		else
 			nrm_log_debug("no cmd callback to call\n");
+		nrm_msg_destroy_received(&msg);
 	}
 	return 0;
 }
@@ -133,11 +133,11 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	nrm_msg_t *msg = nrm_msg_sub(socket, &topic);
 	nrm_log_debug("received subscribed message\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-	if (self->sub_cb == NULL || self->sub_cb->fn == NULL) {
+	if (self->sub_cb == NULL || self->sub_cb->fn == NULL)
 		nrm_log_debug("no callback to call\n");
-		return 0;
-	}
-	self->sub_cb->fn(msg, self->sub_cb->arg);
+	else
+		self->sub_cb->fn(msg, self->sub_cb->arg);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -178,14 +178,14 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	self->cmd_cb = params->cmd_cb;
 
 	/* init network */
-	fprintf(stderr, "client: creating rpc socket\n");
+	nrm_log_debug("client: creating rpc socket\n");
 	err = nrm_net_rpc_client_init(&self->rpc);
 	assert(!err);
 	err = nrm_net_connect_and_wait_2(self->rpc, params->uri,
 	                                 params->rpc_port);
 	assert(!err);
 
-	fprintf(stderr, "client: creating sub socket\n");
+	nrm_log_debug("client: creating sub socket\n");
 	err = nrm_net_sub_init(&self->sub);
 	assert(!err);
 	err = nrm_net_connect_and_wait_2(self->sub, params->uri,
@@ -193,7 +193,7 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	assert(!err);
 
 	/* set ourselves up to handle messages */
-	fprintf(stderr, "client: finishing setup\n");
+	nrm_log_debug("client: finishing setup\n");
 	self->loop = zloop_new();
 	assert(self->loop != NULL);
 
@@ -319,6 +319,7 @@ int nrm_role_client_sub(const struct nrm_role_data *data, nrm_string_t topic)
 {
 	struct nrm_role_client_s *client = (struct nrm_role_client_s *)data;
 	nrm_ctrlmsg_sub((zsock_t *)client->broker, NRM_CTRLMSG_TYPE_SUB, topic);
+	return 0;
 }
 
 struct nrm_role_ops nrm_role_client_ops = {

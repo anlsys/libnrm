@@ -57,7 +57,6 @@ START_TEST(test_iter)
 {
 	nrm_vector_t *vector = NULL;
 	nrm_vector_create(&vector, sizeof(nrm_string_t));
-	int a = 42, b = 43, c = 44;
 	int err;
 	nrm_string_t fortytwo = nrm_string_fromchar("fortytwo");
 	nrm_string_t fortythree = nrm_string_fromchar("fortythree");

@@ -28,6 +28,9 @@ typedef struct nrm_realstring_s nrm_realstring_t;
 	(nrm_realstring_t *)(((intptr_t)s) - NRM_STRING_HEADER_SIZE)
 #define NRM_STRING_S2C(s) (char *)(((intptr_t)s) + NRM_STRING_HEADER_SIZE)
 
+#define NRM_ATOMIC_FINC(p) __atomic_fetch_add(p, 1, __ATOMIC_RELAXED)
+#define NRM_ATOMIC_DECF(p) __atomic_sub_fetch(p, 1, __ATOMIC_RELAXED)
+
 static nrm_realstring_t *nrm_string_new(size_t slen)
 {
 	/* header + buffer + null byte */
@@ -64,17 +67,44 @@ nrm_string_t nrm_string_frombuf(const char *string, size_t len)
 	memcpy(ret, string, len);
 	return ret;
 }
+
+nrm_string_t nrm_string_fromprintf(const char *format, ...)
+{
+	va_list ap;
+	size_t slen;
+	nrm_realstring_t *rs;
+
+	va_start(ap, format);
+	/* memory needed to print this */
+	slen = vsnprintf(NULL, 0, format, ap);
+	va_end(ap);
+
+	rs = nrm_string_new(slen);
+	if (rs == NULL)
+		return NULL;
+
+	/* print at the end */
+	nrm_string_t ret = NRM_STRING_S2C(rs);
+	va_start(ap, format);
+	vsnprintf(ret, rs->mlen, format, ap);
+	va_end(ap);
+
+	return ret;
+}
+
 void nrm_string_incref(nrm_string_t s)
 {
 	nrm_realstring_t *r = NRM_STRING_C2S(s);
-	r->rc++;
+	int ret = NRM_ATOMIC_FINC(&(r->rc));
+	assert(ret > 0);
 }
 
 void nrm_string_decref(nrm_string_t s)
 {
 	nrm_realstring_t *r = NRM_STRING_C2S(s);
-	r->rc--;
-	if (r->rc == 0)
+	int ret = NRM_ATOMIC_DECF(&(r->rc));
+	assert(ret >= 0);
+	if (ret == 0)
 		free(r);
 }
 
@@ -86,4 +116,35 @@ int nrm_string_cmp(nrm_string_t one, nrm_string_t two)
 		return 1;
 	nrm_realstring_t *r1 = NRM_STRING_C2S(one);
 	return strncmp(one, two, r1->slen);
+}
+
+size_t nrm_string_strlen(const nrm_string_t s)
+{
+	if (s == NULL)
+		return 0;
+
+	nrm_realstring_t *r = NRM_STRING_C2S(s);
+	return r->slen;
+}
+
+/* not thread safe */
+int nrm_string_join(nrm_string_t *dest, char c, nrm_string_t src)
+{
+	if (dest == NULL)
+		return -NRM_EINVAL;
+
+	if (src == NULL)
+		return 0;
+
+	nrm_realstring_t *r = NRM_STRING_C2S(*dest);
+	nrm_realstring_t *s = NRM_STRING_C2S(src);
+
+	nrm_realstring_t *t = nrm_string_new(r->slen + s->slen + 1);
+	nrm_string_t ret = NRM_STRING_S2C(t);
+	memcpy(ret, *dest, r->slen);
+	ret[r->slen] = c;
+	memcpy(ret + r->slen + 1, src, s->slen);
+	nrm_string_decref(*dest);
+	*dest = ret;
+	return 0;
 }
