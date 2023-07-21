@@ -1,17 +1,21 @@
 /*******************************************************************************
- * Copyright 2021 UChicago Argonne, LLC.
+ * Copyright 2023 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
- * This file is part of the nrm-extra project.
- * For more info, see https://github.com/anlsys/nrm-extra
+ * This file is part of the libnrm project.
+ * For more info, see https://github.com/anlsys/libnrm
  *
  * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
-/* Filename: nrmpower_papi.c
+/* Filename: nrm-geopm.c
  *
- * Description: Implements middleware between powercap, measured via PAPI,
- *               and the NRM downstream interface. Resources detected via hwloc.
+ * Description: Implements middleware between GEOPM (https://geopm.github.io/)
+ * 				and the NRM downstream interface. Resources detected via
+ *				hwloc and GEOPM. The `geopmd` service must be running. The `msr`
+ *				module must be enabled via `modprobe msr` if its installed.
+ *				This utility may also need root privileges to detect many
+ *				basic signals like CPU_POWER.
  */
 
 #include <limits.h>
