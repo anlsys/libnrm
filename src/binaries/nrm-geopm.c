@@ -25,6 +25,7 @@
 #include <hwloc.h>
 #include <limits.h>
 #include <math.h>
+#include <nrm.h>
 #include <sched.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -35,8 +36,6 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
-
-#include <nrm.h>
 
 static int log_level = NRM_LOG_DEBUG;
 volatile sig_atomic_t stop = 0;
