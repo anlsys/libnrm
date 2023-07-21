@@ -8,6 +8,7 @@
 , jansson
 , openmp
 , papi
+, geopmd
 , pkgconfig
 , protobufc
 , zeromq
@@ -24,6 +25,7 @@ stdenv.mkDerivation {
     jansson
     openmp
     papi
+    geopmd
     protobufc
     zeromq
   ];
