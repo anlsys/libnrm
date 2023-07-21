@@ -103,7 +103,7 @@ int nrm_net_pub_init(zsock_t **socket)
 
 int nrm_net_connect_and_wait(zsock_t *socket, const char *uri, int port)
 {
-	/* the process is a little more complicated that you would think, as
+	/* the process is a little more complicated than you would think, as
 	 * we're trying to avoid returning from this function before the socket
 	 * is fully connected.
 	 *
