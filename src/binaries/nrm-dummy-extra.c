@@ -60,8 +60,12 @@ int main(int argc, char *argv[])
 	              argc, argv[0]);
 
 	nrm_log_info("creating client\n");
-	nrm_client_create(&client, args.upstream_uri, args.pub_port,
-	                  args.rpc_port);
+	err = nrm_client_create(&client, args.upstream_uri, args.pub_port,
+	                        args.rpc_port);
+	if (err) {
+		nrm_log_error("error during client creation: %d\n", err);
+		return EXIT_FAILURE;
+	}
 
 	nrm_sensor_t *sensor;
 	nrm_scope_t *scope;
