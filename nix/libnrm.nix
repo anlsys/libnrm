@@ -9,6 +9,7 @@
 , mpich
 , openmp
 , papi
+, geopmd
 , pkgconfig
 , protobufc
 , zeromq
@@ -26,6 +27,7 @@ stdenv.mkDerivation {
     mpich
     openmp
     papi
+    geopmd
     protobufc
     zeromq
   ];

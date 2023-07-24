@@ -22,7 +22,8 @@ mkShell {
     jq
     bats
   ];
-
+  GEOPM_CFLAGS = "-I${geopmd}/include";
+  GEOPM_LIBS = "-L${geopmd}/lib -lgeopmd";
   CFLAGS =
     "-std=c99 -pedantic -Wall -Wextra -g -O0";
 }

@@ -18,6 +18,7 @@ AM_CFLAGS = $(LIBZMQ_CFLAGS) \
 	    $(LIBPROTOC_CFLAGS) \
 	    $(HWLOC_CFLAGS) \
 	    $(PAPI_CFLAGS) \
+	    $(GEOPM_CFLAGS) \
 	    $(OPENMP_CFLAGS)
 
 AM_LDFLAGS = $(LIBZMQ_LIBS) \
@@ -25,6 +26,7 @@ AM_LDFLAGS = $(LIBZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
 	     $(LIBPROTOC_LIBS) \
 	     $(HWLOC_LIBS) \
+       $(GEOPM_LIBS) \
 	     $(PAPI_LIBS) \
 	     $(OPENMP_CFLAGS) \
 	     $(MPILIBS)
@@ -175,6 +177,12 @@ nrm_dummy_extra_LDADD = libnrm.la
 
 nrm_papiwrapper_SOURCES = src/binaries/nrm-papiwrapper.c
 nrm_papiwrapper_LDADD = libnrm.la
+
+if HAVE_GEOPM
+nrm_geopm_SOURCES = src/binaries/nrm-geopm.c
+nrm_geopm_LDADD = libnrm.la
+bin_PROGRAMS += nrm-geopm
+endif
 
 bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 
