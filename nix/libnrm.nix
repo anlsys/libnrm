@@ -6,6 +6,7 @@
 , git
 , hwloc
 , jansson
+, mpich
 , openmp
 , papi
 , pkgconfig
@@ -22,6 +23,7 @@ stdenv.mkDerivation {
     czmq
     hwloc
     jansson
+    mpich
     openmp
     papi
     protobufc
