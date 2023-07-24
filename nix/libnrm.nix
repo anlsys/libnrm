@@ -6,6 +6,7 @@
 , git
 , hwloc
 , jansson
+, mpich
 , openmp
 , papi
 , geopmd
@@ -23,6 +24,7 @@ stdenv.mkDerivation {
     czmq
     hwloc
     jansson
+    mpich
     openmp
     papi
     geopmd
