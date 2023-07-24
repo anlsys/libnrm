@@ -21,7 +21,6 @@ mkShell {
     python3Packages.sphinx_rtd_theme
     jq
     bats
-    geopmd
   ];
   GEOPM_CFLAGS = "-I${geopmd}/include";
   GEOPM_LIBS = "-L${geopmd}/lib -lgeopmd";
