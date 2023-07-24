@@ -11,11 +11,10 @@
 /* Filename: nrm-geopm.c
  *
  * Description: Implements middleware between GEOPM (https://geopm.github.io/)
- * 				and the NRM downstream interface. Resources detected via
- *				hwloc and GEOPM. The `geopmd` service must be running. The `msr`
- *				module must be enabled via `modprobe msr` if its installed.
- *				This utility may also need root privileges to detect many
- *				basic signals like CPU_POWER.
+ * and the NRM downstream interface. Resources detected via hwloc and GEOPM. The
+ * `geopmd` service must be running. The `msr` module must be enabled via
+ * `modprobe msr` if its installed. This utility may also need root privileges
+ * to detect many basic signals like CPU_POWER.
  */
 
 #include <limits.h>
