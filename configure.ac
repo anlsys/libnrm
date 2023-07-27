@@ -126,6 +126,7 @@ AS_IF([test "x$with_geopm" != "xno"],
        CFLAGS="$CFLAGS $GEOPM_CFLAGS"
        LIBS="$LIBS $GEOPM_LIBS"
        AC_SEARCH_LIBS([geopm_pio_num_signal_name], [geopmd], [], [AC_MSG_ERROR([unable to find GEOPM])])
+       GEOPM_LIBS="$GEOPM_LIBS $ac_cv_search_geopm_pio_num_signal_name"
        AC_CHECK_HEADERS([geopm_pio.h],,[AC_MSG_ERROR([unable to find geopm_pio.h])])
        AC_CHECK_HEADERS([geopm_topo.h],,[AC_MSG_ERROR([unable to find geopm_topo.h])])
        have_geopm=1
@@ -140,8 +141,8 @@ AS_IF([test "x$with_geopm" != "xno"],
 AC_SUBST(GEOPM_CFLAGS)
 AC_SUBST(GEOPM_LIBS)
 AM_CONDITIONAL([HAVE_GEOPM],[test "$have_geopm" = "1"])
-AC_DEFINE([HAVE_GEOPM],[$have_geopm], [geopm support])
-AC_SUBST([HAVE_GEOPM])
+AC_DEFINE_UNQUOTED([HAVE_GEOPM],[$have_geopm], [geopm support])
+AC_SUBST([HAVE_GEOPM],[$have_geopm])
 
 # omp-tools support
 ####################
