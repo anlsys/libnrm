@@ -11,6 +11,17 @@ Manager (NRM).
 Install
 =======
 
+The libnrm instrumentation library and power-measuring utilities can be downloaded
+from GitHub::
+
+  git clone https://github.com/anlsys/libnrm.git
+
+Build and install::
+
+  cd libnrm
+  ./autogen.sh
+  ./configure; make; make install
+
 Container piece
 ---------------
 
@@ -23,46 +34,11 @@ Singularity
 For local singularity installation, refer to the Singularity_ installation
 page.
 
-NRM
----
-
-The NRM core library must be installed first. Binary releases are available on GitHub_.
-If installing via this method, ensure that ``LD_LIBRARY_PATH`` points to the directory
-that contains the extracted shared library files. Otherwise, set the ``NRMSO``
-and ``PYNRMSO`` environment variables like the following::
-
-    tar xf nrm-core-v0.7.0-x86_64-linux.tar.gz
-    export NRMSO=${PWD}/nrm-core-v0.7.0-x86_64-linux/lib/libnrm-core.so
-    export PYNRMSO=${PWD}/nrm-core-v0.7.0-x86_64-linux/lib/libnrm-core-python.so
-
-The ``nrm`` client is available in ``nrm-core-v0.7.0-x86_64-linux/bin``.
-
-Alternatively, the NRM core components (the ``nrmd`` daemon and ``nrm`` client)
-can be installed in other ways:
 
 Using Spack
 ^^^^^^^^^^^
 
-The various components of NRM are available on Spack. The ``nrm-core`` package
-contains the core library and ``py-nrm`` contains the Python interface. The ``nrm``
-package contains documentation and example configuration scripts, and also installs
-the other components::
-
-
-    spack install nrm-core
-    spack install py-nrm
-
-or::
-
-    spack install nrm
-
-Using Pip
-^^^^^^^^^
-
-After obtaining NRM-Core, you should be able to get the NRM Python interface
-and most of its dependencies on any machine with::
-
- pip install https://github.com/anlsys/nrm-python.git
+    spack install libnrm
 
 Setup: Launching the `nrmd` daemon
 ==================================
