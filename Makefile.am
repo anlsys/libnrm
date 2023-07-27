@@ -1,6 +1,7 @@
 bin_PROGRAMS = 
 check_PROGRAMS = 
 TESTS = 
+SUBDIRS = 
 BUILT_SOURCES = 
 EXTRA_DIST = 
 CLEANFILES = 
@@ -17,6 +18,7 @@ AM_CFLAGS = $(LIBZMQ_CFLAGS) \
 	    $(LIBPROTOC_CFLAGS) \
 	    $(HWLOC_CFLAGS) \
 	    $(PAPI_CFLAGS) \
+	    $(GEOPM_CFLAGS) \
 	    $(OPENMP_CFLAGS)
 
 AM_LDFLAGS = $(LIBZMQ_LIBS) \
@@ -24,8 +26,10 @@ AM_LDFLAGS = $(LIBZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
 	     $(LIBPROTOC_LIBS) \
 	     $(HWLOC_LIBS) \
+       $(GEOPM_LIBS) \
 	     $(PAPI_LIBS) \
-	     $(OPENMP_CFLAGS)
+	     $(OPENMP_CFLAGS) \
+	     $(MPILIBS)
 
 EXTRA_DIST += autogen.sh libnrm.pc README.md LICENSE CONTRIBUTING.markdown
 
@@ -140,7 +144,18 @@ libnrm_ompt_la_SOURCES = \
 		src/preloads/ompt/nrm_omp_callbacks.c \
 		src/preloads/ompt/nrm_omp.h
 
+libnrm_ompt_la_LDFLAGS = $(AM_LDFLAGS) -export-symbols-regex '^(ompt)_'
 libnrm_ompt_la_LIBADD = libnrm.la
+endif
+
+if HAVE_PMPI
+lib_LTLIBRARIES += libnrm-pmpi.la
+libnrm_pmpi_la_SOURCES = \
+		src/preloads/pmpi/c_mpi_bindings.c \
+		src/preloads/pmpi/mpi_api.c \
+		src/preloads/pmpi/nrm_mpi.h
+libnrm_pmpi_la_LDFLAGS = $(AM_LDFLAGS) -export-symbols-regex '^(MPI|mpi)_'
+libnrm_pmpi_la_LIBADD = libnrm.la
 endif
 
 dist_noinst_DATA = src/msg.proto
@@ -163,6 +178,12 @@ nrm_dummy_extra_LDADD = libnrm.la
 nrm_papiwrapper_SOURCES = src/binaries/nrm-papiwrapper.c
 nrm_papiwrapper_LDADD = libnrm.la
 
+if HAVE_GEOPM
+nrm_geopm_SOURCES = src/binaries/nrm-geopm.c
+nrm_geopm_LDADD = libnrm.la
+bin_PROGRAMS += nrm-geopm
+endif
+
 bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 
 ###############################################################################
@@ -170,7 +191,7 @@ bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 ###############################################################################
 
 # can't make it work nicely with readthedocs, so use a subdir
-SUBDIRS = doc
+SUBDIRS += doc
 
 ###############################################################################
 # TESTS
@@ -181,6 +202,10 @@ SUBDIRS += tests/cli
 
 if HAVE_OMPT
 SUBDIRS += tests/ompt
+endif
+
+if HAVE_PMPI
+SUBDIRS += tests/pmpi
 endif
 
 AM_COLOR_TESTS = yes

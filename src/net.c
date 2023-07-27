@@ -34,6 +34,9 @@ int nrm_net_rpc_client_init(zsock_t **socket)
 	zsock_set_immediate(ret, 1);
 	/* buffer as many messages as possible */
 	zsock_set_unbounded(ret);
+	/* set timeout on send/recv */
+	zsock_set_sndtimeo(ret, nrm_timeout);
+	zsock_set_rcvtimeo(ret, nrm_timeout);
 	/* add an identity to the socket */
 	nrm_uuid_t *uuid = nrm_uuid_create();
 	zsock_set_identity(ret, nrm_uuid_to_char(uuid));
@@ -55,6 +58,9 @@ int nrm_net_rpc_server_init(zsock_t **socket)
 	zsock_set_immediate(ret, 1);
 	/* buffer as many messages as possible */
 	zsock_set_unbounded(ret);
+	/* set timeout on send/recv */
+	zsock_set_sndtimeo(ret, nrm_timeout);
+	zsock_set_rcvtimeo(ret, nrm_timeout);
 	*socket = ret;
 	return 0;
 }
@@ -95,56 +101,9 @@ int nrm_net_pub_init(zsock_t **socket)
 	return 0;
 }
 
-int nrm_net_connect_and_wait(zsock_t *socket, const char *uri)
+int nrm_net_connect_and_wait(zsock_t *socket, const char *uri, int port)
 {
-	/* the process is a little more complicated that you would think, as
-	 * we're trying to avoid returning from this function before the socket
-	 * is fully connected.
-	 *
-	 * To do that, we also create a socket monitor (socket pair + actor)
-	 * that will loop until we actually receive a connection message.
-	 *
-	 * To avoid missing that message on the monitor, we're also careful of
-	 * connecting the monitor before connecting the real socket to the
-	 * server.
-	 */
-	int err;
-
-	if (!nrm_transmit)
-		return 0;
-
-	zactor_t *monitor = zactor_new(zmonitor, socket);
-	assert(monitor != NULL);
-
-	zstr_sendx(monitor, "LISTEN", "CONNECTED", NULL);
-	zstr_send(monitor, "START");
-	zsock_wait(monitor);
-
-	/* now connect the original client */
-	err = zsock_connect(socket, "%s", uri);
-	assert(err == 0);
-
-	int connected = 0;
-	while (!connected) {
-		/* read first frame for event number */
-		zmsg_t *msg = zmsg_recv(monitor);
-		assert(msg != NULL);
-
-		char *event = zmsg_popstr(msg);
-
-		if (!strcmp(event, "CONNECTED"))
-			connected = 1;
-		free(event);
-		zmsg_destroy(&msg);
-	}
-	/* cleanup monitor */
-	zactor_destroy(&monitor);
-	return 0;
-}
-
-int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port)
-{
-	/* the process is a little more complicated that you would think, as
+	/* the process is a little more complicated than you would think, as
 	 * we're trying to avoid returning from this function before the socket
 	 * is fully connected.
 	 *
@@ -169,17 +128,25 @@ int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port)
 	zstr_send(monitor, "START");
 	nrm_log_debug("waiting socket monitor\n");
 	zsock_wait(monitor);
+	zsock_set_rcvtimeo(monitor, nrm_timeout);
 
 	/* now connect the original client */
 	nrm_log_debug("connecting to %s:%d\n", uri, port);
 	err = zsock_connect(socket, "%s:%d", uri, port);
-	assert(err == 0);
+	if (err) {
+		nrm_log_error("error connecting %d\n", err);
+		goto cleanup;
+	}
 
 	int connected = 0;
 	while (!connected) {
 		/* read first frame for event number */
 		zmsg_t *msg = zmsg_recv(monitor);
-		assert(msg != NULL);
+		if (msg == NULL) {
+			nrm_log_error("socket monitor timeout\n");
+			err = -NRM_FAILURE;
+			goto cleanup;
+		}
 
 		char *event = zmsg_popstr(msg);
 
@@ -190,9 +157,10 @@ int nrm_net_connect_and_wait_2(zsock_t *socket, const char *uri, int port)
 		zmsg_destroy(&msg);
 	}
 	nrm_log_debug("connection established\n");
+cleanup:
 	/* cleanup monitor */
 	zactor_destroy(&monitor);
-	return 0;
+	return err;
 }
 
 int nrm_net_bind(zsock_t *socket, const char *uri)

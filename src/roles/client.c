@@ -165,9 +165,16 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 
 	/* avoid losing messages */
 	zsock_set_unbounded(pipe);
+
+	/* tell zmq that the actor is running:
+	 * needed so that the role can do a second wait and catch errors.
+	 */
+	zsock_signal(pipe, 0);
+
 	self = calloc(1, sizeof(struct nrm_client_broker_s));
 	if (self == NULL) {
-		zsock_signal(pipe, 1);
+		nrm_log_perror("can't allocate client role\n");
+		zsock_signal(pipe, NRM_ENOMEM);
 		return;
 	}
 
@@ -180,27 +187,51 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	/* init network */
 	nrm_log_debug("client: creating rpc socket\n");
 	err = nrm_net_rpc_client_init(&self->rpc);
-	assert(!err);
-	err = nrm_net_connect_and_wait_2(self->rpc, params->uri,
-	                                 params->rpc_port);
-	assert(!err);
+	if (err) {
+		nrm_log_error("can't create rpc socket: %d\n", err);
+		zsock_signal(self->pipe, -err);
+		goto cleanup;
+	}
+	err = nrm_net_connect_and_wait(self->rpc, params->uri,
+	                               params->rpc_port);
+	if (err) {
+		nrm_log_error("can't connect rpc socket: %d\n", err);
+		zsock_signal(self->pipe, -err);
+		goto cleanup_rpc;
+	}
 
 	nrm_log_debug("client: creating sub socket\n");
 	err = nrm_net_sub_init(&self->sub);
-	assert(!err);
-	err = nrm_net_connect_and_wait_2(self->sub, params->uri,
-	                                 params->sub_port);
-	assert(!err);
+	if (err) {
+		nrm_log_error("can't create sub socket: %d\n", err);
+		zsock_signal(self->pipe, -err);
+		goto cleanup_rpc;
+	}
+	err = nrm_net_connect_and_wait(self->sub, params->uri,
+	                               params->sub_port);
+	if (err) {
+		nrm_log_error("can't connect sub socket: %d\n", err);
+		zsock_signal(self->pipe, -err);
+		goto cleanup_sub;
+	}
 
 	/* set ourselves up to handle messages */
 	nrm_log_debug("client: finishing setup\n");
 	self->loop = zloop_new();
-	assert(self->loop != NULL);
+	if (self->loop == NULL) {
+		nrm_log_error("can't create zmq loop\n");
+		zsock_signal(self->pipe, NRM_FAILURE);
+		goto cleanup_sub;
+	}
 
 	sigemptyset(&sigmask);
 	sigaddset(&sigmask, SIGINT);
 	sfd = signalfd(-1, &sigmask, 0);
-	assert(sfd != -1);
+	if (sfd == -1) {
+		nrm_log_perror("can't create signalfd\n");
+		zsock_signal(self->pipe, NRM_FAILURE);
+		goto cleanup_loop;
+	}
 
 	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
 	/* register signal handler callback */
@@ -222,9 +253,13 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	/* start: will only return when broker is destroyed */
 	zloop_start(self->loop);
 
+cleanup_loop:
 	zloop_destroy(&self->loop);
-	zsock_destroy(&self->rpc);
+cleanup_sub:
 	zsock_destroy(&self->sub);
+cleanup_rpc:
+	zsock_destroy(&self->rpc);
+cleanup:
 	free(self);
 }
 
@@ -253,10 +288,22 @@ nrm_role_client_create_fromparams(const char *uri, int sub_port, int rpc_port)
 
 	/* create broker */
 	data->broker = zactor_new(nrm_client_broker_fn, &bargs);
-	if (data->broker == NULL)
-		return NULL;
+	if (data->broker == NULL) {
+		nrm_log_error("failed to create client zactor\n");
+		goto err;
+	}
 	zsock_set_unbounded(data->broker);
+	int err = zsock_wait(data->broker);
+	if (err) {
+		nrm_log_error("error during client zactor init: %d\n", -err);
+		goto err_actor;
+	}
 	return role;
+err_actor:
+	zactor_destroy(&data->broker);
+err:
+	free(role);
+	return NULL;
 }
 
 void nrm_role_client_destroy(nrm_role_t **role)
