@@ -20,8 +20,10 @@ Client Configuration and Reports
 --------------------------------
 
 NRM clients are used by any program that intends to communicate with a NRM daemon (``nrmd``).
-Initiate most RPCs, retrieve information about the state of the daemon, can register new
+Initiate most RPCs, retrieve information about the state of the daemon, register new
 elements, send events, listen to state changes.
+
+libnrm also features a command-line :ref:`nrmc<nrmc>` utility that mirrors most client functionality.
 
 .. doxygenfunction:: nrm_client_create
 
