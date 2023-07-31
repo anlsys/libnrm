@@ -422,7 +422,8 @@ int nrm_server_publish(nrm_server_t *server,
                        nrm_scope_t *scope,
                        double value)
 {
-	if (server == NULL || topic == NULL || sensor_uuid == NULL || scope == NULL)
+	if (server == NULL || topic == NULL || sensor_uuid == NULL ||
+	    scope == NULL)
 		return -NRM_EINVAL;
 
 	nrm_msg_t *msg = nrm_msg_create();

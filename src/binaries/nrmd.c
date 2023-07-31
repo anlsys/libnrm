@@ -40,7 +40,7 @@ int nrmd_event_callback(nrm_server_t *server,
 {
 	nrm_eventbase_push_event(my_daemon.events, uuid, scope, time, value);
 	nrm_server_publish(server, my_daemon.eventtopic, time, uuid, scope,
-			   value);
+	                   value);
 	return 0;
 }
 
@@ -73,8 +73,7 @@ int nrmd_timer_callback(nrm_server_t *server)
 	nrm_time_gettime(&now);
 
 	nrm_server_publish(server, my_daemon.mytopic, now,
-			   my_daemon.mysensor->uuid,
-	                   my_daemon.myscope, 1.0);
+	                   my_daemon.mysensor->uuid, my_daemon.myscope, 1.0);
 
 	/* tick the event base */
 	nrm_log_debug("eventbase tick\n");
