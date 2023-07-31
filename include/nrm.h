@@ -491,7 +491,7 @@ int nrm_server_start(nrm_server_t *server);
 int nrm_server_publish(nrm_server_t *server,
                        nrm_string_t topic,
                        nrm_time_t now,
-                       nrm_sensor_t *sensor,
+                       nrm_string_t sensor_uuid,
                        nrm_scope_t *scope,
                        double value);
 
