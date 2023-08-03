@@ -4,27 +4,32 @@ Quickstart
 
 .. highlight:: bash
 
-Welcome to the quickstart guide for NRM. This document will guide you to get up
+This document will guide you to get up
 and running with running your computational jobs through the Node Resource
 Manager (NRM).
 
 Install
 =======
 
-Required Dependencies
----------------------
+Using Spack
+-----------
 
-- ``libzmq3-dev``
-- ``libzmq5``
-- ``libczmq4``
-- ``libprotobuf-c``
-- ``protobuf-c-compiler``
-- ``libjansson-dev``
-- ``libjansson4``
-- ``libhwloc-dev``
+Using Spack_ is recommended to install libnrm::
 
-Obtain, build, install
-----------------------
+    $ spack install libnrm
+
+libnrm also includes two optional utilities for power/event measurement on a variety of leadership-class systems:
+
+  - ``nrm-papiwrapper``, requiring ``papi`` (https://github.com/icl-utk-edu/papi)
+  - ``nrm-geopm``, requiring ``GEOPM`` (https://geopm.github.io/)
+
+These can be installed as variants of libnrm::
+
+    $ spack install libnrm ^papi
+    $ spack install libnrm ^geopm mpi=False cflags="--with-geopm"
+
+Build, install from source
+--------------------------
 
 The libnrm instrumentation library and power-measuring utilities can be downloaded
 from GitHub::
@@ -37,33 +42,16 @@ Build and install::
   $ ./autogen.sh
   $ ./configure; make; make install
 
-Optional Dependencies
----------------------
+.. dropdown:: Dependency Ubuntu packages
 
-Power measurement:
-
-- ``libpapi-dev`` - (https://github.com/icl-utk-edu/papi) Build ``nrm-papiwrapper``
-- ``geopm`` and ``geopm-service`` - (https://geopm.github.io/) Specify ``--with-geopm`` when configuring libnrm to build  ``nrm-geopm``
-
-Container piece
----------------
-
-The NRM code now supports mapping slices on both Singularity containers and
-NodeOS compute containers.
-
-Singularity
-^^^^^^^^^^^
-
-For local singularity installation, refer to the Singularity_ installation
-page.
-
-
-Using Spack
-^^^^^^^^^^^
-
-::
-
-    $ spack install libnrm
+  - ``libzmq3-dev``
+  - ``libzmq5``
+  - ``libczmq4``
+  - ``libprotobuf-c``
+  - ``protobuf-c-compiler``
+  - ``libjansson-dev``
+  - ``libjansson4``
+  - ``libhwloc-dev``
 
 Setup: Launching the `nrmd` daemon
 ==================================
@@ -98,7 +86,7 @@ default and optionally accepts a ``.json`` config file as the first positional a
 =====================
 
 NRM features a ``nrmc`` command-line utility that largely mirrors the capabilities
-of the ``client`` object from the library.
+of the ``client`` object from the API.
 
 ::
 
@@ -142,12 +130,29 @@ Run a command. Optionally inject an additional/replacement library via `-d`, e.g
 
   $ nrmc run -d /path/to/libnrm-ompt.so ./my_omp_app
 
+Included Replacement libraries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+libnrm includes replacement libraries for MPI and openMP that have each been
+instrumented with libnrm. These will be installed in ``lib`` whereever libnrm
+was installed.
+
+For example, supposing libnrm was configured via ``./configure --prefix=$PWD/build``,
+then to inject libnrm's instrumented MPI::
+
+  mpiexec -n 16 nrmc run -d $PWD/build/lib/libnrm-pmpi.so ./my_mpi_app
+
 `nrmc listen`
 -------------
 
-Print detected event instances.::
+Print detected event instances.
 
-  $ nrmc listen CPU_ENERGY
+Listen to all events::
 
-.. _Singularity: https://singularity.lbl.gov/install-request
-.. _GitHub: https://github.com/anlsys/nrm-core/releases
+  $ nrmc listen
+
+Listen to events acknowledged by the daemon::
+
+  $ nrmc listen daemon.events.raw
+
+.. _Spack: https://spack.io/
