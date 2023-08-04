@@ -31,6 +31,8 @@ libnrm also features a command-line :ref:`nrmc<nrmc>` utility that mirrors most 
 
 .. doxygenfunction:: nrm_client_send_event
 
+.. doxygenfunction:: nrm_client_send_exit
+
 .. doxygenfunction:: nrm_client_destroy
 
 .. tab-set::

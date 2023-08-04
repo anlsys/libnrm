@@ -8,15 +8,15 @@ See the :doc:`Complete C API<doxy_c_api>` for more information.
 
 To make code report progress to NRM, we need to:
 
-- Include the library in the same way you include your other dependencies::
+- Include the library::
 
     # include <nrm.h>
 
 - Declare :ref:`nrm_client<clients>`, :ref:`nrm_scope<scopes>`, and :ref:`nrm_sensor<sensors>` structures::
 
-    static nrm_client_t *client;
-    static nrm_scope_t *scope;
-    static nrm_sensor_t *sensor;
+    nrm_client_t *client;
+    nrm_scope_t *scope;
+    nrm_sensor_t *sensor;
 
 - Initialize NRM, create a client for connecting to ``nrmd``::
 
@@ -29,20 +29,23 @@ To make code report progress to NRM, we need to:
     nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
 
 
-2. Determine measurements, create scopes and sensors
+1. Determine measurements, create scopes and sensors
 ----------------------------------------------------
 
 - Create a ``nrm_scope`` structure **for each** measurement to report, and add them to the client. If only reporting
   a single measurement::
 
-    scope = nrm_scope_create();
+    char *scope_name = "my.scope.name";
+    scope = nrm_scope_create(scope_name);
     nrm_client_add_scope(client, scope);
 
   However, if reporting multiple measurements, create an array of scopes, e.g.::
 
     nrm_scope_t *nrm_scopes[NUM_MEASUREMENTS];
+    char *scope_name;
     for (int i=0; i<NUM_MEASUREMENTS, i++){
-      scope = nrm_scope_create();
+      scope_name = create_my_scope_name();
+      scope = nrm_scope_create(scope_name);
       nrm_scopes[i] = scope;
       nrm_client_add_scope(client, scope);
     }
@@ -102,21 +105,22 @@ assume that the NRM daemon ``nrmd`` is currently running on this system.::
    {
      int i, num_logical_cpus, measurement;
 
-     static nrm_client_t *client;
-     static nrm_scope_t *scope;
-     static nrm_sensor_t *sensor;
+     nrm_client_t *client;
+     nrm_scope_t *scope;
+     nrm_sensor_t *sensor;
      nrm_time_t timestamp;
 
      static char *upstream_uri = "tcp://127.0.0.1";
      static int pub_port = 2345;
      static int rpc_port = 3456;
      char *sensor_name = "example-measure";
+     char *scope_name = "my.scope.name";
 
      nrm_init(NULL, NULL);
 
      nrm_client_create(&client, upstream_uri, pub_port, rpc_port);
 
-     scope = nrm_scope_create();
+     scope = nrm_scope_create(scope_name);
 	   sensor = nrm_sensor_create(sensor_name);
 
      nrm_client_add_scope(client, scope);
@@ -146,7 +150,7 @@ assume that the NRM daemon ``nrmd`` is currently running on this system.::
      exit(EXIT_SUCCESS);
    }
 
-6. Logging Introduction
+1. Logging Introduction
 -----------------------
 
 Initialize the NRM logging interface after ``nrm_init()``::
