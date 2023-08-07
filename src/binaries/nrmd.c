@@ -26,6 +26,7 @@ struct nrm_daemon_s {
 	nrm_sensor_t *mysensor;
 	nrm_scope_t *myscope;
 	nrm_string_t mytopic;
+	nrm_string_t eventtopic;
 };
 
 int signo;
@@ -37,9 +38,9 @@ int nrmd_event_callback(nrm_server_t *server,
                         nrm_time_t time,
                         double value)
 {
-	(void)server;
-	/* TODO also publish the raw events */
 	nrm_eventbase_push_event(my_daemon.events, uuid, scope, time, value);
+	nrm_server_publish(server, my_daemon.eventtopic, time, uuid, scope,
+	                   value);
 	return 0;
 }
 
@@ -71,8 +72,8 @@ int nrmd_timer_callback(nrm_server_t *server)
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 
-	nrm_server_publish(server, my_daemon.mytopic, now, my_daemon.mysensor,
-	                   my_daemon.myscope, 1.0);
+	nrm_server_publish(server, my_daemon.mytopic, now,
+	                   my_daemon.mysensor->uuid, my_daemon.myscope, 1.0);
 
 	/* tick the event base */
 	nrm_log_debug("eventbase tick\n");
@@ -154,6 +155,7 @@ int main(int argc, char *argv[])
 	assert(my_daemon.myscope);
 	nrm_string_decref(global_scope);
 	my_daemon.mytopic = nrm_string_fromchar("daemon");
+	my_daemon.eventtopic = nrm_string_fromchar("daemon.events.raw");
 
 	/* configuration */
 	if (argc == 0) {
@@ -201,6 +203,7 @@ start:
 
 	/* teardown NRM */
 	nrm_string_decref(my_daemon.mytopic);
+	nrm_string_decref(my_daemon.eventtopic);
 	nrm_sensor_destroy(&my_daemon.mysensor);
 	nrm_eventbase_destroy(&my_daemon.events);
 	nrm_state_destroy(&my_daemon.state);
