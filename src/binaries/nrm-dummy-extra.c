@@ -14,6 +14,7 @@
 #include "nrm/tools.h"
 #include <errno.h>
 #include <math.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -34,6 +35,7 @@ int nrm_dummy_extra_action_callback(nrm_uuid_t *uuid, double value)
 
 int nrm_dummy_extra_timer_callback(nrm_reactor_t *reactor)
 {
+	(void)reactor;
 	nrm_time_t time;
 	nrm_time_gettime(&time);
 	nrm_client_send_event(client, time, sensor, scope, counter++);
@@ -132,8 +134,8 @@ int main(int argc, char *argv[])
 	/* idle loop */
 	nrm_reactor_start(reactor);
 
-	nrm_reactor_destroy(&reactor);
 	/* cleanup, only get there if signal or error */
+	nrm_reactor_destroy(&reactor);
 	nrm_client_destroy(&client);
 	nrm_finalize();
 	return 0;

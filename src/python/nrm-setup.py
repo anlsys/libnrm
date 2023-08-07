@@ -103,7 +103,7 @@ signal.signal(signal.SIGCHLD, handler.child_handler)
 
 tolaunch = []
 if args.dummy:
-    nrm_dummy_extra = NRMBinary("nrm-dummy-extra", False)
+    nrm_dummy_extra = NRMBinary("nrm-dummy-extra", True)
     tolaunch.append(nrm_dummy_extra)
 
 handler.launch(args, nrmd, tolaunch)

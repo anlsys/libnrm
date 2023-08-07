@@ -21,6 +21,7 @@
 
 struct nrm_reactor_s {
 	zloop_t *loop;
+	sigset_t oldmask;
 	nrm_reactor_user_callbacks_t callbacks;
 };
 
@@ -55,6 +56,8 @@ int nrm_reactor_timer_callback(zloop_t *loop, int timerid, void *arg)
 
 int nrm_reactor_create(nrm_reactor_t **reactor)
 {
+	int err;
+
 	if (reactor == NULL)
 		return -NRM_EINVAL;
 
@@ -63,20 +66,41 @@ int nrm_reactor_create(nrm_reactor_t **reactor)
 		return -NRM_ENOMEM;
 
 	ret->loop = zloop_new();
-	assert(ret->loop != NULL);
+	if (ret->loop == NULL) {
+		err = -errno;
+		goto err_reactor;
+	}
 
-	/* we always setup signal handling and controller callback */
+	/* we always setup signal handling */
 	sigset_t sigmask;
 	sigemptyset(&sigmask);
 	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGTERM);
+	err = sigprocmask(SIG_BLOCK, &sigmask, &ret->oldmask);
+	if (err == -1) {
+		err = -errno;
+		goto err_zloop;
+	}
+
 	int sfd = signalfd(-1, &sigmask, 0);
-	assert(sfd != -1);
+	if (sfd == -1) {
+		err = -errno;
+		goto err_mask;
+	}
+
 	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
 	zloop_poller(ret->loop, &signal_poller, nrm_reactor_signal_callback,
-	             NULL);
+	             ret);
 
 	*reactor = ret;
 	return 0;
+err_mask:
+	sigprocmask(SIG_SETMASK, &ret->oldmask, NULL);
+err_zloop:
+	zloop_destroy(&ret->loop);
+err_reactor:
+	free(ret);
+	return err;
 }
 
 int nrm_reactor_setcallbacks(nrm_reactor_t *reactor,
@@ -114,6 +138,7 @@ void nrm_reactor_destroy(nrm_reactor_t **reactor)
 		return;
 	nrm_reactor_t *r = *reactor;
 	zloop_destroy(&r->loop);
+	sigprocmask(SIG_SETMASK, &r->oldmask, NULL);
 	free(r);
 	*reactor = NULL;
 }

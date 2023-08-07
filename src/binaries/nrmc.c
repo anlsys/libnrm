@@ -327,11 +327,14 @@ int cmd_listen(int argc, char **argv)
 	nrm_client_set_event_listener(client, client_listen_callback);
 	nrm_client_start_event_listener(client, topic);
 
-	/* don't want to push a message queue into the user API, so do it this
-	 * way. The callback will take care of printing events.
-	 */
-	while (1)
-		;
+	nrm_reactor_t *reactor;
+	nrm_reactor_create(&reactor);
+	
+	/* idle loop */
+	nrm_reactor_start(reactor);
+
+	/* cleanup, only get there if signal or error */
+	nrm_reactor_destroy(&reactor);
 	return 0;
 }
 
