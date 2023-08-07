@@ -8,6 +8,7 @@ import signal
 import time
 import os
 
+
 class NRMBinary:
     def __init__(self, name, candie=False):
         self.name = name
@@ -15,12 +16,13 @@ class NRMBinary:
 
     def launch(self, options):
         self.abspath = (options.prefix / self.name).absolute()
-        self.stdout = open(options.output / (self.name + "-stdout.log"), 'w+')
-        self.stderr = open(options.output / (self.name + "-stderr.log"), 'w+')
+        self.stdout = open(options.output / (self.name + "-stdout.log"), "w+")
+        self.stderr = open(options.output / (self.name + "-stderr.log"), "w+")
         assert self.stdout != None
         assert self.stderr != None
-        self.proc = subprocess.Popen([self.abspath, '-vvv'], stdin=None,
-                                     stdout=self.stdout, stderr=self.stderr)
+        self.proc = subprocess.Popen(
+            [self.abspath, "-vvv"], stdin=None, stdout=self.stdout, stderr=self.stderr
+        )
         assert self.proc
 
     def isdead(self):
@@ -45,7 +47,7 @@ class NRMSetup:
         for c in others:
             c.launch(args)
             self.others.append(c)
-        
+
     def wait(self):
         self.done = False
         while not self.done:
@@ -81,12 +83,13 @@ class NRMSetup:
 # - setup log redirection to proper log files
 # - listen to SIGTERM and clean everything
 
-parser = argparse.ArgumentParser(prog="nrm-setup",
-                                 description="setup nrmd and its utils")
+parser = argparse.ArgumentParser(
+    prog="nrm-setup", description="setup nrmd and its utils"
+)
 
-parser.add_argument('-o', '--output', type=pathlib.Path, default='.')
-parser.add_argument('-p', '--prefix', type=pathlib.Path, default='.')
-parser.add_argument('--dummy', action='store_true')
+parser.add_argument("-o", "--output", type=pathlib.Path, default=".")
+parser.add_argument("-p", "--prefix", type=pathlib.Path, default=".")
+parser.add_argument("--dummy", action="store_true")
 
 args = parser.parse_args()
 print(args)

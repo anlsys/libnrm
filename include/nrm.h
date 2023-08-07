@@ -127,7 +127,7 @@ int nrm_log_setlevel(int level);
 		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
 		               __VA_ARGS__);                                   \
 		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
-		               "perror: %s\n", __nrm_errstr);                    \
+		               "perror: %s\n", __nrm_errstr);                  \
 	} while (0)
 
 /*******************************************************************************
