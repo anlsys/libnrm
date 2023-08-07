@@ -184,7 +184,7 @@ nrm_geopm_LDADD = libnrm.la
 bin_PROGRAMS += nrm-geopm
 endif
 
-dist_bin_SCRIPTS = nrm-setup
+bin_SCRIPTS = nrm-setup
 
 nrm-setup: src/python/nrm-setup.py
 	cp $^ $@
@@ -240,6 +240,6 @@ COMPILED_TESTS = \
 UNIT_TESTS = \
 	     $(COMPILED_TESTS)
 
-check_PROGRAMS += $(COMPILED_TESTS) 
+check_PROGRAMS += $(COMPILED_TESTS)
 TESTS += $(UNIT_TESTS)
 
