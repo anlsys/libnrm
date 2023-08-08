@@ -2,7 +2,7 @@
 stdenv.mkDerivation {
   src = fetchTarball "https://github.com/geopm/geopm/releases/download/v2.0.2/geopm-service-2.0.2.tar.gz";
   name = "geopmd";
-  configureFlags = "--disable-mpi --disable-fortran";
+  configureFlags = [ "--disable-mpi" "--disable-fortran"];
   nativeBuildInputs = [ autoreconfHook pkgconfig git ];
   propagatedBuildInputs = [
     libelf 

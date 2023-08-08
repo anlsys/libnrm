@@ -91,6 +91,9 @@ int nrm_init(int *argc, char **argv[])
 			return err;
 		}
 	}
+
+	/* disable signal handling by zmq */
+	zsys_handler_set(NULL);
 	return 0;
 }
 

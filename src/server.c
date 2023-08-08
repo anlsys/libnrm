@@ -368,11 +368,13 @@ int nrm_server_create(nrm_server_t **server,
 	sigset_t sigmask;
 	sigemptyset(&sigmask);
 	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGTERM);
+	sigprocmask(SIG_BLOCK, &sigmask, NULL);
 	int sfd = signalfd(-1, &sigmask, 0);
 	assert(sfd != -1);
 	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
 	zloop_poller(ret->loop, &signal_poller, nrm_server_signal_callback,
-	             NULL);
+	             ret);
 
 	nrm_role_controller_register_recvcallback(
 	        ret->role, ret->loop, nrm_server_role_callback, ret);
