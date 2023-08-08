@@ -24,6 +24,7 @@ extern "C" {
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/signalfd.h>
 #include <time.h>
 
 // clang-format off
@@ -513,7 +514,7 @@ typedef struct nrm_reactor_s nrm_reactor_t;
 /** User-level callbacks on reactor events */
 struct nrm_reactor_user_callbacks_s {
 	/* receiving a POSIX signal */
-	int (*signal)(nrm_reactor_t *, int);
+	int (*signal)(nrm_reactor_t *, struct signalfd_siginfo);
 	/* timer trigger */
 	int (*timer)(nrm_reactor_t *);
 };
@@ -530,7 +531,7 @@ typedef struct nrm_reactor_user_callbacks_s nrm_reactor_user_callbacks_t;
  * @return 0 if successful, an error code otherwise
  *
  */
-int nrm_reactor_create(nrm_reactor_t **reactor);
+int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t mask);
 
 int nrm_reactor_setcallbacks(nrm_reactor_t *reactor,
                              nrm_reactor_user_callbacks_t callbacks);

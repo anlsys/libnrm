@@ -40,7 +40,7 @@ int nrm_reactor_signal_callback(zloop_t *loop,
 	/* we default to exit */
 	int ret = -1;
 	if (self->callbacks.signal != NULL)
-		ret = self->callbacks.signal(self, signalid);
+		ret = self->callbacks.signal(self, fdsi);
 	return ret;
 }
 
@@ -56,7 +56,7 @@ int nrm_reactor_timer_callback(zloop_t *loop, int timerid, void *arg)
 	return ret;
 }
 
-int nrm_reactor_create(nrm_reactor_t **reactor)
+int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t sigmask)
 {
 	int err;
 
@@ -74,10 +74,6 @@ int nrm_reactor_create(nrm_reactor_t **reactor)
 	}
 
 	/* we always setup signal handling */
-	sigset_t sigmask;
-	sigemptyset(&sigmask);
-	sigaddset(&sigmask, SIGINT);
-	sigaddset(&sigmask, SIGTERM);
 	err = pthread_sigmask(SIG_BLOCK, &sigmask, &ret->oldmask);
 	if (err == -1) {
 		err = -errno;
@@ -97,7 +93,7 @@ int nrm_reactor_create(nrm_reactor_t **reactor)
 	*reactor = ret;
 	return 0;
 err_mask:
-	sigprocmask(SIG_SETMASK, &ret->oldmask, NULL);
+	pthread_sigmask(SIG_SETMASK, &ret->oldmask, NULL);
 err_zloop:
 	zloop_destroy(&ret->loop);
 err_reactor:

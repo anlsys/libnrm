@@ -328,7 +328,11 @@ int cmd_listen(int argc, char **argv)
 	nrm_client_start_event_listener(client, topic);
 
 	nrm_reactor_t *reactor;
-	nrm_reactor_create(&reactor);
+	sigset_t sigmask;
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGTERM);
+	nrm_reactor_create(&reactor, sigmask);
 
 	/* idle loop */
 	nrm_reactor_start(reactor);
