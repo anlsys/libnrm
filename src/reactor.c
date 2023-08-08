@@ -76,7 +76,7 @@ int nrm_reactor_create(nrm_reactor_t **reactor)
 	sigemptyset(&sigmask);
 	sigaddset(&sigmask, SIGINT);
 	sigaddset(&sigmask, SIGTERM);
-	err = sigprocmask(SIG_BLOCK, &sigmask, &ret->oldmask);
+	err = pthread_sigmask(SIG_BLOCK, &sigmask, &ret->oldmask);
 	if (err == -1) {
 		err = -errno;
 		goto err_zloop;
@@ -138,7 +138,7 @@ void nrm_reactor_destroy(nrm_reactor_t **reactor)
 		return;
 	nrm_reactor_t *r = *reactor;
 	zloop_destroy(&r->loop);
-	sigprocmask(SIG_SETMASK, &r->oldmask, NULL);
+	pthread_sigmask(SIG_SETMASK, &r->oldmask, NULL);
 	free(r);
 	*reactor = NULL;
 }

@@ -355,6 +355,13 @@ int nrm_server_create(nrm_server_t **server,
 	if (ret == NULL)
 		return -NRM_ENOMEM;
 
+	/* setup signals before creating more threads */
+	sigset_t sigmask;
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGTERM);
+	pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
+
 	ret->role =
 	        nrm_role_controller_create_fromparams(uri, pub_port, rpc_port);
 	if (ret->role == NULL)
@@ -365,11 +372,6 @@ int nrm_server_create(nrm_server_t **server,
 	ret->state = state;
 
 	/* we always setup signal handling and controller callback */
-	sigset_t sigmask;
-	sigemptyset(&sigmask);
-	sigaddset(&sigmask, SIGINT);
-	sigaddset(&sigmask, SIGTERM);
-	sigprocmask(SIG_BLOCK, &sigmask, NULL);
 	int sfd = signalfd(-1, &sigmask, 0);
 	assert(sfd != -1);
 	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
