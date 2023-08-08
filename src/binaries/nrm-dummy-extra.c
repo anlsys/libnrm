@@ -25,7 +25,6 @@ static nrm_sensor_t *sensor;
 static nrm_scope_t *scope;
 static nrm_actuator_t *actuator;
 
-
 int nrm_dummy_extra_action_callback(nrm_uuid_t *uuid, double value)
 {
 	(void)uuid;
@@ -113,7 +112,8 @@ int main(int argc, char *argv[])
 	}
 
 	nrm_log_info("starting dummy actuate callback\n");
-	nrm_client_set_actuate_listener(client, nrm_dummy_extra_action_callback);
+	nrm_client_set_actuate_listener(client,
+	                                nrm_dummy_extra_action_callback);
 	nrm_client_start_actuate_listener(client);
 
 	err = nrm_reactor_create(&reactor);
@@ -121,10 +121,10 @@ int main(int argc, char *argv[])
 		nrm_log_error("error during reactor creation\n");
 		return EXIT_FAILURE;
 	}
-	
+
 	nrm_reactor_user_callbacks_t callbacks = {
-		.signal = NULL,
-		.timer = nrm_dummy_extra_timer_callback,
+	        .signal = NULL,
+	        .timer = nrm_dummy_extra_timer_callback,
 	};
 	nrm_reactor_setcallbacks(reactor, callbacks);
 

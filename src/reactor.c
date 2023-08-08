@@ -25,7 +25,9 @@ struct nrm_reactor_s {
 	nrm_reactor_user_callbacks_t callbacks;
 };
 
-int nrm_reactor_signal_callback(zloop_t *loop, zmq_pollitem_t *poller, void *arg)
+int nrm_reactor_signal_callback(zloop_t *loop,
+                                zmq_pollitem_t *poller,
+                                void *arg)
 {
 	(void)loop;
 	nrm_reactor_t *self = (nrm_reactor_t *)arg;
@@ -104,7 +106,7 @@ err_reactor:
 }
 
 int nrm_reactor_setcallbacks(nrm_reactor_t *reactor,
-                            nrm_reactor_user_callbacks_t callbacks)
+                             nrm_reactor_user_callbacks_t callbacks)
 {
 	if (reactor == NULL)
 		return -NRM_EINVAL;

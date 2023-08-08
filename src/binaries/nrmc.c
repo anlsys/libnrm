@@ -329,7 +329,7 @@ int cmd_listen(int argc, char **argv)
 
 	nrm_reactor_t *reactor;
 	nrm_reactor_create(&reactor);
-	
+
 	/* idle loop */
 	nrm_reactor_start(reactor);
 

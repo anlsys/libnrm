@@ -533,7 +533,7 @@ typedef struct nrm_reactor_user_callbacks_s nrm_reactor_user_callbacks_t;
 int nrm_reactor_create(nrm_reactor_t **reactor);
 
 int nrm_reactor_setcallbacks(nrm_reactor_t *reactor,
-                            nrm_reactor_user_callbacks_t callbacks);
+                             nrm_reactor_user_callbacks_t callbacks);
 
 int nrm_reactor_settimer(nrm_reactor_t *reactor, nrm_time_t sleeptime);
 
