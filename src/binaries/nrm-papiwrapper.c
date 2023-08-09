@@ -85,7 +85,7 @@ int nrm_papiwrapper_timer_callback(nrm_reactor_t *reactor)
 	err = PAPI_read(EventSet, counters);
 	if (err != PAPI_OK) {
 		nrm_log_error("PAPI event read error: %s\n",
-				PAPI_strerror(err));
+		              PAPI_strerror(err));
 		return -1;
 	}
 	nrm_log_debug("PAPI counters read.\n");
@@ -95,12 +95,10 @@ int nrm_papiwrapper_timer_callback(nrm_reactor_t *reactor)
 
 	for (size_t i = 0; i < EventCodeCnt; i++) {
 		nrm_sensor_t **sensor;
-		nrm_vector_get_withtype(nrm_sensor_t *, sensors, i,
-				sensor);
+		nrm_vector_get_withtype(nrm_sensor_t *, sensors, i, sensor);
 		if (nrm_client_send_event(client, time, *sensor, scope,
-					counters[i]) != 0) {
-			nrm_log_error(
-					"Sending event to the daemon error\n");
+		                          counters[i]) != 0) {
+			nrm_log_error("Sending event to the daemon error\n");
 			return -1;
 		}
 	}
@@ -109,7 +107,7 @@ int nrm_papiwrapper_timer_callback(nrm_reactor_t *reactor)
 }
 
 int nrm_papiwrapper_signal_callback(nrm_reactor_t *reactor,
-		struct signalfd_siginfo fdsi)
+                                    struct signalfd_siginfo fdsi)
 {
 	(void)reactor;
 	nrm_log_debug("Received signal\n");

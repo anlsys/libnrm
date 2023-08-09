@@ -116,7 +116,6 @@ int main(int argc, char *argv[])
 	                                nrm_dummy_extra_action_callback);
 	nrm_client_start_actuate_listener(client);
 
-
 	err = nrm_reactor_create(&reactor, NULL);
 	if (err) {
 		nrm_log_error("error during reactor creation\n");
