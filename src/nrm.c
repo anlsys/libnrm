@@ -11,6 +11,7 @@
 #include "config.h"
 
 #include "nrm.h"
+#include <czmq.h>
 #include <stdlib.h>
 
 const int nrm_version_major = NRM_VERSION_MAJOR;
