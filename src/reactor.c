@@ -81,15 +81,15 @@ int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t *sigmask)
 		sigmask = &dmask;
 	}
 
-	/* we always setup signal handling */
-	err = pthread_sigmask(SIG_BLOCK, &sigmask, &ret->oldmask);
-	if (err == -1) {
+	int sfd = signalfd(-1, sigmask, 0);
+	if (sfd == -1) {
 		err = -errno;
 		goto err_zloop;
 	}
 
-	int sfd = signalfd(-1, &sigmask, 0);
-	if (sfd == -1) {
+	/* we always setup signal handling */
+	err = pthread_sigmask(SIG_BLOCK, sigmask, &ret->oldmask);
+	if (err == -1) {
 		err = -errno;
 		goto err_mask;
 	}
@@ -124,7 +124,7 @@ int nrm_reactor_settimer(nrm_reactor_t *reactor, nrm_time_t sleeptime)
 	if (reactor == NULL)
 		return -NRM_EINVAL;
 
-	int millisecs = sleeptime.tv_sec * 1e3 + sleeptime.tv_nsec * 1e6;
+	int millisecs = sleeptime.tv_sec * 1e3 + sleeptime.tv_nsec / 1e6;
 	zloop_timer(reactor->loop, millisecs, 0, nrm_reactor_timer_callback,
 	            reactor);
 	return 0;
