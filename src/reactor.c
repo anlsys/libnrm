@@ -56,7 +56,7 @@ int nrm_reactor_timer_callback(zloop_t *loop, int timerid, void *arg)
 	return ret;
 }
 
-int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t sigmask)
+int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t *sigmask)
 {
 	int err;
 
@@ -71,6 +71,14 @@ int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t sigmask)
 	if (ret->loop == NULL) {
 		err = -errno;
 		goto err_reactor;
+	}
+
+	sigset_t dmask;
+	if (sigmask == NULL) {
+		sigemptyset(&dmask);
+		sigaddset(&dmask, SIGINT);
+		sigaddset(&dmask, SIGTERM);
+		sigmask = &dmask;
 	}
 
 	/* we always setup signal handling */

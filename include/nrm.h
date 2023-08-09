@@ -531,7 +531,7 @@ typedef struct nrm_reactor_user_callbacks_s nrm_reactor_user_callbacks_t;
  * @return 0 if successful, an error code otherwise
  *
  */
-int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t mask);
+int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t *mask);
 
 int nrm_reactor_setcallbacks(nrm_reactor_t *reactor,
                              nrm_reactor_user_callbacks_t callbacks);

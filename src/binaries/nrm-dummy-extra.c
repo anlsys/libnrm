@@ -117,11 +117,7 @@ int main(int argc, char *argv[])
 	nrm_client_start_actuate_listener(client);
 
 
-	sigset_t sigmask;
-	sigemptyset(&sigmask);
-	sigaddset(&sigmask, SIGINT);
-	sigaddset(&sigmask, SIGTERM);
-	err = nrm_reactor_create(&reactor, sigmask);
+	err = nrm_reactor_create(&reactor, NULL);
 	if (err) {
 		nrm_log_error("error during reactor creation\n");
 		return EXIT_FAILURE;
