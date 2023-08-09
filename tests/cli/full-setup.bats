@@ -4,6 +4,8 @@
 setup_file() {
 	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR --dummy &
 	NRM_SETUP_PID=$!
+	# wait for nrm-setup to start sleeping
+	sleep 1
 }
 
 @test "server connect" {

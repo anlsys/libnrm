@@ -112,6 +112,7 @@ libnrm_la_SOURCES = \
 		    src/control/control.c \
 		    src/control/europar21.c \
 		    src/hwloc.c \
+		    src/reactor.c \
 		    src/roles/client.c \
 		    src/roles/controller.c \
 		    src/roles/role.c \

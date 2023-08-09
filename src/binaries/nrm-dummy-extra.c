@@ -14,15 +14,30 @@
 #include "nrm/tools.h"
 #include <errno.h>
 #include <math.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 static nrm_client_t *client;
+static nrm_reactor_t *reactor;
+static int counter = 0;
+static nrm_sensor_t *sensor;
+static nrm_scope_t *scope;
+static nrm_actuator_t *actuator;
 
-int nrm_dummy_extra_callback(nrm_uuid_t *uuid, double value)
+int nrm_dummy_extra_action_callback(nrm_uuid_t *uuid, double value)
 {
 	(void)uuid;
 	nrm_log_debug("action %f\n", value);
+	return 0;
+}
+
+int nrm_dummy_extra_timer_callback(nrm_reactor_t *reactor)
+{
+	(void)reactor;
+	nrm_time_t time;
+	nrm_time_gettime(&time);
+	nrm_client_send_event(client, time, sensor, scope, counter++);
 	return 0;
 }
 
@@ -67,9 +82,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	nrm_sensor_t *sensor;
-	nrm_scope_t *scope;
-	nrm_actuator_t *actuator;
 
 	nrm_log_info("creating dummy sensor\n");
 	sensor = nrm_sensor_create("nrm-dummy-extra-sensor");
@@ -100,25 +112,30 @@ int main(int argc, char *argv[])
 	}
 
 	nrm_log_info("starting dummy actuate callback\n");
-	nrm_client_set_actuate_listener(client, nrm_dummy_extra_callback);
+	nrm_client_set_actuate_listener(client,
+	                                nrm_dummy_extra_action_callback);
 	nrm_client_start_actuate_listener(client);
 
-	uint64_t counter = 0;
-	while (1) {
-		nrm_time_t time;
-		nrm_time_gettime(&time);
-		nrm_client_send_event(client, time, sensor, scope, counter++);
-
-		/* sleep */
-		struct timespec req, rem;
-		req = nrm_time_fromfreq(args.freq);
-		/* possible signal interrupt here */
-		err = nanosleep(&req, &rem);
-		if (err == -1 && errno == EINTR) {
-			nrm_log_error("interupted during sleep, exiting\n");
-			break;
-		}
+	err = nrm_reactor_create(&reactor, NULL);
+	if (err) {
+		nrm_log_error("error during reactor creation\n");
+		return EXIT_FAILURE;
 	}
+
+	nrm_reactor_user_callbacks_t callbacks = {
+	        .signal = NULL,
+	        .timer = nrm_dummy_extra_timer_callback,
+	};
+	nrm_reactor_setcallbacks(reactor, callbacks);
+
+	nrm_time_t sleeptime = nrm_time_fromfreq(args.freq);
+	nrm_reactor_settimer(reactor, sleeptime);
+
+	/* idle loop */
+	nrm_reactor_start(reactor);
+
+	/* cleanup, only get there if signal or error */
+	nrm_reactor_destroy(&reactor);
 	nrm_client_destroy(&client);
 	nrm_finalize();
 	return 0;
