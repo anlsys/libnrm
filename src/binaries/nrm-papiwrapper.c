@@ -31,6 +31,14 @@
 #include <time.h>
 #include <unistd.h>
 
+static int cmdpid;
+static nrm_client_t *client;
+static nrm_scope_t *scope;
+static nrm_vector_t *sensors = NULL;
+static long long *counters = NULL;
+static size_t EventCodeCnt = 0;
+static int EventSet = PAPI_NULL;
+
 int find_allowed_scope(nrm_client_t *client, nrm_scope_t **scope)
 {
 	/* create a scope based on hwloc_allowed, althouth we know for a fact
@@ -67,6 +75,62 @@ int find_allowed_scope(nrm_client_t *client, nrm_scope_t **scope)
 	return 0;
 }
 
+int nrm_papiwrapper_timer_callback(nrm_reactor_t *reactor)
+{
+	(void)reactor;
+	int err;
+	nrm_time_t time;
+
+	/* sample and report */
+	err = PAPI_read(EventSet, counters);
+	if (err != PAPI_OK) {
+		nrm_log_error("PAPI event read error: %s\n",
+		              PAPI_strerror(err));
+		return -1;
+	}
+	nrm_log_debug("PAPI counters read.\n");
+
+	nrm_time_gettime(&time);
+	nrm_log_debug("NRM time obtained.\n");
+
+	for (size_t i = 0; i < EventCodeCnt; i++) {
+		nrm_sensor_t **sensor;
+		nrm_vector_get_withtype(nrm_sensor_t *, sensors, i, sensor);
+		if (nrm_client_send_event(client, time, *sensor, scope,
+		                          counters[i]) != 0) {
+			nrm_log_error("Sending event to the daemon error\n");
+			return -1;
+		}
+	}
+	nrm_log_debug("NRM values sent.\n");
+	return 0;
+}
+
+int nrm_papiwrapper_signal_callback(nrm_reactor_t *reactor,
+                                    struct signalfd_siginfo fdsi)
+{
+	(void)reactor;
+	nrm_log_debug("Received signal\n");
+
+	/* exit immediately on SIGINT/SIGTERM */
+	if (fdsi.ssi_signo != SIGCHLD)
+		return -1;
+
+	nrm_log_debug("Signal info: %d %d\n", fdsi.ssi_signo, fdsi.ssi_pid);
+	/* ignore status updates on wrong pid */
+	if ((int)fdsi.ssi_pid != cmdpid)
+		return 0;
+
+	/* ignore stopped/restarted cmd */
+	if (fdsi.ssi_code == CLD_STOPPED || fdsi.ssi_code == CLD_CONTINUED)
+		return 0;
+
+	/* we're here if the child command exited, so end the program by
+	 * exiting the reactor
+	 */
+	return -1;
+}
+
 int main(int argc, char **argv)
 {
 	int err;
@@ -76,11 +140,6 @@ int main(int argc, char **argv)
 	nrm_log_init(stderr, "nrm-papiwrapper");
 
 	int ret = EXIT_FAILURE;
-	nrm_client_t *client;
-	nrm_scope_t *scope;
-	nrm_vector_t *sensors = NULL;
-	long long *counters = NULL;
-	size_t EventCodeCnt = 0;
 
 	args.progname = "nrm-papiwrapper";
 	args.flags = NRM_TOOLS_ARGS_FLAG_FREQ | NRM_TOOLS_ARGS_FLAG_EVENT;
@@ -187,7 +246,6 @@ int main(int argc, char **argv)
 	nrm_log_debug("PAPI initialized.\n");
 
 	/* set up PAPI interface */
-	int EventSet = PAPI_NULL;
 
 	err = PAPI_create_eventset(&EventSet);
 	if (err != PAPI_OK) {
@@ -215,14 +273,14 @@ int main(int argc, char **argv)
 
 		nrm_log_debug(
 		        "PAPI code string %s converted to PAPI code %i, and registered.\n",
-		        EventName, EventCode);
+		        *EventName, EventCode);
 	}
 
-	int pid = fork();
-	if (pid < 0) {
+	cmdpid = fork();
+	if (cmdpid < 0) {
 		nrm_log_error("fork error\n");
 		goto cleanup;
-	} else if (pid == 0) {
+	} else if (cmdpid == 0) {
 		/* child, needs to exec the cmd */
 		if (cmpinfo->attach_must_ptrace)
 			if (ptrace(PTRACE_TRACEME, 0, NULL, NULL) == -1) {
@@ -241,7 +299,7 @@ int main(int argc, char **argv)
 		int status;
 
 		/* Wait for the child process to stop on execve(2).  */
-		if (waitpid(pid, &status, 0) == -1) {
+		if (waitpid(cmdpid, &status, 0) == -1) {
 			nrm_log_error("waitpid error: %s\n", strerror(errno));
 			goto cleanup;
 		}
@@ -254,13 +312,13 @@ int main(int argc, char **argv)
 	}
 
 	/* Need to attach counters to the child */
-	err = PAPI_attach(EventSet, pid);
+	err = PAPI_attach(EventSet, cmdpid);
 	if (err != PAPI_OK) {
 		nrm_log_error("PAPI eventset attach error: %s\n",
 		              PAPI_strerror(err));
 		goto cleanup;
 	}
-	nrm_log_debug("PAPI attached to process with pid %i\n", pid);
+	nrm_log_debug("PAPI attached to process with pid %i\n", cmdpid);
 
 	err = PAPI_start(EventSet);
 	if (err != PAPI_OK) {
@@ -275,59 +333,36 @@ int main(int argc, char **argv)
 		goto cleanup;
 	}
 
+	sigset_t sigmask;
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGTERM);
+	sigaddset(&sigmask, SIGCHLD);
+	nrm_reactor_t *reactor;
+	err = nrm_reactor_create(&reactor, &sigmask);
+	if (err) {
+		nrm_log_error("error during reactor creation\n");
+		goto cleanup;
+	}
+
+	nrm_reactor_user_callbacks_t callbacks = {
+	        .signal = nrm_papiwrapper_signal_callback,
+	        .timer = nrm_papiwrapper_timer_callback,
+	};
+	nrm_reactor_setcallbacks(reactor, callbacks);
+
+	nrm_time_t sleeptime = nrm_time_fromfreq(args.freq);
+	nrm_reactor_settimer(reactor, sleeptime);
+
 	if (cmpinfo->attach_must_ptrace) {
 		/* Let the child continue with execve(2).  */
-		if (ptrace(PTRACE_CONT, pid, NULL, NULL) == -1) {
+		if (ptrace(PTRACE_CONT, cmdpid, NULL, NULL) == -1) {
 			nrm_log_error("ptrace(PTRACE_TRACEME) failed\n");
 			goto cleanup;
 		}
 	}
 
-	do {
-		/* sleep for a frequency */
-		long long sleeptime = 1e9 / args.freq;
-		struct timespec req, rem;
-		req.tv_sec = sleeptime / 1000000000;
-		req.tv_nsec = sleeptime % 1000000000;
-		/* deal with signal interrupts */
-		do {
-			err = nanosleep(&req, &rem);
-			req = rem;
-		} while (err == -1 && errno == EINTR);
-
-		/* sample and report */
-		err = PAPI_read(EventSet, counters);
-		if (err != PAPI_OK) {
-			nrm_log_error("PAPI event read error: %s\n",
-			              PAPI_strerror(err));
-			goto cleanup;
-		}
-		nrm_log_debug("PAPI counters read.\n");
-
-		nrm_time_gettime(&time);
-		nrm_log_debug("NRM time obtained.\n");
-
-		for (size_t i = 0; i < EventCodeCnt; i++) {
-			nrm_sensor_t **sensor;
-			nrm_vector_get_withtype(nrm_sensor_t *, sensors, i,
-			                        sensor);
-			if (nrm_client_send_event(client, time, *sensor, scope,
-			                          counters[i]) != 0) {
-				nrm_log_error(
-				        "Sending event to the daemon error\n");
-				goto cleanup;
-			}
-		}
-		nrm_log_debug("NRM values sent.\n");
-
-		/* loop until child exits */
-		int status;
-		err = waitpid(pid, &status, WNOHANG);
-		if (err == -1) {
-			nrm_log_error("waitpid error: %s\n", strerror(errno));
-			goto cleanup;
-		}
-	} while (err != pid);
+	nrm_reactor_start(reactor);
 	ret = EXIT_SUCCESS;
 	nrm_log_debug("Finalizing PAPI-event read/send to NRM.\n");
 

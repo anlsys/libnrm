@@ -11,6 +11,7 @@
 #include "config.h"
 
 #include "nrm.h"
+#include <czmq.h>
 #include <stdlib.h>
 
 const int nrm_version_major = NRM_VERSION_MAJOR;
@@ -91,6 +92,9 @@ int nrm_init(int *argc, char **argv[])
 			return err;
 		}
 	}
+
+	/* disable signal handling by zmq */
+	zsys_handler_set(NULL);
 	return 0;
 }
 

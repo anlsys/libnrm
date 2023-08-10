@@ -183,6 +183,7 @@ int nrm_net_bind_2(zsock_t *socket, const char *uri, int port)
 
 	err = zsock_bind(socket, "%s:%d", uri, port);
 	if (err == -1) {
+		nrm_log_perror("error during bind to: %s:%d\n", uri, port);
 		return -errno;
 	}
 	return 0;

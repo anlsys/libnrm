@@ -355,6 +355,13 @@ int nrm_server_create(nrm_server_t **server,
 	if (ret == NULL)
 		return -NRM_ENOMEM;
 
+	/* setup signals before creating more threads */
+	sigset_t sigmask;
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGTERM);
+	pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
+
 	ret->role =
 	        nrm_role_controller_create_fromparams(uri, pub_port, rpc_port);
 	if (ret->role == NULL)
@@ -365,14 +372,11 @@ int nrm_server_create(nrm_server_t **server,
 	ret->state = state;
 
 	/* we always setup signal handling and controller callback */
-	sigset_t sigmask;
-	sigemptyset(&sigmask);
-	sigaddset(&sigmask, SIGINT);
 	int sfd = signalfd(-1, &sigmask, 0);
 	assert(sfd != -1);
 	zmq_pollitem_t signal_poller = {0, sfd, ZMQ_POLLIN, 0};
 	zloop_poller(ret->loop, &signal_poller, nrm_server_signal_callback,
-	             NULL);
+	             ret);
 
 	nrm_role_controller_register_recvcallback(
 	        ret->role, ret->loop, nrm_server_role_callback, ret);
@@ -418,16 +422,17 @@ int nrm_server_settimer(nrm_server_t *server, int millisecs)
 int nrm_server_publish(nrm_server_t *server,
                        nrm_string_t topic,
                        nrm_time_t now,
-                       nrm_sensor_t *sensor,
+                       nrm_string_t sensor_uuid,
                        nrm_scope_t *scope,
                        double value)
 {
-	if (server == NULL || topic == NULL || sensor == NULL || scope == NULL)
+	if (server == NULL || topic == NULL || sensor_uuid == NULL ||
+	    scope == NULL)
 		return -NRM_EINVAL;
 
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
-	nrm_msg_set_event(msg, now, sensor->uuid, scope, value);
+	nrm_msg_set_event(msg, now, sensor_uuid, scope, value);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	return nrm_role_pub(server->role, topic, msg);
 }

@@ -24,6 +24,7 @@ extern "C" {
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/signalfd.h>
 #include <time.h>
 
 // clang-format off
@@ -127,7 +128,7 @@ int nrm_log_setlevel(int level);
 		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
 		               __VA_ARGS__);                                   \
 		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
-		               "perror: %s", __nrm_errstr);                    \
+		               "perror: %s\n", __nrm_errstr);                  \
 	} while (0)
 
 /*******************************************************************************
@@ -491,7 +492,7 @@ int nrm_server_start(nrm_server_t *server);
 int nrm_server_publish(nrm_server_t *server,
                        nrm_string_t topic,
                        nrm_time_t now,
-                       nrm_sensor_t *sensor,
+                       nrm_string_t sensor_uuid,
                        nrm_scope_t *scope,
                        double value);
 
@@ -501,6 +502,48 @@ int nrm_server_actuate(nrm_server_t *server, nrm_string_t uuid, double value);
  * Destroys an NRM server. Closes connections.
  */
 void nrm_server_destroy(nrm_server_t **server);
+
+/*******************************************************************************
+ * NRM Reactor object
+ * Used by any program that wants to become an idle loop only waking up on
+ * signals or timers.
+ ******************************************************************************/
+
+typedef struct nrm_reactor_s nrm_reactor_t;
+
+/** User-level callbacks on reactor events */
+struct nrm_reactor_user_callbacks_s {
+	/* receiving a POSIX signal */
+	int (*signal)(nrm_reactor_t *, struct signalfd_siginfo);
+	/* timer trigger */
+	int (*timer)(nrm_reactor_t *);
+};
+
+typedef struct nrm_reactor_user_callbacks_s nrm_reactor_user_callbacks_t;
+
+/**
+ * Creates a new NRM reactor.
+ *
+ * Uses a state to keep track of reactor objects that clients can add/remove
+ * from the system.
+ *
+ * @param reactor: pointer to a valid state handle
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t *mask);
+
+int nrm_reactor_setcallbacks(nrm_reactor_t *reactor,
+                             nrm_reactor_user_callbacks_t callbacks);
+
+int nrm_reactor_settimer(nrm_reactor_t *reactor, nrm_time_t sleeptime);
+
+int nrm_reactor_start(nrm_reactor_t *reactor);
+
+/**
+ * Destroys an NRM reactor. Closes connections.
+ */
+void nrm_reactor_destroy(nrm_reactor_t **reactor);
 
 #ifdef __cplusplus
 }

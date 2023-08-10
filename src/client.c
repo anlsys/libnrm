@@ -693,7 +693,6 @@ int nrm_client_send_event(const nrm_client_t *client,
 	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
 	pthread_mutex_unlock(&(client->lock));
-
 	return 0;
 }
 

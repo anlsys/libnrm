@@ -1,45 +1,17 @@
 #!/usr/bin/env bats
 # vim: set ft=bash:
 
-launch_daemon() {
-	nrmd &>/dev/null 3>&- &
-	NRMD_PID=$!
-	# wait until we are sure that the daemon is running
-	for i in `seq 1 5`; do
-		run timeout 0.2 nrmc -q list-sensors
-		echo $output
-		if [ "$status" -eq 0 ]; then
-			break
-		fi
-	done
-	[ "$status" -eq 0 ]
-}
-
-launch_dummy_extra() {
-	nrm-dummy-extra &>/dev/null 3>&- &
-	NRMD_DUMMY_PID=$!
-	# make sure dummy is actually running and registered to the daemon
-	for i in `seq 1 5`; do
-		run nrmc -q list-sensors
-		[ "$status" -eq 0 ]
-		echo $output
-		echo "$output" | jq .[0].uuid | grep "nrm-dummy-extra-sensor"
-		if [ "$?" -eq 0 ]; then
-			break
-		fi
-		sleep 0.1
-	done
-	[ "$?" -eq 0 ] 
-}
-
 setup_file() {
-	launch_daemon
-	launch_dummy_extra
+	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR --dummy &
+	NRM_SETUP_PID=$!
+	# wait for nrm-setup to start sleeping
+	sleep 1
 }
 
 @test "server connect" {
 	# use list-sensors to check if the client can connect to the server
 	run nrmc list-sensors
+	[ "$status" -eq 0 ]
 }
 
 @test "list dummy sensor" {
@@ -116,6 +88,6 @@ setup_file() {
 }
 
 teardown_file() {
-	run kill -9 $NRMD_DUMMY_PID
-	run kill $NRMD_PID
+	run kill $NRM_SETUP_PID
+	run pkill -9 nrm
 }
