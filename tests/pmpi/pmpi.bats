@@ -7,21 +7,18 @@ setup_file() {
 }
 
 @test "preload, no callbacks" {
-	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ls -al
+	run -0 nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ls -al
 	echo "$output"
-	[ "$status" -eq 0 ]
 }
 
 @test "preload, basic omp" {
-	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_basic
+	run -0 nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_basic
 	echo "$output"
-	[ "$status" -eq 0 ]
 }
 
 @test "preload, stream omp" {
-	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_collectives
+	run -0 nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_collectives
 	echo "$output"
-	[ "$status" -eq 0 ]
 }
 
 teardown_file() {

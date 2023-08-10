@@ -10,14 +10,12 @@ setup_file() {
 
 @test "server connect" {
 	# use list-sensors to check if the client can connect to the server
-	run nrmc list-sensors
-	[ "$status" -eq 0 ]
+	run -0 nrmc list-sensors
 }
 
 @test "list dummy sensor" {
 	# can we list sensors
-	run nrmc -q list-sensors
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q list-sensors
 	# print the output in case of errors
 	echo "$output"
 	# actual check: dummy sensor
@@ -26,8 +24,7 @@ setup_file() {
 
 @test "find dummy sensor" {
 	# can we find the dummy sensor directly
-	run nrmc -q find-sensor "nrm-dummy-extra-sensor"
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q find-sensor "nrm-dummy-extra-sensor"
 	# print the output in case of errors
 	echo "$output"
 	# check that the output is fine
@@ -36,8 +33,7 @@ setup_file() {
 
 @test "list dummy actuator" {
 	# can we list actuators
-	run nrmc -q list-actuators
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q list-actuators
 	# print the output in case of errors
 	echo "$output"
 	# actual check: dummy actuator
@@ -46,8 +42,7 @@ setup_file() {
 
 @test "find dummy actuator" {
 	# can we find the dummy actuator directly
-	run nrmc -q find-actuator "nrm-dummy-extra-actuator"
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q find-actuator "nrm-dummy-extra-actuator"
 	# print the output in case of errors
 	echo "$output"
 	# check that the output is fine
@@ -56,21 +51,18 @@ setup_file() {
 
 @test "actuate" {
 	# find the dummy actuator
-	run nrmc -q find-actuator "nrm-dummy-extra-actuator"
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q find-actuator "nrm-dummy-extra-actuator"
 	# print the output in case of errors
 	echo "$output"
 	# extract valid choice from output
 	choice=`echo "$output" | jq .[0].choices[-1]`
 	echo "$choice"
-	run nrmc -q actuate "nrm-dummy-extra-actuator" $choice
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q actuate "nrm-dummy-extra-actuator" $choice
 }
 
 @test "list slices" {
 	# can we list slices
-	run nrmc -q list-slices
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q list-slices
 	# print the output in case of errors
 	echo "$output"
 	# actual check: just make sure that it's valid json
@@ -79,8 +71,7 @@ setup_file() {
 
 @test "list scopes" {
 	# can we list scopes
-	run nrmc -q list-scopes
-	[ "$status" -eq 0 ]
+	run -0 nrmc -q list-scopes
 	# print the output in case of errors
 	echo "$output"
 	# actual check: just make sure that it's valid json

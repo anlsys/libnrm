@@ -8,9 +8,8 @@ setup() {
 
 @test "exit works" {
 	# completely ignore any exit status on nrmc
-	run timeout 1 nrmc exit
+	run -0 timeout 1 nrmc exit
 	wait $NRM_SETUP_PID
-	[ "$?" -eq 0 ]
 }
 
 @test "--freq works" {
