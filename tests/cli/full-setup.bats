@@ -22,8 +22,6 @@ setup() {
 	# can we list sensors
 	bats-nrm-run nrmc -q list-sensors
 	[ "$status" -eq 0 ]
-	# print the output in case of errors
-	echo "$output"
 	# actual check: dummy sensor
 	echo "$output" | jq .[0].uuid | grep "nrm-dummy-extra-sensor"
 }

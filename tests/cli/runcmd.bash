@@ -7,6 +7,8 @@
 # we also use ABS_TOP_BUILDDIR in the path for any nrm command, otherwise
 # libtool will not replace it with the actual binary
 
+bats_require_minimum_version 1.5.0
+
 bats-nrm-run() {
 	t=`run echo $1 | grep "nrm"`
 	if [ $? -eq 0 ]; then
@@ -14,5 +16,5 @@ bats-nrm-run() {
 	else
 		cmd=$1
 	fi
-	run $LOG_COMPILER $LOG_FLAGS $cmd ${@:2}
+	run --separate-stderr $LOG_COMPILER $LOG_FLAGS $cmd ${@:2}
 }
