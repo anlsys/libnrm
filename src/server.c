@@ -47,7 +47,9 @@ int nrm_server_actuate_callback(nrm_server_t *self,
 			nrm_msg_t *action = nrm_msg_create();
 			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 			nrm_msg_set_actuate(action, a->uuid, msg->value);
-			nrm_role_send(self->role, action, a->clientid);
+			nrm_uuid_t *tmp =
+			        nrm_uuid_create_fromchar(*a->clientid);
+			nrm_role_send(self->role, action, tmp);
 		}
 	}
 	nrm_msg_t *ret = nrm_msg_create();
