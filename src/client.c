@@ -52,11 +52,11 @@ int nrm_client_actuate(const nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value)
 {
-	if (client == NULL || actuator == NULL)
+	if (client == NULL || actuator == NULL || actuator->choices == NULL)
 		return -NRM_EINVAL;
 
 	nrm_log_debug("checking value is valid\n");
-	size_t i, len;
+	size_t i, len = 0;
 	nrm_vector_length(actuator->choices, &len);
 	for (i = 0; i < len; i++) {
 		double d;

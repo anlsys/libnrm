@@ -52,6 +52,9 @@ int cmd_actuate(int argc, char **argv)
 
 	nrm_log_info("sending actuation\n");
 	nrm_client_actuate(client, a, value);
+	nrm_actuator_destroy(&a);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
 	return 0;
 }
 
