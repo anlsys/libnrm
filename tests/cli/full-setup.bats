@@ -1,6 +1,21 @@
 #!/usr/bin/env bats
 # vim: set ft=bash:
 
+runcmd() {
+	t=`run echo $1 | grep "nrm"`
+	if [ $? -eq 0 ]; then
+		cmd=$ABS_TOP_BUILDDIR/$1
+	else
+		cmd=$1
+	fi
+
+	if [ -z $VALGRIND ]; then
+		run $cmd ${@:2}
+	else
+		run $LOG_COMPILER $LOG_FLAGS $cmd ${@:2}
+	fi
+}
+
 setup_file() {
 	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR --dummy &
 	NRM_SETUP_PID=$!
@@ -10,13 +25,13 @@ setup_file() {
 
 @test "server connect" {
 	# use list-sensors to check if the client can connect to the server
-	run nrmc list-sensors
+	runcmd nrmc list-sensors
 	[ "$status" -eq 0 ]
 }
 
 @test "list dummy sensor" {
 	# can we list sensors
-	run nrmc -q list-sensors
+	runcmd nrmc -q list-sensors
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"

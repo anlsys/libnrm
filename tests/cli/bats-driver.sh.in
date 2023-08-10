@@ -3,4 +3,7 @@
 export BATS_TEST_TIMEOUT=10
 export PATH=@abs_top_builddir@:$PATH
 export ABS_TOP_BUILDDIR=@abs_top_builddir@
-@BATS@ $@
+export LOG_COMPILER
+export VALGRIND
+export LOG_FLAGS
+@BATS@ -x --verbose-run --show-output-of-passing-tests $@
