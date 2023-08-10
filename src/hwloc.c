@@ -51,9 +51,13 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 			this_scope = nrm_scope_create(scope_name);
 			unsigned int bit;
 			// Nodeset
+			int numa_count = 0;
 			hwloc_bitmap_foreach_begin(bit, object->nodeset)
-			        nrm_scope_add(this_scope, NRM_SCOPE_TYPE_NUMA,
-			                      bit);
+			{
+				nrm_scope_add(this_scope, NRM_SCOPE_TYPE_NUMA,
+				              bit);
+				numa_count++;
+			}
 			hwloc_bitmap_foreach_end();
 			// Cpuset
 			hwloc_bitmap_foreach_begin(bit, object->cpuset)
@@ -62,6 +66,33 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 			hwloc_bitmap_foreach_end();
 			nrm_hash_add(scopes, nrm_scope_uuid(this_scope),
 			             this_scope);
+			if (object->type == HWLOC_OBJ_PU && numa_count > 1) {
+				// Add additional scopes each with a single NUMA
+				// node only.
+				hwloc_bitmap_foreach_begin(bit, object->nodeset)
+				{
+					snprintf(scope_name, sizeof(scope_name),
+					         "%s%s.%u.%u", namespace,
+					         buffer, object->logical_index,
+					         bit);
+					this_scope =
+					        nrm_scope_create(scope_name);
+					nrm_scope_add(this_scope,
+					              NRM_SCOPE_TYPE_NUMA, bit);
+					unsigned int cpubit;
+					hwloc_bitmap_foreach_begin(
+					        cpubit, object->cpuset)
+					        nrm_scope_add(
+					                this_scope,
+					                NRM_SCOPE_TYPE_CPU,
+					                cpubit);
+					hwloc_bitmap_foreach_end();
+					nrm_hash_add(scopes,
+					             nrm_scope_uuid(this_scope),
+					             this_scope);
+				}
+				hwloc_bitmap_foreach_end();
+			}
 		}
 	}
 
