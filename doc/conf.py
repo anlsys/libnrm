@@ -46,11 +46,7 @@ needs_sphinx = '2.0'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ["sphinx.ext.intersphinx", "breathe", "sphinx_design"]
-intersphinx_mapping = {
-    'nrm-python': ('https://nrm.readthedocs.io/projects/nrm-python/en/master/', None),
-    'nrm-core': ('https://nrm.readthedocs.io/projects/nrm-core/en/master/', None)
-}
+extensions = ["breathe", "sphinx_design"]
 
 breathe_projects = {"nrm": "build-doxygen/xml"}
 breathe_default_project = "nrm"
