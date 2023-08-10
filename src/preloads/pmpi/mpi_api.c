@@ -86,8 +86,10 @@ NRM_MPI_DECL(MPI_Comm_rank, int, MPI_Comm comm, int *rank)
 NRM_MPI_DECL(MPI_Finalize, int, void)
 {
 	NRM_MPI_RESOLVE(MPI_Finalize);
-	nrm_scope_destroy(scope);
-	nrm_client_destroy(&client);
+	if (scope)
+		nrm_scope_destroy(scope);
+	if (client)
+		nrm_client_destroy(&client);
 	nrm_finalize();
 	return NRM_MPI_REALNAME(MPI_Finalize);
 }
@@ -133,21 +135,26 @@ NRM_MPI_DECL(MPI_Init, int, int *argc, char ***argv)
 	int ret, rank;
 
 	NRM_MPI_RESOLVE(MPI_Init);
-	ret = NRM_MPI_REALNAME(MPI_Init, argc, argv);
+	if ((ret = NRM_MPI_REALNAME(MPI_Init, argc, argv)) != 0)
+		goto end;
 
 	NRM_MPI_INNER_NAME(MPI_Comm_rank, MPI_COMM_WORLD, &rank);
 
-	nrm_init(NULL, NULL);
+	if ((ret = nrm_init(NULL, NULL)) != 0)
+		goto end;
 	nrm_log_init(stderr, "nrm.pmpi");
-	nrm_client_create(&client, nrm_upstream_uri, nrm_upstream_pub_port,
-	                  nrm_upstream_rpc_port);
+	if ((ret = nrm_client_create(&client, nrm_upstream_uri,
+	                             nrm_upstream_pub_port,
+	                             nrm_upstream_rpc_port)) != 0)
+		goto end;
 
-	find_scope(client, rank, &scope);
+	if ((ret = find_scope(client, rank, &scope)) != 0)
+		goto end;
 
 	nrm_string_t name = nrm_string_fromprintf("nrm.pmpi.%u", rank);
 	sensor = nrm_sensor_create(name);
 	nrm_string_decref(name);
 	nrm_client_add_sensor(client, sensor);
-
+end:
 	return ret;
 }
