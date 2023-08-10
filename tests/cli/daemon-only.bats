@@ -2,13 +2,15 @@
 # vim: set ft=bash:
 
 setup() {
+	load 'runcmd.bash'
 	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_TEST_TMPDIR &
 	NRM_SETUP_PID=$!
+	sleep 1
 }
 
 @test "exit works" {
 	# completely ignore any exit status on nrmc
-	run timeout 1 nrmc exit
+	bats-nrm-run nrmc exit
 	wait $NRM_SETUP_PID
 	[ "$?" -eq 0 ]
 }

@@ -20,8 +20,13 @@ class NRMBinary:
         self.stderr = open(options.output / (self.name + "-stderr.log"), "w+")
         assert self.stdout != None
         assert self.stderr != None
+        popencmd = []
+        # support for LOG_COMPILER and LOG_FLAGS
+        popencmd += os.environ.get('LOG_COMPILER', "").split()
+        popencmd += os.environ.get('LOG_FLAGS', "").split()
+        popencmd += [self.abspath, "-vvv"]
         self.proc = subprocess.Popen(
-            [self.abspath, "-vvv"], stdin=None, stdout=self.stdout, stderr=self.stderr
+            popencmd, stdin=None, stdout=self.stdout, stderr=self.stderr
         )
         assert self.proc
 

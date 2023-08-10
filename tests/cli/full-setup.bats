@@ -1,21 +1,6 @@
 #!/usr/bin/env bats
 # vim: set ft=bash:
 
-runcmd() {
-	t=`run echo $1 | grep "nrm"`
-	if [ $? -eq 0 ]; then
-		cmd=$ABS_TOP_BUILDDIR/$1
-	else
-		cmd=$1
-	fi
-
-	if [ -z $VALGRIND ]; then
-		run $cmd ${@:2}
-	else
-		run $LOG_COMPILER $LOG_FLAGS $cmd ${@:2}
-	fi
-}
-
 setup_file() {
 	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR --dummy &
 	NRM_SETUP_PID=$!
@@ -23,15 +8,19 @@ setup_file() {
 	sleep 1
 }
 
+setup() {
+	load 'runcmd.bash'
+}
+
 @test "server connect" {
 	# use list-sensors to check if the client can connect to the server
-	runcmd nrmc list-sensors
+	bats-nrm-run nrmc list-sensors
 	[ "$status" -eq 0 ]
 }
 
 @test "list dummy sensor" {
 	# can we list sensors
-	runcmd nrmc -q list-sensors
+	bats-nrm-run nrmc -q list-sensors
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
@@ -41,7 +30,7 @@ setup_file() {
 
 @test "find dummy sensor" {
 	# can we find the dummy sensor directly
-	run nrmc -q find-sensor "nrm-dummy-extra-sensor"
+	bats-nrm-run nrmc -q find-sensor "nrm-dummy-extra-sensor"
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
@@ -51,7 +40,7 @@ setup_file() {
 
 @test "list dummy actuator" {
 	# can we list actuators
-	run nrmc -q list-actuators
+	bats-nrm-run nrmc -q list-actuators
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
@@ -61,7 +50,7 @@ setup_file() {
 
 @test "find dummy actuator" {
 	# can we find the dummy actuator directly
-	run nrmc -q find-actuator "nrm-dummy-extra-actuator"
+	bats-nrm-run nrmc -q find-actuator "nrm-dummy-extra-actuator"
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
@@ -71,20 +60,20 @@ setup_file() {
 
 @test "actuate" {
 	# find the dummy actuator
-	run nrmc -q find-actuator "nrm-dummy-extra-actuator"
+	bats-nrm-run nrmc -q find-actuator "nrm-dummy-extra-actuator"
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
 	# extract valid choice from output
 	choice=`echo "$output" | jq .[0].choices[-1]`
 	echo "$choice"
-	run nrmc -q actuate "nrm-dummy-extra-actuator" $choice
+	bats-nrm-run nrmc -q actuate "nrm-dummy-extra-actuator" $choice
 	[ "$status" -eq 0 ]
 }
 
 @test "list slices" {
 	# can we list slices
-	run nrmc -q list-slices
+	bats-nrm-run nrmc -q list-slices
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
@@ -94,7 +83,7 @@ setup_file() {
 
 @test "list scopes" {
 	# can we list scopes
-	run nrmc -q list-scopes
+	bats-nrm-run nrmc -q list-scopes
 	[ "$status" -eq 0 ]
 	# print the output in case of errors
 	echo "$output"
