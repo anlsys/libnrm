@@ -138,15 +138,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: source oneapi
-        run: source /opt/intel/oneapi/setvars.sh
       - name: configure
         run: |
+          source /opt/intel/oneapi/setvars.sh
           ./autogen.sh
           mkdir build
           ./configure --prefix=`pwd`/build
-      - run: make
-      - run: make check
+          make
+          make check
       - uses: actions/upload-artifact@v2
         if: failure()
         with:
