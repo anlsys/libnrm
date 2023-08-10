@@ -210,11 +210,15 @@ int cmd_find_actuator(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_actuator_t *a = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_actuator_to_json(a);
+		nrm_actuator_t **a = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_actuator_to_json(*a);
 		json_array_append_new(array, json);
+		nrm_actuator_destroy(a);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 
@@ -238,11 +242,15 @@ int cmd_find_scope(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_scope_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_scope_to_json(s);
+		nrm_scope_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_scope_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_scope_destroy(*s);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 
@@ -266,11 +274,15 @@ int cmd_find_sensor(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_sensor_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_sensor_to_json(s);
+		nrm_sensor_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_sensor_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_sensor_destroy(s);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 
@@ -294,11 +306,15 @@ int cmd_find_slice(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_slice_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_slice_to_json(s);
+		nrm_slice_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_slice_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_slice_destroy(s);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 

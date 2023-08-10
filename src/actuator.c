@@ -117,5 +117,6 @@ void nrm_actuator_destroy(nrm_actuator_t **actuator)
 	nrm_string_decref((*actuator)->uuid);
 	nrm_uuid_destroy(&(*actuator)->clientid);
 	nrm_vector_destroy(&(*actuator)->choices);
+	free(*actuator);
 	*actuator = NULL;
 }

@@ -274,7 +274,7 @@ int nrm_client_find(const nrm_client_t *client,
 
 	nrm_vector_t *ret;
 	if (type == NRM_MSG_TARGET_TYPE_ACTUATOR) {
-		err = nrm_vector_create(&ret, sizeof(nrm_actuator_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_actuator_t *));
 		if (err)
 			return err;
 
@@ -285,10 +285,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_actuator_t *s = nrm_actuator_create_frommsg(
 			        msg->list->actuators->actuators[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
-		err = nrm_vector_create(&ret, sizeof(nrm_scope_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_scope_t *));
 		if (err)
 			return err;
 
@@ -297,10 +297,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_scope_t *s = nrm_scope_create_frommsg(
 			        msg->list->scopes->scopes[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
-		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t *));
 		if (err)
 			return err;
 
@@ -309,10 +309,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_sensor_t *s = nrm_sensor_create_frommsg(
 			        msg->list->sensors->sensors[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
-		err = nrm_vector_create(&ret, sizeof(nrm_slice_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_slice_t *));
 		if (err)
 			return err;
 
@@ -321,7 +321,7 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_slice_t *s = nrm_slice_create_frommsg(
 			        msg->list->slices->slices[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	}
 	*results = ret;
