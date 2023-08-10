@@ -1,8 +1,7 @@
 Welcome to NRM's documentation!
 ===============================
 
-This documentation is technical. For a high-level overview of NRM, please
-refer to the Argo website_.
+For a high-level overview of NRM, please refer to the Argo website_.
 
 The Node Resource Manager (NRM) is a node-local userspace client-server daemon
 for managing your scientific applications. NRM:
@@ -19,8 +18,6 @@ NRM is shipped as ``libnrm``, and includes:
 
 The :doc:`quickstart <pages/quickstart>` guide describes the use of these components.
 
-.. image:: images/nrm.svg
-
 Install
 =======
 
@@ -33,7 +30,6 @@ Use Spack_ to install libnrm::
    :caption: User Guides:
 
    pages/quickstart
-   pages/config
 
 .. toctree::
    :maxdepth: 2

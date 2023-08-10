@@ -134,7 +134,7 @@ Included Replacement libraries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 libnrm includes replacement libraries for MPI and openMP that have each been
-instrumented with libnrm. These will be installed in ``lib`` whereever libnrm
+instrumented with libnrm. These will be installed in ``lib`` wherever libnrm
 was installed.
 
 For example, supposing libnrm was configured via ``./configure --prefix=$PWD/build``,
