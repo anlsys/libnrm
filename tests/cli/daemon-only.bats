@@ -21,6 +21,13 @@ setup() {
 	[ $event_count -ge 12 ]
 }
 
+@test "--help works" {
+	run timeout 2 nrm-dummy-extra --help
+	kill $NRM_SETUP_PID
+	help_count= `cat $BATS_TEST_TMPDIR/nrmd-stderr.log | wc -l`
+	[ $help_count -eq 12 ]
+}
+
 teardown_file() {
 	run pkill -9 nrm
 }
