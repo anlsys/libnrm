@@ -44,7 +44,7 @@ void nrm_uuid_destroy(nrm_uuid_t **uuid)
 
 nrm_uuid_t *nrm_uuid_create_fromchar(char *s)
 {
-	if(s == NULL)
+	if (s == NULL)
 		return NULL;
 
 	nrm_uuid_t *ret;
