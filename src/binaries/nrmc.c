@@ -127,7 +127,8 @@ int cmd_add_scope(int argc, char **argv)
 {
 
 	/* no matter the arguments, only one extra parameter */
-	if (argc < 2)
+	if (argc != 3)
+		nrm_log_error("Not enough parameters to parse scope\n");
 		return EXIT_FAILURE;
 
 	int err;
