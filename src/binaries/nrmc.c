@@ -135,13 +135,13 @@ int cmd_add_scope(int argc, char **argv)
 	nrm_scope_t *scope;
 	json_t *param;
 	json_error_t json_error;
-	nrm_log_debug("Load from json")
+	nrm_log_debug("Load from json");
 	param = json_loads(argv[2], 0, &json_error);
-	nrm_log_debug("Loaded from json")
+	nrm_log_debug("Loaded from json");
 	scope = nrm_scope_create(argv[1]);
-	nrm_log_debug("Scope initialized from specified name")
+	nrm_log_debug("Scope initialized from specified name");
 	err = nrm_scope_from_json(scope, param);
-	nrm_log_debug("Scope parameterized from json")
+	nrm_log_debug("Scope parameterized from json");
 	if (err)
 		nrm_log_error("Unable to parse json into valid scope\n");
 		return EXIT_FAILURE;
