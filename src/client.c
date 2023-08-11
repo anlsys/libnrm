@@ -717,6 +717,7 @@ int nrm_client_send_exit(const nrm_client_t *client)
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 

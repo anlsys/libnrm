@@ -76,6 +76,7 @@ class NRMSetup:
 
     def cleanup(self):
         ret = self.nrmd.proc.poll()
+        print("nrmd return status:", ret)
         self.returncode = self.returncode or ret
         for c in self.others:
             if not c.isdead():

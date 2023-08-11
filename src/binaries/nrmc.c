@@ -47,12 +47,12 @@ int cmd_actuate(int argc, char **argv)
 	nrm_vector_length(results, &len);
 
 	assert(len == 1);
-	nrm_actuator_t *a;
-	nrm_vector_get_withtype(nrm_actuator_t, results, 0, a);
+	nrm_actuator_t **a;
+	nrm_vector_get_withtype(nrm_actuator_t *, results, 0, a);
 
 	nrm_log_info("sending actuation\n");
-	nrm_client_actuate(client, a, value);
-	nrm_actuator_destroy(&a);
+	nrm_client_actuate(client, *a, value);
+	nrm_actuator_destroy(a);
 	nrm_vector_clear(results);
 	nrm_vector_destroy(&results);
 	return 0;

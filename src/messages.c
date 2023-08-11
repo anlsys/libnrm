@@ -710,7 +710,10 @@ static int nrm_msg_push_packed_frames(zmsg_t *zm, nrm_msg_t *msg)
 static int nrm_msg_pop_identity(zmsg_t *zm, nrm_uuid_t **uuid)
 {
 	zframe_t *frame = zmsg_pop(zm);
-	nrm_uuid_t *id = nrm_uuid_create_fromchar((char *)zframe_data(frame));
+	assert(frame != NULL);
+	char *identity = (char *)zframe_data(frame);
+	assert(identity != NULL);
+	nrm_uuid_t *id = nrm_uuid_create_fromchar(identity);
 	zframe_destroy(&frame);
 	*uuid = id;
 	return 0;

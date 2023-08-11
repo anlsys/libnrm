@@ -224,6 +224,8 @@ AM_CFLAGS += $(CHECK_CFLAGS)
 AM_LDFLAGS += $(CHECK_LIBS)
 LDADD = libnrm.la
 
+VALGRIND_SUPPRESSIONS_FILES = .valgrind.supp
+
 # valgrind support
 @VALGRIND_CHECK_RULES@
 

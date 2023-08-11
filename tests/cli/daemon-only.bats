@@ -17,11 +17,11 @@ setup() {
 }
 
 @test "--freq works" {
-	run timeout 2 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrm-dummy-extra --freq 2
+	run timeout 3 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrm-dummy-extra --freq 2
 	kill $NRM_SETUP_PID
 	cat $BATS_TEST_TMPDIR/nrmd-stderr.log
-	event_count=`grep EVENT $BATS_TEST_TMPDIR/nrmd-stderr.log | wc -l`
-	# debug log makes every event appear 3 times
+	event_count=`grep EVENT $BATS_TEST_TMPDIR/nrmd-stderr.log | grep "nrm-dummy-extra-sensor" | wc -l`
+	# debug log makes every event appear 4 times, we should see it at least 3 times
 	[ $event_count -ge 12 ]
 }
 

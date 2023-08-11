@@ -13,6 +13,8 @@ BATS_LOG_DRIVER = env AM_TAP_AWK='$(AWK)' $(SHELL) \
 		$(top_srcdir)/build-aux/tap-driver.sh
 BATS_LOG_COMPILER = $(SHELL) $(top_builddir)/tests/cli/bats-driver.sh
 
+VALGRIND_SUPPRESSIONS_FILES = $(top_srcdir)/.valgrind.supp
+
 @VALGRIND_CHECK_RULES@
 
 TESTS = $(BATS_TESTS)
