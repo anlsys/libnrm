@@ -127,7 +127,7 @@ int cmd_add_scope(int argc, char **argv)
 {
 
 	/* no matter the arguments, only one extra parameter */
-	if (argc != 3)
+	if (argc < 2)
 		return EXIT_FAILURE;
 
 	int err;

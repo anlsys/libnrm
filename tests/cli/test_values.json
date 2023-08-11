@@ -1,0 +1,5 @@
+{
+    "test_scope": "{'cpu': [0, 1, 2], 'gpu': [], 'numa': [0, 1], 'uuid': 'nrm.test.scope.0'}",
+    "test_slice": "nrm.test.slice.0",
+    "test_sensor": "nrm.test.sensor.0"
+}

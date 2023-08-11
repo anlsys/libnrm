@@ -21,7 +21,7 @@ setup() {
 	[ $event_count -ge 12 ]
 }
 
-@test "--help works" {
+@test "--help works" {  # looks like this was redundant
 	run timeout 2 nrm-dummy-extra --help
 	kill $NRM_SETUP_PID
 	help_count= `cat $BATS_TEST_TMPDIR/nrmd-stderr.log | wc -l`
