@@ -38,7 +38,7 @@ int cmd_connect(nrm_tools_args_t *args, int argc, char **argv)
 
 	for (size_t i = 0; i < retries; i++) {
 		err = nrm_client_create(&client, args->upstream_uri,
-					args->pub_port, args->rpc_port);
+		                        args->pub_port, args->rpc_port);
 		if (err == 0)
 			return 0;
 		sleep(1);
