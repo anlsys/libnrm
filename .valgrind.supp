@@ -10,11 +10,3 @@
    ...
    obj:*/lib*/lib*.so.*
 }
-{
-   ignore snprintf
-   Memcheck:Cond
-   fun:strlen
-   fun:__printf_buffer
-   fun:__vsnprintf_internal
-   fun:snprintf
-}

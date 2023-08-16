@@ -24,6 +24,28 @@ struct client_cmd {
 	int (*fn)(int, char **);
 };
 
+int cmd_connect(nrm_tools_args_t *args, int argc, char **argv)
+{
+	/* optional number of retries */
+	if (argc > 3)
+		return EXIT_FAILURE;
+
+	int err = 0;
+	unsigned int retries = 5;
+	if (argc == 2)
+		err = nrm_parse_uint(argv[1], &retries);
+	assert(err == 0);
+
+	for (size_t i = 0; i < retries; i++) {
+		err = nrm_client_create(&client, args->upstream_uri,
+					args->pub_port, args->rpc_port);
+		if (err == 0)
+			return 0;
+		sleep(1);
+	}
+	return EXIT_FAILURE;
+}
+
 int cmd_actuate(int argc, char **argv)
 {
 	/* no options at this time */
@@ -782,6 +804,11 @@ int main(int argc, char *argv[])
 	nrm_log_setlevel(args.log_level);
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 	              argc, argv[0]);
+
+	if (!strcmp(argv[0], "connect")) {
+		err = cmd_connect(&args, argc, argv);
+		goto end;
+	}
 
 	nrm_log_info("creating client\n");
 	err = nrm_client_create(&client, args.upstream_uri, args.pub_port,

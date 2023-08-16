@@ -7,12 +7,14 @@ setup_file() {
 	$ABS_TOP_BUILDDIR/nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR --dummy &
 	NRM_SETUP_PID=$!
 	# wait for nrm-setup to start sleeping
-	sleep 1
+	while [ ! -e $BATS_FILE_TMPDIR/nrm-setup-ready.log ]; do
+		sleep 1
+	done
 }
 
 @test "server connect" {
-	# use list-sensors to check if the client can connect to the server
-	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc list-sensors
+	# check if the client can connect to the server
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc connect
 }
 
 @test "list dummy sensor" {

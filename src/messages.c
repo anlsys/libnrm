@@ -712,8 +712,9 @@ static int nrm_msg_pop_identity(zmsg_t *zm, nrm_uuid_t **uuid)
 	zframe_t *frame = zmsg_pop(zm);
 	assert(frame != NULL);
 	char *identity = (char *)zframe_data(frame);
+	size_t len = zframe_size(frame);
 	assert(identity != NULL);
-	nrm_uuid_t *id = nrm_uuid_create_fromchar(identity);
+	nrm_uuid_t *id = nrm_uuid_create_frombuf(identity, len);
 	zframe_destroy(&frame);
 	*uuid = id;
 	return 0;

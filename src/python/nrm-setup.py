@@ -49,6 +49,12 @@ class NRMSetup:
         nrmd.launch(args)
         self.nrmd = nrmd
 
+        # wait for nrmd to respond
+        subprocess.run([(args.prefix / "nrmc").absolute(), "-q", "connect"],
+                       check=True)
+        # don't handle child handlers until then
+        signal.signal(signal.SIGCHLD, self.child_handler)
+
         for c in others:
             c.launch(args)
             self.others.append(c)
@@ -105,7 +111,6 @@ nrmd = NRMBinary("nrmd", True)
 handler = NRMSetup()
 signal.signal(signal.SIGTERM, handler.exit_handler)
 signal.signal(signal.SIGINT, handler.exit_handler)
-signal.signal(signal.SIGCHLD, handler.child_handler)
 
 tolaunch = []
 if args.dummy:
@@ -113,6 +118,10 @@ if args.dummy:
     tolaunch.append(nrm_dummy_extra)
 
 handler.launch(args, nrmd, tolaunch)
+# signal to users that we're ready
+with open(args.output / ("nrm-setup-ready.log"), "w+") as readyfile:
+    print("ok", file=readyfile)
+
 handler.wait()
 err = handler.cleanup()
 exit(err)

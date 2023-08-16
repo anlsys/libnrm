@@ -6,6 +6,10 @@ bats_require_minimum_version 1.5.0
 setup_file() {
 	$ABS_TOP_BUILDDIR/nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR &
 	NRM_SETUP_PID=$!
+	# wait for nrm-setup to start sleeping
+	while [ ! -e $BATS_FILE_TMPDIR/nrm-setup-ready.log ]; do
+		sleep 1
+	done
 }
 
 @test "preload, no callbacks" {
