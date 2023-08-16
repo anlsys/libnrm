@@ -76,9 +76,13 @@ class NRMSetup:
         self.done = True
 
     def child_handler(self, *args):
-        # only one child so exit
-        print("child terminated, exiting", args)
-        self.done = True
+        try:
+            child_pid, _ = os.waitpid(-1, os.WNOHANG)
+        except OSError:
+            return
+        if child_pid == nrmd.proc.pid:
+            print("nrmd terminated; exiting...")
+            self.done = True
 
     def cleanup(self):
         ret = self.nrmd.proc.poll()
@@ -118,6 +122,13 @@ if args.dummy:
     tolaunch.append(nrm_dummy_extra)
 
 handler.launch(args, nrmd, tolaunch)
+if args.dummy:
+    # Wait until the actuator is registered
+    for i in range(1, 5):
+        res = subprocess.run([(args.prefix / "nrmc").absolute(), "-q", "list-actuators"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.stdout.decode("utf-8") != "[]":
+            break
+        time.sleep(1)
 # signal to users that we're ready
 with open(args.output / ("nrm-setup-ready.log"), "w+") as readyfile:
     print("ok", file=readyfile)
