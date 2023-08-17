@@ -708,16 +708,6 @@ int nrm_client_send_exit(const nrm_client_t *client)
 	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
 	pthread_mutex_unlock(&(client->lock));
-
-	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->lock));
-	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->lock));
-	nrm_log_debug("parsing reply\n");
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-
-	assert(msg->type == NRM_MSG_TYPE_ACK);
-	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
