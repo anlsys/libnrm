@@ -138,6 +138,7 @@ int nrm_client_broker_sub_handler(zloop_t *loop, zsock_t *socket, void *arg)
 	else
 		self->sub_cb->fn(msg, self->sub_cb->arg);
 	nrm_msg_destroy_received(&msg);
+	nrm_string_decref(topic);
 	return 0;
 }
 

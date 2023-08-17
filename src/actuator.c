@@ -114,8 +114,11 @@ void nrm_actuator_destroy(nrm_actuator_t **actuator)
 {
 	if (actuator == NULL || *actuator == NULL)
 		return;
-	nrm_string_decref((*actuator)->uuid);
-	nrm_uuid_destroy(&(*actuator)->clientid);
-	nrm_vector_destroy(&(*actuator)->choices);
+
+	nrm_actuator_t *a = *actuator;
+	nrm_string_decref(a->uuid);
+	nrm_uuid_destroy(&a->clientid);
+	nrm_vector_destroy(&a->choices);
+	free(a);
 	*actuator = NULL;
 }

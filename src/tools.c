@@ -177,8 +177,7 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 		}
 	}
 	if (args->upstream_uri == NULL)
-		args->upstream_uri =
-		        nrm_string_fromchar(NRM_DEFAULT_UPSTREAM_URI);
+		args->upstream_uri = NRM_DEFAULT_UPSTREAM_URI;
 
 	return optind;
 }

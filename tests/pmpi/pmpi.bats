@@ -1,27 +1,27 @@
 #!/usr/bin/env bats
 # vim: set ft=bash:
 
+bats_require_minimum_version 1.5.0
+
 setup_file() {
-	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR &
+	$ABS_TOP_BUILDDIR/nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_FILE_TMPDIR &
 	NRM_SETUP_PID=$!
+	# wait for nrm-setup to start sleeping
+	while [ ! -e $BATS_FILE_TMPDIR/nrm-setup-ready.log ]; do
+		sleep 1
+	done
 }
 
 @test "preload, no callbacks" {
-	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ls -al
-	echo "$output"
-	[ "$status" -eq 0 ]
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ls -al
 }
 
 @test "preload, basic omp" {
-	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_basic
-	echo "$output"
-	[ "$status" -eq 0 ]
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_basic
 }
 
 @test "preload, stream omp" {
-	run nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_collectives
-	echo "$output"
-	[ "$status" -eq 0 ]
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_collectives
 }
 
 teardown_file() {

@@ -24,6 +24,28 @@ struct client_cmd {
 	int (*fn)(int, char **);
 };
 
+int cmd_connect(nrm_tools_args_t *args, int argc, char **argv)
+{
+	/* optional number of retries */
+	if (argc > 3)
+		return EXIT_FAILURE;
+
+	int err = 0;
+	unsigned int retries = 5;
+	if (argc == 2)
+		err = nrm_parse_uint(argv[1], &retries);
+	assert(err == 0);
+
+	for (size_t i = 0; i < retries; i++) {
+		err = nrm_client_create(&client, args->upstream_uri,
+		                        args->pub_port, args->rpc_port);
+		if (err == 0)
+			return 0;
+		sleep(1);
+	}
+	return EXIT_FAILURE;
+}
+
 int cmd_actuate(int argc, char **argv)
 {
 	/* no options at this time */
@@ -47,11 +69,14 @@ int cmd_actuate(int argc, char **argv)
 	nrm_vector_length(results, &len);
 
 	assert(len == 1);
-	nrm_actuator_t *a;
-	nrm_vector_get_withtype(nrm_actuator_t, results, 0, a);
+	nrm_actuator_t **a;
+	nrm_vector_get_withtype(nrm_actuator_t *, results, 0, a);
 
 	nrm_log_info("sending actuation\n");
-	nrm_client_actuate(client, a, value);
+	nrm_client_actuate(client, *a, value);
+	nrm_actuator_destroy(a);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
 	return 0;
 }
 
@@ -210,11 +235,15 @@ int cmd_find_actuator(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_actuator_t *a = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_actuator_to_json(a);
+		nrm_actuator_t **a = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_actuator_to_json(*a);
 		json_array_append_new(array, json);
+		nrm_actuator_destroy(a);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 
@@ -238,11 +267,15 @@ int cmd_find_scope(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_scope_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_scope_to_json(s);
+		nrm_scope_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_scope_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_scope_destroy(*s);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 
@@ -266,11 +299,15 @@ int cmd_find_sensor(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_sensor_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_sensor_to_json(s);
+		nrm_sensor_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_sensor_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_sensor_destroy(s);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 
@@ -294,11 +331,15 @@ int cmd_find_slice(int argc, char **argv)
 	json_t *array = json_array();
 	nrm_vector_foreach(results, iterator)
 	{
-		nrm_slice_t *s = nrm_vector_iterator_get(iterator);
-		json_t *json = nrm_slice_to_json(s);
+		nrm_slice_t **s = nrm_vector_iterator_get(iterator);
+		json_t *json = nrm_slice_to_json(*s);
 		json_array_append_new(array, json);
+		nrm_slice_destroy(s);
 	}
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	nrm_vector_clear(results);
+	nrm_vector_destroy(&results);
+	json_decref(array);
 	return 0;
 }
 
@@ -763,6 +804,11 @@ int main(int argc, char *argv[])
 	nrm_log_setlevel(args.log_level);
 	nrm_log_debug("after command line parsing: argc: %u argv[0]: %s\n",
 	              argc, argv[0]);
+
+	if (!strcmp(argv[0], "connect")) {
+		err = cmd_connect(&args, argc, argv);
+		goto end;
+	}
 
 	nrm_log_info("creating client\n");
 	err = nrm_client_create(&client, args.upstream_uri, args.pub_port,

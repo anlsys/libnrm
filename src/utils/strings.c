@@ -46,6 +46,9 @@ static nrm_realstring_t *nrm_string_new(size_t slen)
 
 nrm_string_t nrm_string_fromchar(const char *string)
 {
+	if (string == NULL)
+		return NULL;
+
 	/* from libc example, computes the number of characters needed to print
 	 * the string
 	 */

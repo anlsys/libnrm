@@ -52,11 +52,11 @@ int nrm_client_actuate(const nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value)
 {
-	if (client == NULL || actuator == NULL)
+	if (client == NULL || actuator == NULL || actuator->choices == NULL)
 		return -NRM_EINVAL;
 
 	nrm_log_debug("checking value is valid\n");
-	size_t i, len;
+	size_t i, len = 0;
 	nrm_vector_length(actuator->choices, &len);
 	for (i = 0; i < len; i++) {
 		double d;
@@ -274,7 +274,7 @@ int nrm_client_find(const nrm_client_t *client,
 
 	nrm_vector_t *ret;
 	if (type == NRM_MSG_TARGET_TYPE_ACTUATOR) {
-		err = nrm_vector_create(&ret, sizeof(nrm_actuator_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_actuator_t *));
 		if (err)
 			return err;
 
@@ -285,10 +285,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_actuator_t *s = nrm_actuator_create_frommsg(
 			        msg->list->actuators->actuators[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
-		err = nrm_vector_create(&ret, sizeof(nrm_scope_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_scope_t *));
 		if (err)
 			return err;
 
@@ -297,10 +297,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_scope_t *s = nrm_scope_create_frommsg(
 			        msg->list->scopes->scopes[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
-		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t *));
 		if (err)
 			return err;
 
@@ -309,10 +309,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_sensor_t *s = nrm_sensor_create_frommsg(
 			        msg->list->sensors->sensors[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
-		err = nrm_vector_create(&ret, sizeof(nrm_slice_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_slice_t *));
 		if (err)
 			return err;
 
@@ -321,7 +321,7 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_slice_t *s = nrm_slice_create_frommsg(
 			        msg->list->slices->slices[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	}
 	*results = ret;
@@ -708,15 +708,6 @@ int nrm_client_send_exit(const nrm_client_t *client)
 	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
 	pthread_mutex_unlock(&(client->lock));
-
-	nrm_log_debug("receiving reply\n");
-	pthread_mutex_lock(&(client->lock));
-	msg = nrm_role_recv(client->role, NULL);
-	pthread_mutex_unlock(&(client->lock));
-	nrm_log_debug("parsing reply\n");
-	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
-
-	assert(msg->type == NRM_MSG_TYPE_ACK);
 	return 0;
 }
 

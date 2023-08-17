@@ -22,6 +22,8 @@ void nrm_uuid_destroy(nrm_uuid_t **);
 
 nrm_uuid_t *nrm_uuid_create_fromchar(char *s);
 
+nrm_uuid_t *nrm_uuid_create_frombuf(const char *, size_t);
+
 char *nrm_uuid_to_char(nrm_uuid_t *uuid);
 
 nrm_string_t nrm_uuid_to_string(nrm_uuid_t *uuid);
