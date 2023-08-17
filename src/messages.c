@@ -1167,6 +1167,7 @@ nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from)
 	int err;
 	void *p, *q;
 	err = nrm_ctrlmsg__recv(socket, type, &p, &q);
+	assert(err == 0);
 	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
 	if (from != NULL) {
 		*from = (nrm_uuid_t *)q;

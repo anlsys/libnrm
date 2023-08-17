@@ -228,7 +228,6 @@ void nrm_client_broker_fn(zsock_t *pipe, void *args)
 	/* start: will only return when broker is destroyed */
 	zloop_start(self->loop);
 
-cleanup_loop:
 	zloop_destroy(&self->loop);
 cleanup_sub:
 	zsock_destroy(&self->sub);

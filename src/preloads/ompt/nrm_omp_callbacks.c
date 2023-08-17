@@ -16,10 +16,13 @@
 void nrm_ompt_callback_thread_begin_cb(ompt_thread_t thread_type,
                                        ompt_data_t *thread_data)
 {
+	(void)thread_type;
+	(void)thread_data;
 }
 
 void nrm_ompt_callback_thread_end_cb(ompt_data_t *thread_data)
 {
+	(void)thread_data;
 }
 
 void nrm_ompt_callback_parallel_begin_cb(

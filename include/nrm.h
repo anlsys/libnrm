@@ -298,30 +298,30 @@ int nrm_client_create(nrm_client_t **client,
                       int pub_port,
                       int rpc_port);
 
-int nrm_client_actuate(const nrm_client_t *client,
+int nrm_client_actuate(nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value);
 
-int nrm_client_add_actuator(const nrm_client_t *client,
+int nrm_client_add_actuator(nrm_client_t *client,
                             nrm_actuator_t *actuator);
 
 /**
  * Adds an NRM scope to an NRM client.
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope);
+int nrm_client_add_scope(nrm_client_t *client, nrm_scope_t *scope);
 
 /**
  * Adds an NRM sensor to an NRM client.
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
+int nrm_client_add_sensor(nrm_client_t *client, nrm_sensor_t *sensor);
 
 /**
  * Adds an NRM slice to an NRM client.
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
+int nrm_client_add_slice(nrm_client_t *client, nrm_slice_t *slice);
 
 /**
  * Find matching NRM objects within a client
@@ -331,56 +331,56 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
  * @param results: NRM vector for containing results
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_find(const nrm_client_t *client,
+int nrm_client_find(nrm_client_t *client,
                     int type,
                     const char *uuid,
                     nrm_vector_t **results);
 
-int nrm_client_list_actuators(const nrm_client_t *client,
+int nrm_client_list_actuators(nrm_client_t *client,
                               nrm_vector_t **actuators);
 
 /**
  * Lists an NRM client's registered scopes into a vector
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes);
+int nrm_client_list_scopes(nrm_client_t *client, nrm_vector_t **scopes);
 
 /**
  * Lists an NRM client's registered sensors into a vector
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
+int nrm_client_list_sensors(nrm_client_t *client, nrm_vector_t **sensors);
 
 /**
  * Lists an NRM client's registered slices into a vector
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
+int nrm_client_list_slices(nrm_client_t *client, nrm_vector_t **slices);
 
 /**
  * Removes an NRM actuator from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_actuator(const nrm_client_t *client,
+int nrm_client_remove_actuator(nrm_client_t *client,
                                nrm_actuator_t *actuator);
 
 /**
  * Removes an NRM slice from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice);
+int nrm_client_remove_slice(nrm_client_t *client, nrm_slice_t *slice);
 
 /**
  * Removes an NRM sensor from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
+int nrm_client_remove_sensor(nrm_client_t *client, nrm_sensor_t *sensor);
 
 /**
  * Removes an NRM scope from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope);
+int nrm_client_remove_scope(nrm_client_t *client, nrm_scope_t *scope);
 
 /**
  * Sends a measurement to the NRM daemon
@@ -393,7 +393,7 @@ int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope);
  * @return 0 if successful, an error code otherwise
  *
  */
-int nrm_client_send_event(const nrm_client_t *client,
+int nrm_client_send_event(nrm_client_t *client,
                           nrm_time_t time,
                           nrm_sensor_t *sensor,
                           nrm_scope_t *scope,
@@ -406,7 +406,7 @@ int nrm_client_send_event(const nrm_client_t *client,
  * @return 0 if successful, an error code otherwise
  *
  */
-int nrm_client_send_exit(const nrm_client_t *client);
+int nrm_client_send_exit(nrm_client_t *client);
 
 /**
  * Set a callback function for client events

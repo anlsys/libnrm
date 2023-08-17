@@ -144,6 +144,7 @@ int nrm_control_europar21_action(nrm_control_t *control,
 	if (in == NULL)
 		return -NRM_EINVAL;
 	pow = in->value;
+	(void)pow;
 	nrm_vector_get_withtype(nrm_control_output_t, outputs, 0, out);
 	if (out == NULL)
 		return -NRM_EINVAL;

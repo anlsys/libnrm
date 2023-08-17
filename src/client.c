@@ -48,7 +48,7 @@ int nrm_client_create(nrm_client_t **client,
 	return 0;
 }
 
-int nrm_client_actuate(const nrm_client_t *client,
+int nrm_client_actuate(nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value)
 {
@@ -95,7 +95,7 @@ int nrm_client_actuate(const nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_add_actuator(const nrm_client_t *client,
+int nrm_client_add_actuator(nrm_client_t *client,
                             nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
@@ -127,7 +127,7 @@ int nrm_client_add_actuator(const nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
+int nrm_client_add_scope(nrm_client_t *client, nrm_scope_t *scope)
 {
 	if (client == NULL || scope == NULL)
 		return -NRM_EINVAL;
@@ -158,7 +158,7 @@ int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	return 0;
 }
 
-int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
+int nrm_client_add_slice(nrm_client_t *client, nrm_slice_t *slice)
 {
 	if (client == NULL || slice == NULL)
 		return -NRM_EINVAL;
@@ -189,7 +189,7 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	return 0;
 }
 
-int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
+int nrm_client_add_sensor(nrm_client_t *client, nrm_sensor_t *sensor)
 {
 	if (client == NULL || sensor == NULL)
 		return -NRM_EINVAL;
@@ -220,7 +220,7 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	return 0;
 }
 
-int nrm_client_find(const nrm_client_t *client,
+int nrm_client_find(nrm_client_t *client,
                     int type,
                     const char *uuid,
                     nrm_vector_t **results)
@@ -389,7 +389,7 @@ int nrm_client_start_actuate_listener(const nrm_client_t *client)
 	return 0;
 }
 
-int nrm_client_list_actuators(const nrm_client_t *client,
+int nrm_client_list_actuators(nrm_client_t *client,
                               nrm_vector_t **actuators)
 {
 	if (client == NULL || actuators == NULL)
@@ -432,7 +432,7 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
+int nrm_client_list_scopes(nrm_client_t *client, nrm_vector_t **scopes)
 {
 	if (client == NULL || scopes == NULL)
 		return -NRM_EINVAL;
@@ -474,7 +474,7 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 	return 0;
 }
 
-int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
+int nrm_client_list_sensors(nrm_client_t *client, nrm_vector_t **sensors)
 {
 	if (client == NULL || sensors == NULL)
 		return -NRM_EINVAL;
@@ -516,7 +516,7 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 	return 0;
 }
 
-int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
+int nrm_client_list_slices(nrm_client_t *client, nrm_vector_t **slices)
 {
 	if (client == NULL || slices == NULL)
 		return -NRM_EINVAL;
@@ -558,7 +558,7 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	return 0;
 }
 
-int nrm_client_remove_actuator(const nrm_client_t *client,
+int nrm_client_remove_actuator(nrm_client_t *client,
                                nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
@@ -588,7 +588,7 @@ int nrm_client_remove_actuator(const nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
+int nrm_client_remove_scope(nrm_client_t *client, nrm_scope_t *scope)
 {
 	if (client == NULL || scope == NULL)
 		return -NRM_EINVAL;
@@ -617,7 +617,7 @@ int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	return 0;
 }
 
-int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
+int nrm_client_remove_sensor(nrm_client_t *client, nrm_sensor_t *sensor)
 {
 	if (client == NULL || sensor == NULL)
 		return -NRM_EINVAL;
@@ -646,7 +646,7 @@ int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	return 0;
 }
 
-int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
+int nrm_client_remove_slice(nrm_client_t *client, nrm_slice_t *slice)
 {
 	if (client == NULL || slice == NULL)
 		return -NRM_EINVAL;
@@ -675,7 +675,7 @@ int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	return 0;
 }
 
-int nrm_client_send_event(const nrm_client_t *client,
+int nrm_client_send_event(nrm_client_t *client,
                           nrm_time_t time,
                           nrm_sensor_t *sensor,
                           nrm_scope_t *scope,
@@ -696,7 +696,7 @@ int nrm_client_send_event(const nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_send_exit(const nrm_client_t *client)
+int nrm_client_send_exit(nrm_client_t *client)
 {
 	if (client == NULL)
 		return -NRM_EINVAL;
