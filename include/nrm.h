@@ -302,8 +302,7 @@ int nrm_client_actuate(nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value);
 
-int nrm_client_add_actuator(nrm_client_t *client,
-                            nrm_actuator_t *actuator);
+int nrm_client_add_actuator(nrm_client_t *client, nrm_actuator_t *actuator);
 
 /**
  * Adds an NRM scope to an NRM client.
@@ -336,8 +335,7 @@ int nrm_client_find(nrm_client_t *client,
                     const char *uuid,
                     nrm_vector_t **results);
 
-int nrm_client_list_actuators(nrm_client_t *client,
-                              nrm_vector_t **actuators);
+int nrm_client_list_actuators(nrm_client_t *client, nrm_vector_t **actuators);
 
 /**
  * Lists an NRM client's registered scopes into a vector
@@ -361,8 +359,7 @@ int nrm_client_list_slices(nrm_client_t *client, nrm_vector_t **slices);
  * Removes an NRM actuator from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_actuator(nrm_client_t *client,
-                               nrm_actuator_t *actuator);
+int nrm_client_remove_actuator(nrm_client_t *client, nrm_actuator_t *actuator);
 
 /**
  * Removes an NRM slice from a daemon

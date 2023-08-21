@@ -95,8 +95,7 @@ int nrm_client_actuate(nrm_client_t *client,
 	return 0;
 }
 
-int nrm_client_add_actuator(nrm_client_t *client,
-                            nrm_actuator_t *actuator)
+int nrm_client_add_actuator(nrm_client_t *client, nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
@@ -389,8 +388,7 @@ int nrm_client_start_actuate_listener(const nrm_client_t *client)
 	return 0;
 }
 
-int nrm_client_list_actuators(nrm_client_t *client,
-                              nrm_vector_t **actuators)
+int nrm_client_list_actuators(nrm_client_t *client, nrm_vector_t **actuators)
 {
 	if (client == NULL || actuators == NULL)
 		return -NRM_EINVAL;
@@ -558,8 +556,7 @@ int nrm_client_list_slices(nrm_client_t *client, nrm_vector_t **slices)
 	return 0;
 }
 
-int nrm_client_remove_actuator(nrm_client_t *client,
-                               nrm_actuator_t *actuator)
+int nrm_client_remove_actuator(nrm_client_t *client, nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
