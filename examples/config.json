@@ -1,0 +1,17 @@
+{
+	"control": {
+		"name": "europar21",
+		"inputs": [ { "sensor": "nrm.sensor.rapl", "scope": "nrm.scope.package.0"} ],
+		"outputs": [ "nrm.actuator.rapl" ],
+		"args": {
+			"a": 0.83,
+			"b": 7.07,
+			"alpha": 0.047,
+			"beta": 28.5,
+			"Kl": 25.6,
+			"t": 0.33,
+			"e": 0.1,
+			"max": 100
+		}
+	}
+}
