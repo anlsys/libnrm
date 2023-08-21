@@ -20,7 +20,6 @@
  * efficiency of the node.
  */
 
-#define _GNU_SOURCE
 #include "nrm.h"
 #include <assert.h>
 #include <ctype.h>

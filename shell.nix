@@ -25,5 +25,5 @@ mkShell {
   GEOPM_CFLAGS = "-I${geopmd}/include";
   GEOPM_LIBS = "-L${geopmd}/lib -lgeopmd";
   CFLAGS =
-    "-std=c99 -pedantic -Wall -Wextra -g -O0";
+    "-std=c17 -Wall -Wextra -Werror -Wno-builtin-declaration-mismatch";
 }
