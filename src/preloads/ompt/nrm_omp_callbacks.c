@@ -85,6 +85,10 @@ void nrm_ompt_callback_dispatch_cb(ompt_data_t *parallel_data,
 	(void)task_data;
 	(void)kind;
 	(void)instance;
+	nrm_time_t nrmtime;
+	nrm_time_gettime(&nrmtime);
+	nrm_client_send_event(global_client, nrmtime, global_sensor,
+	                      global_scope, 1);
 }
 
 void nrm_ompt_callback_task_create_cb(

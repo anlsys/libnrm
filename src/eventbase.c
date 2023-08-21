@@ -67,6 +67,7 @@ int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 	}
 	nrm_vector_clear(s->events);
 	nrm_ringbuffer_push_back(s->past, &period);
+	nrm_log_debug("period value: %f\n", period.value);
 	return 0;
 }
 
@@ -78,6 +79,8 @@ int nrm_eventbase_tick(nrm_eventbase_t *eb, nrm_time_t time)
 		struct nrm_scope2ring_s *s2r;
 		DL_FOREACH(s2s->list, s2r)
 		{
+			nrm_log_debug("new period: %s:%s\n", s2s->uuid,
+				      s2r->scope->uuid);
 			nrm_eventbase_new_period(s2r, time);
 		}
 	}
