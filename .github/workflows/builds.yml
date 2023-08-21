@@ -110,7 +110,7 @@ jobs:
           fetch-depth: 0
       - uses: cachix/install-nix-action@v13
         with:
-          nix_path: nixpkgs=channel:nixos-20.09
+          nix_path: nixpkgs=channel:nixos-23.05
       - run: nix-build -A libnrm
   oneapi:
     runs-on: ubuntu-22.04
