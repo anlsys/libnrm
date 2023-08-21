@@ -145,6 +145,7 @@ int nrm_control_europar21_action(nrm_control_t *control,
 		return -NRM_EINVAL;
 	pcap = out->value;
 
+	nrm_log_debug("progress: %f, pcap: %f\n", prog, pcap);
 	double progL, pcapL, newe, act;
 	progL = progress_raw2L(prog, data->Kl);
 	pcapL = pcap_raw2L(pcap, data->a, data->b, data->alpha, data->beta);
@@ -152,6 +153,7 @@ int nrm_control_europar21_action(nrm_control_t *control,
 	act = action(1.0 / (data->Kl * data->t), 1, 1.0 / (data->Kl * data->t),
 	             newe, data->prev_e, pcapL);
 
+	nrm_log_debug("new pcap: %f\n", act);
 	data->prev_e = newe;
 	out->value = act;
 	return 0;
