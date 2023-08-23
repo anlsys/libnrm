@@ -218,6 +218,10 @@ if HAVE_PMPI
 SUBDIRS += tests/pmpi
 endif
 
+if HAVE_GEOPM
+SUBDIRS += tests/geopm
+endif
+
 AM_COLOR_TESTS = yes
 AM_CPPFLAGS += $(CHECK_CFLAGS)
 AM_CFLAGS += $(CHECK_CFLAGS)
