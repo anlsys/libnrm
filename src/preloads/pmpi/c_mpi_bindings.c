@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: BSD-3-Clause
  ******************************************************************************/
 
-#define _GNU_SOURCE
 #include <mpi.h>
 
 #include "nrm_mpi.h"
