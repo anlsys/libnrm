@@ -20,8 +20,13 @@ class NRMBinary:
         self.stderr = open(options.output / (self.name + "-stderr.log"), "w+")
         assert self.stdout != None
         assert self.stderr != None
+        popencmd = []
+        # support for LOG_COMPILER and LOG_FLAGS
+        popencmd += os.environ.get('LOG_COMPILER', "").split()
+        popencmd += os.environ.get('LOG_FLAGS', "").split()
+        popencmd += [self.abspath, "-vvv"]
         self.proc = subprocess.Popen(
-            [self.abspath, "-vvv"], stdin=None, stdout=self.stdout, stderr=self.stderr
+            popencmd, stdin=None, stdout=self.stdout, stderr=self.stderr
         )
         assert self.proc
 
@@ -44,6 +49,12 @@ class NRMSetup:
         nrmd.launch(args)
         self.nrmd = nrmd
 
+        # wait for nrmd to respond
+        subprocess.run([(args.prefix / "nrmc").absolute(), "-q", "connect"],
+                       check=True)
+        # don't handle child handlers until then
+        signal.signal(signal.SIGCHLD, self.child_handler)
+
         for c in others:
             c.launch(args)
             self.others.append(c)
@@ -65,12 +76,17 @@ class NRMSetup:
         self.done = True
 
     def child_handler(self, *args):
-        # only one child so exit
-        print("child terminated, exiting", args)
-        self.done = True
+        try:
+            child_pid, _ = os.waitpid(-1, os.WNOHANG)
+        except OSError:
+            return
+        if child_pid == nrmd.proc.pid:
+            print("nrmd terminated; exiting...")
+            self.done = True
 
     def cleanup(self):
         ret = self.nrmd.proc.poll()
+        print("nrmd return status:", ret)
         self.returncode = self.returncode or ret
         for c in self.others:
             if not c.isdead():
@@ -99,7 +115,6 @@ nrmd = NRMBinary("nrmd", True)
 handler = NRMSetup()
 signal.signal(signal.SIGTERM, handler.exit_handler)
 signal.signal(signal.SIGINT, handler.exit_handler)
-signal.signal(signal.SIGCHLD, handler.child_handler)
 
 tolaunch = []
 if args.dummy:
@@ -107,6 +122,17 @@ if args.dummy:
     tolaunch.append(nrm_dummy_extra)
 
 handler.launch(args, nrmd, tolaunch)
+if args.dummy:
+    # Wait until the actuator is registered
+    for i in range(1, 5):
+        res = subprocess.run([(args.prefix / "nrmc").absolute(), "-q", "list-actuators"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if res.stdout.decode("utf-8") != "[]":
+            break
+        time.sleep(1)
+# signal to users that we're ready
+with open(args.output / ("nrm-setup-ready.log"), "w+") as readyfile:
+    print("ok", file=readyfile)
+
 handler.wait()
 err = handler.cleanup()
 exit(err)

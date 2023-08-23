@@ -710,7 +710,11 @@ static int nrm_msg_push_packed_frames(zmsg_t *zm, nrm_msg_t *msg)
 static int nrm_msg_pop_identity(zmsg_t *zm, nrm_uuid_t **uuid)
 {
 	zframe_t *frame = zmsg_pop(zm);
-	nrm_uuid_t *id = nrm_uuid_create_fromchar((char *)zframe_data(frame));
+	assert(frame != NULL);
+	char *identity = (char *)zframe_data(frame);
+	size_t len = zframe_size(frame);
+	assert(identity != NULL);
+	nrm_uuid_t *id = nrm_uuid_create_frombuf(identity, len);
 	zframe_destroy(&frame);
 	*uuid = id;
 	return 0;
@@ -1163,6 +1167,7 @@ nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from)
 	int err;
 	void *p, *q;
 	err = nrm_ctrlmsg__recv(socket, type, &p, &q);
+	assert(err == 0);
 	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
 	if (from != NULL) {
 		*from = (nrm_uuid_t *)q;

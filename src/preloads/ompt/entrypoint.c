@@ -68,7 +68,8 @@ int nrm_ompt_initialize(ompt_function_lookup_t lookup,
                         int initial_device_num,
                         ompt_data_t *tool_data)
 {
-	ompt_set_result_t ret;
+	(void)initial_device_num;
+	(void)tool_data;
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrm-ompt");
@@ -115,6 +116,7 @@ int nrm_ompt_initialize(ompt_function_lookup_t lookup,
 
 void nrm_ompt_finalize(ompt_data_t *tool_data)
 {
+	(void)tool_data;
 	nrm_log_debug("finalize tool\n");
 	nrm_scope_destroy(global_scope);
 	nrm_client_remove_sensor(global_client, global_sensor);
