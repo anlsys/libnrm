@@ -18,7 +18,7 @@
 int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 {
 	int depth_of_machine;
-	int depth_of_osdev;
+	int num_of_osdev;
 	char buffer[128];
 	char *namespace = "nrm.hwloc.";
 	char scope_name[256];
@@ -96,26 +96,45 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 		}
 	}
 
-	depth_of_osdev =
-	        hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_OS_DEVICE);
+	num_of_osdev = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_OS_DEVICE);
 	// Iterating over OS objects
 	// OS objects don't have cpusets/nodesets, see
 	// https://www.open-mpi.org/projects/hwloc/doc/v2.5.0/a00363.php
-	for (int i = 0, counter = 0; i < depth_of_osdev; i++) {
+
+	// check first if we're seeing subdevices
+	int subdevices = 0;
+	for (int i = 0; i < num_of_osdev; i++) {
+		hwloc_obj_t object =
+		        hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
+		if (object->attr->osdev.type != HWLOC_OBJ_OSDEV_GPU &&
+		    object->attr->osdev.type != HWLOC_OBJ_OSDEV_COPROC)
+			continue;
+
+		if (object->io_arity != 0)
+			subdevices = 1;
+	}
+
+	for (int i = 0, counter = 0; i < num_of_osdev; i++) {
 		hwloc_obj_t object =
 		        hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
 		assert(object->cpuset == NULL);
-		if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_GPU ||
-		    object->attr->osdev.type == HWLOC_OBJ_OSDEV_COPROC) {
-			nrm_scope_t *this_scope = NULL;
-			snprintf(scope_name, sizeof(scope_name), "%s%s",
-			         namespace, object->name);
-			this_scope = nrm_scope_create(scope_name);
-			nrm_scope_add(this_scope, NRM_SCOPE_TYPE_GPU, counter);
-			counter++;
-			nrm_hash_add(scopes, nrm_scope_uuid(this_scope),
-			             this_scope);
-		}
+
+		/* only looking for GPUs */
+		if (object->attr->osdev.type != HWLOC_OBJ_OSDEV_GPU &&
+		    object->attr->osdev.type != HWLOC_OBJ_OSDEV_COPROC)
+			continue;
+
+		/* if we have subdevices, we don't count them */
+		if (subdevices && object->io_arity == 0)
+			continue;
+
+		nrm_scope_t *this_scope = NULL;
+		snprintf(scope_name, sizeof(scope_name), "%s%s", namespace,
+		         object->name);
+		this_scope = nrm_scope_create(scope_name);
+		nrm_scope_add(this_scope, NRM_SCOPE_TYPE_GPU, counter);
+		counter++;
+		nrm_hash_add(scopes, nrm_scope_uuid(this_scope), this_scope);
 	}
 	hwloc_topology_destroy(topology);
 	return 0;
