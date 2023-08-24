@@ -16,21 +16,21 @@ NRM_SETUP_PID=$!
 }
 
 @test "one signal" {
-	run timeout 5 nrm-geopm -s CPU_POWER
+	run timeout 5 nrm-geopm -e CPU_POWER
 	cat $BATS_TEST_TMPDIR/nrm-geopm-stderr.log
 	# TODO: determine output-string that decides measurement-success
 	[ $event_count -eq 1 ]
 }
 
 @test "one verbose signal" {
-	run timeout 5 nrm-geopm -vs CPU_POWER
+	run timeout 5 nrm-geopm -ve CPU_POWER
 	cat $BATS_TEST_TMPDIR/nrm-geopm-stderr.log
 	# TODO: determine output-string that decides measurement-success
 	[ $event_count -eq 1 ]
 }
 
 @test "two signals" {
-	run timeout 5 nrm-geopm -s CPU_POWER -s DRAM_POWER
+	run timeout 5 nrm-geopm -e CPU_POWER -e DRAM_POWER
 	cat $BATS_TEST_TMPDIR/nrm-geopm-stderr.log
 	[ $cpu_event_count -eq 1 ] && [ $dram_event_count -eq 1]
 }
