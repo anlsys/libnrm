@@ -119,9 +119,6 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 		        hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
 		assert(object->cpuset == NULL);
 
-		if (nrm_bitmap_isset(&done, object->logical_index))
-			continue;
-
 		/* only looking for GPUs */
 		if (object->attr->osdev.type != HWLOC_OBJ_OSDEV_GPU &&
 		    object->attr->osdev.type != HWLOC_OBJ_OSDEV_COPROC)
