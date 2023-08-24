@@ -54,6 +54,32 @@ struct nrm_geopm_eventinfo_s {
 
 typedef struct nrm_geopm_eventinfo_s nrm_geopm_eventinfo_t;
 
+int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
+                              int domain_type,
+                              int domain_idx)
+{
+	if (domain_type == GEOPM_DOMAIN_PACKAGE) {
+		/* GEOPM uses it's own internal numbering, so ask it to convert
+		 * to OS indexes, and convert to hwloc logical index for us
+		 */
+		int num_pus = geopm_topo_num_domain_nested(
+		        GEOPM_DOMAIN_CPU, GEOPM_DOMAIN_PACKAGE);
+		int pus[num_pus];
+		geopm_topo_domain_nested(GEOPM_DOMAIN_CPU, GEOPM_DOMAIN_PACKAGE,
+		                         domain_idx, num_pus, pus);
+
+		for (int i = 0; i < num_pus; i++) {
+			hwloc_obj_t pu =
+			        hwloc_get_pu_obj_by_os_index(topology, pus[i]);
+			nrm_scope_add(scope, NRM_SCOPE_TYPE_CPU,
+			              pu->logical_index);
+		}
+	} else if (domain_type == GEOPM_DOMAIN_GPU) {
+		nrm_scope_add(scope, NRM_SCOPE_TYPE_GPU, domain_idx);
+	}
+	return 0;
+}
+
 int nrm_geopm_find_scope(nrm_scope_t **scope, int *added)
 {
 	nrm_vector_t *nrmd_scopes;
@@ -113,25 +139,10 @@ void nrm_geopm_prepare_event(nrm_string_t *s)
 	nrm_vector_create(&event.scopes, sizeof(nrm_scope_t *));
 	for (int i = 0; i < event.num_domains; i++) {
 		nrm_string_t scope_name = nrm_string_fromprintf(
-		        "nrm.geopm.%s.%s.%s", event.name, domain_name, i);
+		        "nrm.geopm.%s.%s.%d", event.name, domain_name, i);
 		int added_scope;
 		nrm_scope_t *scope = nrm_scope_create(scope_name);
-		if (strcmp(domain_name, "package")) {
-			hwloc_obj_t socket = hwloc_get_obj_by_type(
-			        topology, HWLOC_OBJ_SOCKET, i);
-			hwloc_cpuset_t cpus = socket->cpuset;
-			hwloc_obj_t pu;
-			int cpu;
-			hwloc_bitmap_foreach_begin(cpu, cpus) pu =
-			        hwloc_get_pu_obj_by_os_index(topology, cpu);
-			nrm_scope_add(scope, NRM_SCOPE_TYPE_CPU,
-			              pu->logical_index);
-			hwloc_bitmap_foreach_end();
-		} else if (strcmp(domain_name, "gpu")) {
-			nrm_scope_add(scope, NRM_SCOPE_TYPE_GPU, i);
-		} else if (strcmp(domain_name, "memory")) {
-			nrm_scope_add(scope, NRM_SCOPE_TYPE_NUMA, i);
-		}
+		nrm_geopm_domain_to_scope(scope, event.domain_type, i);
 		nrm_geopm_find_scope(&scope, &added_scope);
 		nrm_vector_push_back(event.scopes, &scope);
 	}
@@ -226,8 +237,11 @@ int main(int argc, char **argv)
 	nrm_log_debug("GEOPM detects %d possible signals\n", nsignals);
 
 	assert(hwloc_topology_init(&topology) == 0);
+	hwloc_topology_set_io_types_filter(topology,
+	                                   HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
 	assert(hwloc_topology_load(topology) == 0);
 
+	nrm_vector_create(&events, sizeof(nrm_geopm_eventinfo_t));
 	nrm_vector_foreach(args.events, iterator)
 	{
 		nrm_string_t *s = nrm_vector_iterator_get(iterator);
