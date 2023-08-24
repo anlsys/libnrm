@@ -211,8 +211,7 @@ int main(int argc, char **argv)
 	if (num_events == 0) {
 		nrm_string_t s = nrm_string_fromchar("CPU_ENERGY");
 		nrm_vector_push_back(args.events, &s);
-		nrm_log_debug(
-		        "Measuring CPU_ENERGY and DRAM_ENERGY by default\n");
+		nrm_log_debug("Measuring CPU_ENERGY by default\n");
 	}
 
 	if (nrm_client_create(&client, args.upstream_uri, args.pub_port,
