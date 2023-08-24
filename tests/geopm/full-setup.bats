@@ -1,7 +1,7 @@
 #!/usr/bin/env bats
 # vim: set ft=bash:
 
-setup() {
+setup_file() {
 	nrm-setup -p $ABS_TOP_BUILDDIR -o $BATS_TEST_TMPDIR &
 NRM_SETUP_PID=$!
 	# wait for nrm-setup to start sleeping
