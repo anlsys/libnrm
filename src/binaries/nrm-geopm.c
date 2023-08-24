@@ -11,7 +11,7 @@
 /* Filename: nrm-geopm.c
  *
  * Description: Implements middleware between GEOPM (https://geopm.github.io/)
- * and the NRM downstream interface. Resources detected via hwloc and GEOPM. The
+ * and the NRM downstream interface. Resources detected via GEOPM. The
  * `geopmd` service must be running. The `msr` module must be enabled via
  * `modprobe msr` if its installed. This utility may also need root privileges
  * to detect many basic signals like CPU_POWER.
@@ -24,7 +24,6 @@
 #include <geopm_pio.h>
 #include <geopm_topo.h>
 #include <getopt.h>
-#include <hwloc.h>
 #include <limits.h>
 #include <math.h>
 #include <sched.h>
@@ -41,7 +40,6 @@
 
 static nrm_client_t *client;
 static nrm_vector_t *events;
-static hwloc_topology_t topology;
 static size_t num_events;
 
 struct nrm_geopm_eventinfo_s {
@@ -60,7 +58,7 @@ int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
 {
 	if (domain_type == GEOPM_DOMAIN_PACKAGE) {
 		/* GEOPM uses it's own internal numbering, so ask it to convert
-		 * to OS indexes, and convert to hwloc logical index for us
+		 * to OS indexes
 		 */
 		int num_pus = geopm_topo_num_domain_nested(
 		        GEOPM_DOMAIN_CPU, GEOPM_DOMAIN_PACKAGE);
@@ -69,10 +67,7 @@ int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
 		                         domain_idx, num_pus, pus);
 
 		for (int i = 0; i < num_pus; i++) {
-			hwloc_obj_t pu =
-			        hwloc_get_pu_obj_by_os_index(topology, pus[i]);
-			nrm_scope_add(scope, NRM_SCOPE_TYPE_CPU,
-			              pu->logical_index);
+			nrm_scope_add(scope, NRM_SCOPE_TYPE_CPU, pus[i]);
 		}
 	} else if (domain_type == GEOPM_DOMAIN_GPU) {
 		nrm_scope_add(scope, NRM_SCOPE_TYPE_GPU, domain_idx);
@@ -233,11 +228,6 @@ int main(int argc, char **argv)
 	assert(nsignals > 0); // just check that we can obtain signals
 	nrm_log_debug("GEOPM detects %d possible signals\n", nsignals);
 
-	assert(hwloc_topology_init(&topology) == 0);
-	hwloc_topology_set_io_types_filter(topology,
-	                                   HWLOC_TYPE_FILTER_KEEP_IMPORTANT);
-	assert(hwloc_topology_load(topology) == 0);
-
 	nrm_vector_create(&events, sizeof(nrm_geopm_eventinfo_t));
 	nrm_vector_foreach(args.events, iterator)
 	{
@@ -277,7 +267,6 @@ int main(int argc, char **argv)
 cleanup:
 	nrm_reactor_destroy(&reactor);
 
-	hwloc_topology_destroy(topology);
 	nrm_client_destroy(&client);
 cleanup_postinit:
 	nrm_tools_args_destroy(&args);
