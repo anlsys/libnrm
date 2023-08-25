@@ -249,8 +249,10 @@ int main(int argc, char **argv)
 	/* actuator info */
 	nrm_string_t act_name = nrm_string_fromchar("nrm.geopm.actuator.cpu.0");
 	actuator = nrm_actuator_create(act_name);
-	double cpu_choices[2] = {236.0, 240.0};
-	nrm_actuator_set_choices(actuator, 2, cpu_choices);
+	double cpu_choices[16] = {236.0, 236.2, 236.4, 236.6, 236.8, 237.0,
+	                          237.2, 237.4, 237.6, 237.8, 238.0, 238.2,
+	                          238.4, 238.6, 238.8, 239.0};
+	nrm_actuator_set_choices(actuator, 16, cpu_choices);
 	nrm_actuator_set_value(actuator, 236.0);
 	err = nrm_client_add_actuator(client, actuator);
 	if (err) {
