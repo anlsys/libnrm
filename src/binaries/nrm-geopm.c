@@ -44,13 +44,57 @@ static size_t num_events;
 
 struct nrm_geopm_eventinfo_s {
 	nrm_string_t name;
+	nrm_string_t control;
 	int domain_type;
 	int num_domains;
 	nrm_sensor_t *sensor;
+	nrm_actuator_t *actuator;
 	nrm_vector_t *scopes;
 };
 
 typedef struct nrm_geopm_eventinfo_s nrm_geopm_eventinfo_t;
+
+int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
+{
+
+	nrm_vector_foreach(events, iterator)
+	{
+		nrm_geopm_eventinfo_t *event =
+		        nrm_vector_iterator_get(iterator);
+		if (event->domain_type == GEOPM_DOMAIN_PACKAGE) {
+			for (int i = 0; i < event->num_domains; i++) {
+				int err = geopm_pio_write_control(
+				        event->control, event->domain_type, i,
+				        value);
+				if (err) {
+					nrm_log_error(
+					        "Unable to write_control to package within callback\n");
+					return EXIT_FAILURE;
+				}
+			}
+		}
+	}
+}
+
+int nrm_geopm_set_actuator_info(nrm_geopm_eventinfo_t event)
+{
+	if (event.domain_type == GEOPM_DOMAIN_PACKAGE) {
+		event.control = nrm_string_fromchar("CPU_POWER_LIMIT_CONTROL");
+		double choices[2] = {236.0, 240.0};
+		nrm_actuator_set_choices(event.actuator, 2, choices);
+		nrm_actuator_set_value(event.actuator, 236.0);
+		err = nrm_client_add_actuator(client, event.actuator);
+		if (err) {
+			nrm_log_error(
+			        "Unable to add PACKAGE actuator to client\n");
+			return EXIT_FAILURE;
+		}
+		nrm_client_set_actuate_listener(client,
+		                                nrm_geopm_cpu_act_callback);
+		nrm_client_start_actuate_listener(client);
+	}
+	// can do a GPU condition/setup later here
+}
 
 int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
                               int domain_type,
@@ -129,6 +173,13 @@ void nrm_geopm_prepare_event(nrm_string_t *s)
 	        nrm_string_fromprintf("nrm.geopm.%s", event.name);
 	event.sensor = nrm_sensor_create(sensor_name);
 	nrm_client_add_sensor(client, event.sensor);
+
+	/* actuator info */
+	nrm_string_t act_name =
+	        nrm_string_fromprintf("nrm.geopm.%s", domain_name);
+	event.actuator = nrm_actuator_create(act_name);
+	err = nrm_geopm_set_actuator_info(event);
+	assert(err == 0);
 
 	/* scope info */
 	nrm_vector_create(&event.scopes, sizeof(nrm_scope_t *));
