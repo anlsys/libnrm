@@ -1,7 +1,7 @@
 {
 	"control": {
 		"name": "europar21",
-		"inputs": [ { "sensor": "nrm.sensor.rapl", "scope": "nrm.scope.package.0"} ],
+		"inputs": [ { "sensor": "nrm-ompt", "scope": "nrm.hwloc.Machine.0"} ],
 		"outputs": [ "nrm.actuator.rapl" ],
 		"args": {
 			"a": 0.83,
