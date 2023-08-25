@@ -80,7 +80,7 @@ int nrm_eventbase_tick(nrm_eventbase_t *eb, nrm_time_t time)
 		DL_FOREACH(s2s->list, s2r)
 		{
 			nrm_log_debug("new period: %s:%s\n", s2s->uuid,
-				      s2r->scope->uuid);
+			              s2r->scope->uuid);
 			nrm_eventbase_new_period(s2r, time);
 		}
 	}
