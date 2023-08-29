@@ -180,6 +180,7 @@ AS_IF([test "x${PROTOCC}" == "xno"],
 AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile
+		 src/preloads/pmpi/Makefile
 		 libnrm.pc
 	 	 doc/Makefile
 		 tests/cli/Makefile

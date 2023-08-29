@@ -63,10 +63,11 @@ features.h
 # autotest
 *.trs
 *.log
+bats-driver.sh
 
 # libtool
 /libtool
-/ltmain.sh
+ltmain.sh
 .deps
 .libs
 
