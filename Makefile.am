@@ -26,10 +26,9 @@ AM_LDFLAGS = $(LIBZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
 	     $(LIBPROTOC_LIBS) \
 	     $(HWLOC_LIBS) \
-       $(GEOPM_LIBS) \
+	     $(GEOPM_LIBS) \
 	     $(PAPI_LIBS) \
-	     $(OPENMP_CFLAGS) \
-	     $(MPILIBS)
+	     $(OPENMP_CFLAGS)
 
 EXTRA_DIST += autogen.sh libnrm.pc README.md LICENSE CONTRIBUTING.markdown
 
@@ -150,13 +149,7 @@ libnrm_ompt_la_LIBADD = libnrm.la
 endif
 
 if HAVE_PMPI
-lib_LTLIBRARIES += libnrm-pmpi.la
-libnrm_pmpi_la_SOURCES = \
-		src/preloads/pmpi/c_mpi_bindings.c \
-		src/preloads/pmpi/mpi_api.c \
-		src/preloads/pmpi/nrm_mpi.h
-libnrm_pmpi_la_LDFLAGS = $(AM_LDFLAGS) -export-symbols-regex '^(MPI|mpi)_'
-libnrm_pmpi_la_LIBADD = libnrm.la
+SUBDIRS += . src/preloads/pmpi
 endif
 
 dist_noinst_DATA = src/msg.proto
