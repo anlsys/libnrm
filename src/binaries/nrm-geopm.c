@@ -56,11 +56,19 @@ typedef struct nrm_geopm_eventinfo_s nrm_geopm_eventinfo_t;
 int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
 {
 	int num_pus = geopm_topo_num_domain(GEOPM_DOMAIN_PACKAGE);
+	nrm_log_debug(
+	        "Writing CPU_POWER_LIMIT_CONTROL to %d domains. Value: %f\n",
+	        num_pus, value);
 	for (int i = 0; i < num_pus; i++) {
 		int err = geopm_pio_write_control("CPU_POWER_LIMIT_CONTROL",
 		                                  GEOPM_DOMAIN_PACKAGE, i,
 		                                  value);
+		if (err) {
+			nrm_log_debug("ERROR writing to CPU_POWER_LIMIT_CONTROL\n");
+			return err;
+		}
 	}
+	return 0;
 }
 
 int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
