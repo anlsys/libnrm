@@ -1,0 +1,7 @@
+{
+	"control": {
+		"name": "geopm",
+		"inputs": [ { "sensor": "nrm.geopm.CPU_POWER", "scope": "nrm.geopm.CPU_POWER.package.0"} ],
+		"outputs": [ "nrm.geopm.actuator.cpu.0" ]
+	}
+}
