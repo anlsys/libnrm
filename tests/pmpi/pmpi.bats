@@ -16,11 +16,11 @@ setup_file() {
 	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/src/preloads/pmpi/.libs/libnrm-pmpi.so ls -al
 }
 
-@test "preload, basic omp" {
+@test "preload, basic mpi" {
 	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/src/preloads/pmpi/.libs/libnrm-pmpi.so ./mpi_basic
 }
 
-@test "preload, stream omp" {
+@test "preload, collectives mpi" {
 	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/src/preloads/pmpi/.libs/libnrm-pmpi.so ./mpi_collectives
 }
 
