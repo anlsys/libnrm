@@ -258,21 +258,27 @@ int main(int argc, char **argv)
 	/* actuator info */
 	nrm_string_t act_name = nrm_string_fromchar("nrm.geopm.actuator.cpu.0");
 	actuator = nrm_actuator_create(act_name);
+	nrm_log_debug("Actuator created\n")
 	// CPU_POWER_LIMIT_DEFAULT: 350
 	// CPU_POWER_MIN_AVAIL: 219
 	// CPU_POWER_MAX_AVAIL: 730
-	double cpu_choices[16] = {230, 231, 232, 233, 234, 235,
-	                          236, 237, 238, 239, 240, 241,
-	                          242, 243, 244, 245};
+	double cpu_choices[16] = {230.0, 231.0, 232.0, 233.0, 234.0, 235.0,
+	                          236.0, 237.0, 238.0, 239.0, 240.0, 241.0,
+	                          242.0, 243.0, 244.0, 245.0};
 	nrm_actuator_set_choices(actuator, 16, cpu_choices);
+	nrm_log_debug("Actuator choices added\n")
 	nrm_actuator_set_value(actuator, 236.0);
+	nrm_log_debug("Actuator value added\n")
 	err = nrm_client_add_actuator(client, actuator);
 	if (err) {
 		nrm_log_error("Unable to add cpu actuator to client\n");
 		goto cleanup;
 	}
+	nrm_log_debug("Actuator added to client\n")
 	nrm_client_set_actuate_listener(client, nrm_geopm_cpu_act_callback);
+	nrm_log_debug("Actuator callback set to client\n")
 	nrm_client_start_actuate_listener(client);
+	nrm_log_debug("Actuator callback started\n")
 
 	nrm_reactor_t *reactor;
 	err = nrm_reactor_create(&reactor, NULL);
