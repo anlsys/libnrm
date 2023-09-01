@@ -55,6 +55,7 @@ typedef struct nrm_geopm_eventinfo_s nrm_geopm_eventinfo_t;
 
 int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
 {
+	(void)uuid;
 	int num_pus = geopm_topo_num_domain(GEOPM_DOMAIN_PACKAGE);
 	nrm_log_debug(
 	        "Writing CPU_POWER_LIMIT_CONTROL to %d domains. Value: %f\n",
@@ -257,9 +258,12 @@ int main(int argc, char **argv)
 	/* actuator info */
 	nrm_string_t act_name = nrm_string_fromchar("nrm.geopm.actuator.cpu.0");
 	actuator = nrm_actuator_create(act_name);
-	double cpu_choices[16] = {236.0, 236.2, 236.4, 236.6, 236.8, 237.0,
-	                          237.2, 237.4, 237.6, 237.8, 238.0, 238.2,
-	                          238.4, 238.6, 238.8, 239.0};
+	// CPU_POWER_LIMIT_DEFAULT: 350
+	// CPU_POWER_MIN_AVAIL: 219
+	// CPU_POWER_MAX_AVAIL: 730
+	double cpu_choices[16] = {230, 231, 232, 233, 234, 235,
+	                          236, 237, 238, 239, 240, 241,
+	                          242, 243, 244, 245};
 	nrm_actuator_set_choices(actuator, 16, cpu_choices);
 	nrm_actuator_set_value(actuator, 236.0);
 	err = nrm_client_add_actuator(client, actuator);
