@@ -73,7 +73,6 @@ int nrm_ompt_initialize(ompt_function_lookup_t lookup,
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrm-ompt");
-	nrm_log_setlevel(NRM_LOG_DEBUG);
 	nrm_log_debug("initialize tool\n");
 
 	// initialize global client

@@ -13,15 +13,15 @@ setup_file() {
 }
 
 @test "preload, no callbacks" {
-	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ls -al
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/src/preloads/pmpi/.libs/libnrm-pmpi.so ls -al
 }
 
-@test "preload, basic omp" {
-	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_basic
+@test "preload, basic mpi" {
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/src/preloads/pmpi/.libs/libnrm-pmpi.so ./mpi_basic
 }
 
-@test "preload, stream omp" {
-	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-pmpi.so ./mpi_collectives
+@test "preload, collectives mpi" {
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/src/preloads/pmpi/.libs/libnrm-pmpi.so ./mpi_collectives
 }
 
 teardown_file() {
