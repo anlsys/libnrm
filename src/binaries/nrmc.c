@@ -350,7 +350,7 @@ int client_listen_callback(nrm_string_t sensor_uuid,
 {
 	int64_t nstime = nrm_time_tons(&time);
 	fprintf(stdout, "event: %" PRId64 " %s %s %f\n", nstime, sensor_uuid,
-			scope->uuid, value);
+	        scope->uuid, value);
 	return 0;
 }
 
