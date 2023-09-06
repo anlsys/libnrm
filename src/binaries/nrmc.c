@@ -348,21 +348,23 @@ int client_listen_callback(nrm_string_t sensor_uuid,
                            nrm_scope_t *scope,
                            double value)
 {
-	(void)sensor_uuid;
-	(void)time;
-	(void)scope;
-	(void)value;
-	nrm_log_debug("event\n");
+	int64_t nstime = nrm_time_tons(&time);
+	fprintf(stdout, "event: %" PRId64 " %s %s %f\n", nstime, sensor_uuid,
+			scope->uuid, value);
 	return 0;
 }
 
 int cmd_listen(int argc, char **argv)
 {
-	/* no options at this time */
-	if (argc < 1)
+	/* optionally a topic */
+	if (argc > 2)
 		return EXIT_FAILURE;
 
-	nrm_string_t topic = nrm_string_fromchar(argv[0]);
+	nrm_string_t topic;
+	if (argc == 2)
+		topic = nrm_string_fromchar(argv[1]);
+	else
+		topic = nrm_string_fromchar("");
 	nrm_log_debug("listening to topic: %s\n", topic);
 
 	nrm_client_set_event_listener(client, client_listen_callback);
