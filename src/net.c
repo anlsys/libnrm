@@ -75,8 +75,8 @@ int nrm_net_sub_init(zsock_t **socket)
 		return 1;
 	/* buffer as many messages as possible */
 	zsock_set_rcvhwm(ret, 0);
-	/* subscribe to everything */
-	zsock_set_subscribe(ret, "");
+	/* subscribe to nothing */
+	zsock_set_subscribe(ret, "null");
 	*socket = ret;
 	return 0;
 }

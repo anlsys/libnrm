@@ -69,6 +69,24 @@ setup_file() {
 	echo "$output" | jq
 }
 
+@test "listen (no argument)" {
+	run -143 --separate-stderr timeout --preserve-status 5 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc listen
+	event_count=`echo "$output" | wc -l`
+	[ $event_count -ge 1 ]
+}
+
+@test "listen (daemon topic)" {
+	run -143 --separate-stderr timeout --preserve-status 5 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc listen daemon
+	event_count=`echo "$output" | wc -l`
+	[ $event_count -ge 1 ]
+}
+
+@test "listen (null topic)" {
+	run -143 --separate-stderr timeout --preserve-status 5 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc listen null
+	event_count=`echo "$output" | wc -l`
+	[ $event_count -eq 1 ]
+}
+
 teardown_file() {
 	run kill $NRM_SETUP_PID
 	run pkill -9 nrm

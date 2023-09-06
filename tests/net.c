@@ -34,6 +34,7 @@ void setup_pubsub(void)
 	        nrm_net_connect_and_wait(client, NRM_DEFAULT_UPSTREAM_URI,
 	                                 NRM_DEFAULT_UPSTREAM_PUB_PORT),
 	        0);
+	ck_assert_int_eq(nrm_net_sub_set_topic(client, ""), 0);
 	/* subscription is as annoying as usual, can't guarantee that the
 	 * messages are showing up without waiting a bit
 	 */
