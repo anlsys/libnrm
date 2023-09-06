@@ -185,6 +185,7 @@ AC_CONFIG_FILES([Makefile
 	 	 doc/Makefile
 		 tests/cli/Makefile
 		 tests/cli/bats-driver.sh
+		 tests/geopm/Makefile
 		 tests/ompt/Makefile
 		 tests/pmpi/Makefile
 		 include/nrm/utils/version.h])

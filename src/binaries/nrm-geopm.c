@@ -40,7 +40,11 @@
 
 static nrm_client_t *client;
 static nrm_vector_t *events;
+static nrm_actuator_t *actuator;
 static size_t num_events;
+
+/* 16 values is enough */
+#define GEOPM_ACTUATOR_CHOICES 16
 
 struct nrm_geopm_eventinfo_s {
 	nrm_string_t name;
@@ -51,6 +55,26 @@ struct nrm_geopm_eventinfo_s {
 };
 
 typedef struct nrm_geopm_eventinfo_s nrm_geopm_eventinfo_t;
+
+int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
+{
+	(void)uuid;
+	int num_pus = geopm_topo_num_domain(GEOPM_DOMAIN_PACKAGE);
+	nrm_log_debug(
+	        "Writing CPU_POWER_LIMIT_CONTROL to %d domains. Value: %f\n",
+	        num_pus, value);
+	for (int i = 0; i < num_pus; i++) {
+		int err = geopm_pio_write_control("CPU_POWER_LIMIT_CONTROL",
+		                                  GEOPM_DOMAIN_PACKAGE, i,
+		                                  value);
+		if (err) {
+			nrm_log_debug(
+			        "ERROR writing to CPU_POWER_LIMIT_CONTROL\n");
+			return err;
+		}
+	}
+	return 0;
+}
 
 int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
                               int domain_type,
@@ -146,6 +170,35 @@ void nrm_geopm_prepare_event(nrm_string_t *s)
 	              event.name);
 }
 
+void nrm_geopm_prepare_cpu_actuator()
+{
+	/* we use the default as max because the max is often way too high */
+	char *cpu_power_max_name = "CPU_POWER_LIMIT_DEFAULT";
+	char *cpu_power_min_name = "CPU_POWER_MIN_AVAIL";
+
+	double cpu_power_max, cpu_power_min;
+
+	/* use package 0 for configuration */
+	geopm_pio_read_signal(cpu_power_max_name, GEOPM_DOMAIN_PACKAGE, 0,
+	                      &cpu_power_max);
+	geopm_pio_read_signal(cpu_power_min_name, GEOPM_DOMAIN_PACKAGE, 0,
+	                      &cpu_power_min);
+	nrm_log_debug("CPU power actuator: min: %f, max: %f\n", cpu_power_min,
+	              cpu_power_max);
+
+	double act_choices[GEOPM_ACTUATOR_CHOICES];
+	for (size_t i = 0; i < GEOPM_ACTUATOR_CHOICES - 1; i++) {
+		act_choices[i] =
+		        cpu_power_min + (int)((cpu_power_max - cpu_power_min) *
+		                              i / (GEOPM_ACTUATOR_CHOICES - 1));
+	}
+	/* force the last one to be at max, regardless of rounding errors */
+	act_choices[GEOPM_ACTUATOR_CHOICES - 1] = cpu_power_max;
+
+	nrm_actuator_set_choices(actuator, GEOPM_ACTUATOR_CHOICES, act_choices);
+	nrm_actuator_set_value(actuator, cpu_power_max);
+}
+
 int nrm_geopm_timer_callback(nrm_reactor_t *reactor)
 {
 	(void)reactor;
@@ -235,6 +288,19 @@ int main(int argc, char **argv)
 		nrm_geopm_prepare_event(s);
 	}
 
+	actuator = nrm_actuator_create("nrm.geopm.cpu.power");
+	nrm_geopm_prepare_cpu_actuator();
+	err = nrm_client_add_actuator(client, actuator);
+	if (err) {
+		nrm_log_error("Unable to add cpu actuator to client\n");
+		goto cleanup_act;
+	}
+	nrm_log_debug("Actuator added to client\n");
+	nrm_client_set_actuate_listener(client, nrm_geopm_cpu_act_callback);
+	nrm_log_debug("Actuator callback set to client\n");
+	nrm_client_start_actuate_listener(client);
+	nrm_log_debug("Actuator callback started\n");
+
 	nrm_reactor_t *reactor;
 	err = nrm_reactor_create(&reactor, NULL);
 	if (err) {
@@ -252,6 +318,11 @@ int main(int argc, char **argv)
 	nrm_reactor_start(reactor);
 	ret = EXIT_SUCCESS;
 
+	nrm_reactor_destroy(&reactor);
+cleanup:
+	nrm_client_remove_actuator(client, actuator);
+cleanup_act:
+	nrm_actuator_destroy(&actuator);
 	nrm_vector_foreach(events, iterator)
 	{
 		nrm_geopm_eventinfo_t *e = nrm_vector_iterator_get(iterator);
@@ -264,9 +335,6 @@ int main(int argc, char **argv)
 		}
 	}
 	nrm_vector_destroy(&events);
-cleanup:
-	nrm_reactor_destroy(&reactor);
-
 	nrm_client_destroy(&client);
 cleanup_postinit:
 	nrm_tools_args_destroy(&args);
