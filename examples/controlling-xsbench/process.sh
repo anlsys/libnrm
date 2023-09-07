@@ -1,7 +1,6 @@
 #!/bin/sh
 
 set -e
-set -x
 set -u
 
 DATE=$1
@@ -25,10 +24,10 @@ do
 		lookups=`grep Lookups/s $LOGDIR/app.$pcap.$i.log | cut -d' ' -f 4 | sed -e 's/,//g'`
 		runtime=`grep Runtime $LOGDIR/app.$pcap.$i.log | cut -d' ' -f 6`
 		progress=`grep nrm-ompt $LOGDIR/$pcap.$i.log | wc -l`
-		start_pkg0=`grep -m 1 nrm.geopm.CPU_ENERGY.package.0 $LOGDIR/$pcap.$1.log | cut -d' ' -f 5`
-		start_pkg1=`grep -m 1 nrm.geopm.CPU_ENERGY.package.1 $LOGDIR/$pcap.$1.log | cut -d' ' -f 5`
-		end_pkg0=`grep nrm.geopm.CPU_ENERGY.package.0 $LOGDIR/$pcap.$1.log | tail -n 1 | cut -d' ' -f 5`
-		end_pkg1=`grep nrm.geopm.CPU_ENERGY.package.1 $LOGDIR/$pcap.$1.log | tail -n 1 | cut -d' ' -f 5`
+		start_pkg0=`grep -m 1 nrm.geopm.CPU_ENERGY.package.0 $LOGDIR/$pcap.$i.log | cut -d' ' -f 5`
+		start_pkg1=`grep -m 1 nrm.geopm.CPU_ENERGY.package.1 $LOGDIR/$pcap.$i.log | cut -d' ' -f 5`
+		end_pkg0=`grep nrm.geopm.CPU_ENERGY.package.0 $LOGDIR/$pcap.$i.log | tail -n 1 | cut -d' ' -f 5`
+		end_pkg1=`grep nrm.geopm.CPU_ENERGY.package.1 $LOGDIR/$pcap.$i.log | tail -n 1 | cut -d' ' -f 5`
 		echo "$pcap $i $progress $start_pkg0 $end_pkg0 $start_pkg1 $end_pkg1 $runtime $lookups"
 	done
 done
