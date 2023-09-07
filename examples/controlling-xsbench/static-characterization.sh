@@ -8,7 +8,6 @@
 # bindings, but just using the cli tools for now should be fine.
 
 # make sure we stop on errors, and log everything
-set -e
 set -x
 set -u
 DATE=`date +%Y%m%d.%H%M%S`
@@ -40,17 +39,18 @@ echo -e "\n$DELIMITER\n" >> $LOGFILE
 ############################
 
 PREFIX=$HOME/local
+APPPATH=$HOME/XSBench/openmp-threading
 
-REPEATS=1
+REPEATS=5
 PRELOAD_PATH=$PREFIX/lib/libnrm-ompt.so
 
-export PATH=$PREFIX/bin:$PATH
+export PATH=$PREFIX/bin:$APPPATH:$PATH
 
 # Experiment
 ############################
 
 mkdir -p $LOGDIR
-nrm-setup -o $LOGDIR &
+nrm-setup -p $PREFIX/bin -o $LOGDIR &
 NRM_SETUP_PID=$!
 
 # wait for nrm-setup to start sleeping
@@ -59,9 +59,9 @@ while [ ! -e $DATE/nrm-setup-ready.log ]; do
 done
 
 # launch sensor/actuator
-nrm-geopm -vvv 1>$LOGDIR/nrm-geopm-stdout.log 2>$LOGDIR/nrm-geopm-stderr.log &
-NRM_GEOPM_PID=$1
-sleep 1
+nrm-geopm -vvv -f 2 1>$LOGDIR/nrm-geopm-stdout.log 2>$LOGDIR/nrm-geopm-stderr.log &
+NRM_GEOPM_PID=$!
+sleep 5
 
 for pcap in `nrmc find-actuator nrm.geopm.cpu.power | jq -r '.[0].choices | join("\n")'`
 do
@@ -69,9 +69,9 @@ do
 	for i in `seq 1 $REPEATS`;
 	do
 		echo "power $pcap $i" >> $LOGFILE
-		nrmc listen >> $LOGDIR/$pcap.$i.log
+		nrmc listen >> $LOGDIR/$pcap.$i.log &
 		NRM_LISTEN_PID=$!
-		nrmc run -d $PRELOAD_PATH XSBench -x large
+		nrmc run -d $PRELOAD_PATH XSBench -s large -l 200 >> $LOGDIR/app.$pcap.$i.log
 		kill $NRM_LISTEN_PID
 	done
 done
