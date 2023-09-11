@@ -44,6 +44,8 @@ int nrm_server_actuate_callback(nrm_server_t *self,
 		if (ret == 0) {
 			nrm_log_debug("actuating %s: %f\n", a->uuid,
 			              msg->value);
+			nrm_actuator_closest_choice(a, &msg->value);
+			nrm_actuator_set_value(a, msg->value);
 			nrm_msg_t *action = nrm_msg_create();
 			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 			nrm_msg_set_actuate(action, a->uuid, msg->value);
@@ -393,6 +395,8 @@ int nrm_server_actuate(nrm_server_t *self, nrm_string_t uuid, double value)
 	nrm_hash_find(self->state->actuators, uuid, (void *)&a);
 	if (a != NULL) {
 		nrm_log_debug("actuating %s: %f\n", a->uuid, value);
+		nrm_actuator_closest_choice(a, &value);
+		nrm_actuator_set_value(a, value);
 		nrm_msg_t *action = nrm_msg_create();
 		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 		nrm_msg_set_actuate(action, a->uuid, value);

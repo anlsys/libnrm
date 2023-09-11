@@ -47,6 +47,25 @@ int nrm_actuator_set_choices(nrm_actuator_t *actuator,
 	return 0;
 }
 
+int nrm_actuator_closest_choice(nrm_actuator_t *actuator, double *value)
+{
+	if (actuator == NULL || value == NULL)
+		return -NRM_EINVAL;
+
+	double min = DBL_MAX;
+	double ret = *value;
+	nrm_vector_foreach(actuator->choices, iterator)
+	{
+		double *d = nrm_vector_iterator_get(iterator);
+		if (fabs(*value - *d) < min) {
+			ret = *d;
+			min = fabs(*value - ret);
+		}
+	}
+	*value = ret;
+	return 0;
+}
+
 json_t *nrm_vector_d_to_json(nrm_vector_t *vector)
 {
 	json_t *ret;

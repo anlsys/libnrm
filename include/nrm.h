@@ -145,6 +145,7 @@ struct nrm_actuator_s {
 typedef struct nrm_actuator_s nrm_actuator_t;
 
 nrm_actuator_t *nrm_actuator_create(const char *name);
+int nrm_actuator_closest_choice(nrm_actuator_t *, double *);
 int nrm_actuator_set_value(nrm_actuator_t *, double);
 int nrm_actuator_set_choices(nrm_actuator_t *, size_t, double *);
 
