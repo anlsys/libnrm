@@ -400,7 +400,8 @@ int nrm_server_actuate(nrm_server_t *self, nrm_string_t uuid, double value)
 		nrm_msg_t *action = nrm_msg_create();
 		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 		nrm_msg_set_actuate(action, a->uuid, value);
-		nrm_role_send(self->role, action, a->clientid);
+		nrm_uuid_t *tmp = nrm_uuid_create_fromchar(*a->clientid);
+		nrm_role_send(self->role, action, tmp);
 	}
 	return 0;
 }

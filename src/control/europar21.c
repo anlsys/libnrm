@@ -39,7 +39,7 @@ static inline double error(double e, double pmax, double pl)
 	return (1.0 - e) * pmax - pl;
 }
 
-static inline double action(double Ki,
+static inline double actionL(double Ki,
                             double deltaTi,
                             double Kp,
                             double e,
@@ -47,6 +47,12 @@ static inline double action(double Ki,
                             double prev_pcapL)
 {
 	return (Ki * deltaTi + Kp) * e - Kp * prev_e + prev_pcapL;
+}
+
+static inline double action_L2raw(double actL, double alpha, double beta,
+				  double a, double b)
+{
+	return (-log(-actL) / alpha + beta - b) / a;
 }
 
 int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
@@ -139,6 +145,9 @@ int nrm_control_europar21_action(nrm_control_t *control,
 	if (in == NULL)
 		return -NRM_EINVAL;
 
+	if (in->value == 0.0)
+		return 0.0;
+
 	prog = in->value;
 	nrm_vector_get_withtype(nrm_control_output_t, outputs, 0, out);
 	if (out == NULL)
@@ -146,13 +155,13 @@ int nrm_control_europar21_action(nrm_control_t *control,
 	pcap = out->value;
 
 	nrm_log_debug("progress: %f, pcap: %f\n", prog, pcap);
-	double progL, pcapL, newe, act;
+	double progL, pcapL, newe, actL, act;
 	progL = progress_raw2L(prog, data->Kl);
 	pcapL = pcap_raw2L(pcap, data->a, data->b, data->alpha, data->beta);
 	newe = error(data->e, data->max, progL);
-	act = action(1.0 / (data->Kl * data->t), 1, 1.0 / (data->Kl * data->t),
+	actL = actionL(1.0 / (data->Kl * data->t), 1, 1.0 / (data->Kl * data->t),
 	             newe, data->prev_e, pcapL);
-
+	act = action_L2raw(actL, data->alpha, data->beta, data->a, data->b);
 	nrm_log_debug("new pcap: %f\n", act);
 	data->prev_e = newe;
 	out->value = act;
