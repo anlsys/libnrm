@@ -21,6 +21,8 @@ extern "C" {
 extern nrm_client_t *global_client;
 extern nrm_scope_t *global_scope;
 extern nrm_sensor_t *global_sensor;
+extern nrm_time_t last_send;
+extern double global_count;
 
 extern char *upstream_uri;
 extern int pub_port;

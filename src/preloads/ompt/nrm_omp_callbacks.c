@@ -13,6 +13,20 @@
 
 #include "nrm_omp.h"
 
+void nrm_ompt_send_event()
+{
+	nrm_time_t now;
+	nrm_time_gettime(&now);
+	int64_t diff = nrm_time_diff(&last_send, &now);
+	global_count += 1.0;
+	if (diff > (int64_t)nrm_ratelimit) {
+		nrm_client_send_event(global_client, now, global_sensor,
+				global_scope, global_count);
+		global_count = 0.0;
+		last_send = now;
+	}
+}
+
 void nrm_ompt_callback_thread_begin_cb(ompt_thread_t thread_type,
                                        ompt_data_t *thread_data)
 {
@@ -39,11 +53,6 @@ void nrm_ompt_callback_parallel_begin_cb(
 	(void)requested_parallelism;
 	(void)flags;
 	(void)codeptr_ra;
-
-	nrm_time_t nrmtime;
-	nrm_time_gettime(&nrmtime);
-	nrm_client_send_event(global_client, nrmtime, global_sensor,
-	                      global_scope, 1);
 }
 
 void nrm_ompt_callback_parallel_end_cb(ompt_data_t *parallel_data,
@@ -55,10 +64,6 @@ void nrm_ompt_callback_parallel_end_cb(ompt_data_t *parallel_data,
 	(void)encountering_task_data;
 	(void)flags;
 	(void)codeptr_ra;
-	nrm_time_t nrmtime;
-	nrm_time_gettime(&nrmtime);
-	nrm_client_send_event(global_client, nrmtime, global_sensor,
-	                      global_scope, 1);
 }
 
 void nrm_ompt_callback_work_cb(ompt_work_t wstype,
@@ -85,10 +90,7 @@ void nrm_ompt_callback_dispatch_cb(ompt_data_t *parallel_data,
 	(void)task_data;
 	(void)kind;
 	(void)instance;
-	nrm_time_t nrmtime;
-	nrm_time_gettime(&nrmtime);
-	nrm_client_send_event(global_client, nrmtime, global_sensor,
-	                      global_scope, 1);
+	nrm_ompt_send_event();
 }
 
 void nrm_ompt_callback_task_create_cb(
