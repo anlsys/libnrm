@@ -27,13 +27,6 @@ struct nrm_eventbase_s {
 	struct nrm_sensor2scope_s *hash;
 };
 
-/* events, as stored in one of the ringbuffers */
-struct nrm_event_s {
-	nrm_time_t time;
-	double value;
-};
-typedef struct nrm_event_s nrm_event_t;
-
 /* the main structure, matches a scope to two ringbuffers, one for the current
  * window (one event per signal), one for past windows (one event per period).
  */
@@ -200,6 +193,30 @@ int nrm_eventbase_last_value(nrm_eventbase_t *eb,
 		}
 	}
 	*value = 0.0;
+	return -NRM_EINVAL;
+}
+
+int nrm_eventbase_current_events(nrm_eventbase_t *eb,
+                             nrm_string_t sensor_uuid,
+                             nrm_string_t scope_uuid,
+                             nrm_vector_t **events)
+{
+	struct nrm_sensor2scope_s *s2s;
+	struct nrm_scope2ring_s *s2r;
+	HASH_FIND(hh, eb->hash, sensor_uuid, nrm_string_strlen(sensor_uuid),
+	          s2s);
+	if (s2s == NULL) {
+		*events = NULL;
+		return -NRM_EINVAL;
+	}
+	DL_FOREACH(s2s->list, s2r)
+	{
+		if (!nrm_string_cmp(scope_uuid, s2r->scope->uuid)) {
+			*events = s2r->events;
+			return 0;
+		}
+	}
+	*events = NULL;
 	return -NRM_EINVAL;
 }
 

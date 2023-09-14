@@ -249,6 +249,12 @@ void nrm_state_destroy(nrm_state_t **);
  * EventBase: a timeseries in-memory database
  ******************************************************************************/
 
+struct nrm_event_s {
+	nrm_time_t time;
+	double value;
+};
+typedef struct nrm_event_s nrm_event_t;
+
 struct nrm_eventbase_s;
 
 typedef struct nrm_eventbase_s nrm_eventbase_t;
@@ -266,6 +272,11 @@ int nrm_eventbase_last_value(nrm_eventbase_t *,
                              nrm_string_t,
                              nrm_string_t,
                              double *);
+
+int nrm_eventbase_current_events(nrm_eventbase_t *,
+                             nrm_string_t,
+                             nrm_string_t,
+                             nrm_vector_t **);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 

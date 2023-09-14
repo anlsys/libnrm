@@ -75,10 +75,6 @@ int nrmd_timer_callback(nrm_server_t *server)
 	nrm_server_publish(server, my_daemon.mytopic, now,
 	                   my_daemon.mysensor->uuid, my_daemon.myscope, 1.0);
 
-	/* tick the event base */
-	nrm_log_debug("eventbase tick\n");
-	nrm_eventbase_tick(my_daemon.events, now);
-
 	/* control loop: build vector of inputs */
 	nrm_log_debug("control loop tick\n");
 	if (my_daemon.control == NULL)
@@ -91,8 +87,8 @@ int nrmd_timer_callback(nrm_server_t *server)
 	nrm_vector_foreach(inputs, iterator)
 	{
 		nrm_control_input_t *in = nrm_vector_iterator_get(iterator);
-		nrm_eventbase_last_value(my_daemon.events, in->sensor_uuid,
-		                         in->scope_uuid, &in->value);
+		nrm_eventbase_current_events(my_daemon.events, in->sensor_uuid,
+		                         in->scope_uuid, &in->events);
 	}
 
 	nrm_vector_foreach(outputs, iterator)
@@ -110,6 +106,11 @@ int nrmd_timer_callback(nrm_server_t *server)
 		nrm_control_output_t *out = nrm_vector_iterator_get(iterator);
 		nrm_server_actuate(server, out->actuator_uuid, out->value);
 	}
+	
+	/* tick the event base */
+	nrm_log_debug("eventbase tick\n");
+	nrm_eventbase_tick(my_daemon.events, now);
+
 	return 0;
 }
 

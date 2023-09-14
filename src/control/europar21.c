@@ -87,7 +87,7 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 		assert(!err);
 		in.sensor_uuid = nrm_string_fromchar(sensor);
 		in.scope_uuid = nrm_string_fromchar(scope);
-		in.value = 0.0;
+		in.events = NULL;
 		nrm_vector_push_back(data->inputs, &in);
 	}
 
@@ -132,6 +132,43 @@ int nrm_control_europar21_getargs(nrm_control_t *control,
 	return 0;
 }
 
+int nrm_control_double_sort(const void *a, const void *b)
+{
+	double d1 = *(double *)a;
+	double d2 = *(double *)b;
+	return d1 - d2;
+}
+
+double nrm_control_europar21_events2progress(nrm_vector_t *events)
+{	
+	nrm_vector_t *diffs;
+	size_t numevents;
+	nrm_event_t *e, *prev_e;
+	nrm_vector_create(&diffs, sizeof(double));
+	nrm_vector_length(events, &numevents);
+	nrm_vector_get_withtype(nrm_event_t, events, 0, prev_e);
+	for (size_t i = 1; i < numevents; i++) {
+		nrm_vector_get_withtype(nrm_event_t, events, i, e);
+		int64_t delta = nrm_time_diff(&prev_e->time, &e->time);
+		double val = e->value;
+		val = val/(delta * 1e-9);
+		nrm_vector_push_back(diffs, &val);
+	}
+
+	double *a, *b, median;
+	nrm_vector_sort(diffs, nrm_control_double_sort);
+	if (numevents - 1 % 2 == 1) {
+		nrm_vector_get_withtype(double, diffs, (numevents -1)/2, a);
+		median = *a;
+	} else {
+		nrm_vector_get_withtype(double, diffs, (numevents -1)/2-1, a);
+		nrm_vector_get_withtype(double, diffs, (numevents -1)/2, b);
+		median = (*a+*b)/2.0;
+	}
+	nrm_vector_destroy(&diffs);
+	return median;
+}
+
 int nrm_control_europar21_action(nrm_control_t *control,
                                  nrm_vector_t *inputs,
                                  nrm_vector_t *outputs)
@@ -145,10 +182,12 @@ int nrm_control_europar21_action(nrm_control_t *control,
 	if (in == NULL)
 		return -NRM_EINVAL;
 
-	if (in->value == 0.0)
-		return 0.0;
+	size_t numevents;
+	nrm_vector_length(in->events, &numevents);
+	if (numevents == 0)
+		return 0;
 
-	prog = in->value;
+	prog = nrm_control_europar21_events2progress(in->events);
 	nrm_vector_get_withtype(nrm_control_output_t, outputs, 0, out);
 	if (out == NULL)
 		return -NRM_EINVAL;
