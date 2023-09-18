@@ -201,6 +201,13 @@ Version: $PACKAGE_VERSION
 FEATURES:
 ---------
 
+PTHREADS:
+=======
+
+CC: $CC
+CFLAGS:  $PTHREAD_CFLAGS
+LDFLAGS: $PTHREAD_LIBS
+
 CHECK:
 =======
 

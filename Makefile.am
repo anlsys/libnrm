@@ -12,7 +12,8 @@ AM_CPPFLAGS = \
 	      -I$(top_srcdir)/include \
 	      -I$(top_builddir)/include
 
-AM_CFLAGS = $(LIBZMQ_CFLAGS) \
+AM_CFLAGS = $(PTHREAD_CFLAGS) \
+	    $(LIBZMQ_CFLAGS) \
 	    $(LIBCZMQ_CFLAGS) \
 	    $(JANSSON_CFLAGS) \
 	    $(LIBPROTOC_CFLAGS) \
@@ -21,7 +22,8 @@ AM_CFLAGS = $(LIBZMQ_CFLAGS) \
 	    $(GEOPM_CFLAGS) \
 	    $(OPENMP_CFLAGS)
 
-AM_LDFLAGS = $(LIBZMQ_LIBS) \
+AM_LDFLAGS = $(PTHREAD_LIBS) \
+	     $(LIBZMQ_LIBS) \
 	     $(LIBCZMQ_LIBS) \
 	     $(JANSSON_LIBS) \
 	     $(LIBPROTOC_LIBS) \
