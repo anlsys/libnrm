@@ -277,6 +277,17 @@ int nrm_server_exit_callback(nrm_server_t *self, nrm_uuid_t *uuid)
 	return -1;
 }
 
+int nrm_server_tick_callback(nrm_server_t *self, nrm_uuid_t *uuid)
+{
+	int err = 0;
+	if (self->callbacks.tick != NULL)
+		err = self->callbacks.tick(self);
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	nrm_role_send(self->role, ret, uuid);
+	return err;
+}
+
 int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
@@ -308,6 +319,9 @@ int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 		break;
 	case NRM_MSG_TYPE_EXIT:
 		err = nrm_server_exit_callback(self, uuid);
+		break;
+	case NRM_MSG_TYPE_TICK:
+		err = nrm_server_tick_callback(self, uuid);
 		break;
 	default:
 		nrm_log_error("message type not handled\n");
@@ -416,11 +430,12 @@ int nrm_server_setcallbacks(nrm_server_t *server,
 	return 0;
 }
 
-int nrm_server_settimer(nrm_server_t *server, int millisecs)
+int nrm_server_settimer(nrm_server_t *server, nrm_time_t sleeptime)
 {
 	if (server == NULL)
 		return -NRM_EINVAL;
 
+	int millisecs = sleeptime.tv_sec * 1000 + sleeptime.tv_nsec / 1000000;
 	zloop_timer(server->loop, millisecs, 0, nrm_server_timer_callback,
 	            server);
 	return 0;

@@ -708,6 +708,32 @@ int nrm_client_send_exit(nrm_client_t *client)
 	return 0;
 }
 
+int nrm_client_send_tick(nrm_client_t *client)
+{
+	if (client == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_TICK);
+	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
+	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
+	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
+	return 0;
+}
+
 void nrm_client_destroy(nrm_client_t **client)
 {
 	if (client == NULL || *client == NULL)

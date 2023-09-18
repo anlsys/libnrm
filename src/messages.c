@@ -566,6 +566,7 @@ void nrm_msg_destroy_created(nrm_msg_t **msg)
 		break;
 	case NRM_MSG_TYPE_ACK:
 	case NRM_MSG_TYPE_EXIT:
+	case NRM_MSG_TYPE_TICK:
 	default:
 		break;
 	}
@@ -589,6 +590,7 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 	nrm_vector_clear(ret->choices);
 	for (size_t i = 0; i < msg->n_choices; i++)
 		nrm_vector_push_back(ret->choices, &msg->choices[i]);
+	nrm_vector_sort(ret->choices, nrm_vector_sort_double_cmp);
 	return ret;
 }
 
@@ -823,6 +825,7 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
         {NRM_MSG_TYPE_EVENT, "EVENT"},
         {NRM_MSG_TYPE_ACTUATE, "ACTUATE"},
         {NRM_MSG_TYPE_EXIT, "EXIT"},
+	{NRM_MSG_TYPE_TICK, "TICK"},
         {0, NULL},
 };
 /* clang-format on */
@@ -1069,6 +1072,7 @@ int nrm_msg_is_reply(nrm_msg_t *msg)
 {
 	switch (msg->type) {
 	case NRM_MSG_TYPE_ACTUATE:
+	case NRM_MSG_TYPE_TICK:
 		return 0;
 	default:
 		return 1;

@@ -108,6 +108,13 @@ int nrm_vector_find(const nrm_vector_t *vector,
 	return NRM_SUCCESS;
 }
 
+int nrm_vector_sort_double_cmp(const void *a, const void *b)
+{
+	double d1 = *(double *)a;
+	double d2 = *(double *)b;
+	return d1 - d2;
+}
+
 int nrm_vector_sort(nrm_vector_t *vector,
                     int (*comp)(const void *, const void *))
 {

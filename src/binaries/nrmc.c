@@ -736,6 +736,15 @@ int cmd_exit(int argc, char **argv)
 	return 0;
 }
 
+int cmd_tick(int argc, char **argv)
+{
+	(void)argc;
+	(void)argv;
+
+	nrm_client_send_tick(client);
+	return 0;
+}
+
 static struct client_cmd commands[] = {
         {"actuate", cmd_actuate},
         {"add-scope", cmd_add_scope},
@@ -756,6 +765,7 @@ static struct client_cmd commands[] = {
         {"remove-sensor", cmd_remove_sensor},
         {"run", cmd_run},
         {"exit", cmd_exit},
+        {"tick", cmd_tick},
         {0, 0},
 };
 

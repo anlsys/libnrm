@@ -64,22 +64,13 @@ double nrmd_actuator_value(nrm_string_t uuid)
 	return 0.0;
 }
 
-int nrmd_timer_callback(nrm_server_t *server)
+int nrmd_control_tick(nrm_server_t *server)
 {
-	nrm_log_info("global timer wakeup\n");
-
-	/* create a ticking event */
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 
-	nrm_server_publish(server, my_daemon.mytopic, now,
-	                   my_daemon.mysensor->uuid, my_daemon.myscope, 1.0);
-
 	/* control loop: build vector of inputs */
 	nrm_log_debug("control loop tick\n");
-	if (my_daemon.control == NULL)
-		return 0;
-
 	nrm_vector_t *inputs;
 	nrm_vector_t *outputs;
 	nrm_control_getargs(my_daemon.control, &inputs, &outputs);
@@ -110,7 +101,35 @@ int nrmd_timer_callback(nrm_server_t *server)
 	/* tick the event base */
 	nrm_log_debug("eventbase tick\n");
 	nrm_eventbase_tick(my_daemon.events, now);
+	return 0;
+}
 
+int nrmd_timer_callback(nrm_server_t *server)
+{
+	nrm_log_info("global timer wakeup\n");
+
+	/* create a ticking event */
+	nrm_time_t now;
+	nrm_time_gettime(&now);
+
+	nrm_server_publish(server, my_daemon.mytopic, now,
+	                   my_daemon.mysensor->uuid, my_daemon.myscope, 1.0);
+
+	if (my_daemon.control == NULL)
+		return 0;
+
+	nrmd_control_tick(server);
+	return 0;
+}
+
+int nrmd_tick_callback(nrm_server_t *server)
+{
+	nrm_log_info("tick wakeup\n");
+
+	if (my_daemon.control == NULL)
+		return 0;
+
+	nrmd_control_tick(server);
 	return 0;
 }
 
@@ -122,7 +141,7 @@ int main(int argc, char *argv[])
 	nrm_log_init(stderr, "nrmd");
 
 	args.progname = "nrmd";
-	args.flags = 0;
+	args.flags = NRM_TOOLS_ARGS_FLAG_FREQ;
 	err = nrm_tools_parse_args(argc, argv, &args);
 	if (err < 0) {
 		nrm_log_error("Errors during argument parsing\n");
@@ -170,7 +189,7 @@ int main(int argc, char *argv[])
 	json_t *jconfig = json_loadf(config, 0, &jerror);
 	assert(jconfig != NULL);
 	json_t *control_config;
-	err = json_unpack_ex(jconfig, &jerror, 0, "{s?:o}", "control",
+	err = json_unpack_ex(jconfig, &jerror, 0, "{s?:o, s?:o}", "control",
 	                     &control_config);
 	if (!err && control_config) {
 		nrm_control_create(&my_daemon.control, control_config);
@@ -191,11 +210,15 @@ start:
 	        .actuate = nrmd_actuate_callback,
 	        .signal = NULL,
 	        .timer = nrmd_timer_callback,
+	        .tick = nrmd_tick_callback,
 	};
 	nrm_server_setcallbacks(my_daemon.server, callbacks);
 
 	/* add a periodic wake up to generate metrics */
-	nrm_server_settimer(my_daemon.server, 1000);
+	if (args.freq != 0.0) {
+		nrm_time_t sleeptime = nrm_time_fromfreq(args.freq);
+		nrm_server_settimer(my_daemon.server, sleeptime);
+	}
 
 	/* start the whole thing */
 	nrm_server_start(my_daemon.server);

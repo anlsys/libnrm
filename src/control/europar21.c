@@ -17,6 +17,7 @@
 #include "internal/control.h"
 
 typedef struct europar21_data {
+	int active;
 	double a, b, alpha, beta, Kl, t, e, max;
 	double prev_e;
 	nrm_vector_t *inputs;
@@ -70,7 +71,11 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 	ret->data = (struct nrm_control_data *)data;
 	ret->ops = &nrm_control_europar21_ops;
 
-	json_t *object = json_object_get(config, "inputs");
+	json_t *object = json_object_get(config, "active");
+	assert(object != NULL);
+	json_unpack(object, "b", &data->active);
+
+	object = json_object_get(config, "inputs");
 	assert(object != NULL);
 	size_t idx;
 	json_t *value;
@@ -194,16 +199,21 @@ int nrm_control_europar21_action(nrm_control_t *control,
 	pcap = out->value;
 
 	nrm_log_debug("progress: %f, pcap: %f\n", prog, pcap);
-	double progL, pcapL, newe, actL, act;
-	progL = progress_raw2L(prog, data->Kl);
-	pcapL = pcap_raw2L(pcap, data->a, data->b, data->alpha, data->beta);
-	newe = error(data->e, data->max, progL);
-	actL = actionL(1.0 / (data->Kl * data->t), 1, 1.0 / (data->Kl * data->t),
-	             newe, data->prev_e, pcapL);
-	act = action_L2raw(actL, data->alpha, data->beta, data->a, data->b);
-	nrm_log_debug("new pcap: %f\n", act);
-	data->prev_e = newe;
-	out->value = act;
+	if (data->active) {
+		double progL, pcapL, newe, actL, act;
+		progL = progress_raw2L(prog, data->Kl);
+		pcapL = pcap_raw2L(pcap, data->a, data->b, data->alpha,
+		                   data->beta);
+		newe = error(data->e, data->max, progL);
+		actL = actionL(1.0 / (data->Kl * data->t), 1,
+		               1.0 / (data->Kl * data->t), newe, data->prev_e,
+		               pcapL);
+		act = action_L2raw(actL, data->alpha, data->beta, data->a,
+		                   data->b);
+		data->prev_e = newe;
+		out->value = act;
+	}
+	nrm_log_debug("new pcap: %f\n", out->value);
 	return 0;
 }
 
