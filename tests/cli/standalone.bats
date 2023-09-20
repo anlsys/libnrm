@@ -47,8 +47,8 @@ bats_require_minimum_version 1.5.0
 	run ! --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc --freq 10
 }
 
-@test "nrmd wrong extra option" {
-	run ! --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmd --freq 10
+@test "nrmd bad freq" {
+	run ! --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmd --freq aa
 }
 
 @test "nrm-dummy-extra bad freq" {

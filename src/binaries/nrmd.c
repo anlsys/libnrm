@@ -189,7 +189,7 @@ int main(int argc, char *argv[])
 	json_t *jconfig = json_loadf(config, 0, &jerror);
 	assert(jconfig != NULL);
 	json_t *control_config;
-	err = json_unpack_ex(jconfig, &jerror, 0, "{s?:o, s?:o}", "control",
+	err = json_unpack_ex(jconfig, &jerror, 0, "{s?:o}", "control",
 	                     &control_config);
 	if (!err && control_config) {
 		nrm_control_create(&my_daemon.control, control_config);

@@ -43,7 +43,7 @@ static nrm_client_t *client;
 static nrm_vector_t *events;
 static nrm_actuator_t *actuator;
 static size_t num_events;
-static pthread_mutext_t geopm_lock;
+static pthread_mutex_t geopm_lock;
 
 /* 16 values is enough */
 #define GEOPM_ACTUATOR_CHOICES 16
@@ -74,7 +74,7 @@ int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
 		if (err) {
 			nrm_log_debug(
 			        "ERROR writing to CPU_POWER_LIMIT_CONTROL\n");
-			return error;
+			goto error;
 		}
 	}
 	pthread_mutex_lock(&geopm_lock);
@@ -214,7 +214,7 @@ int nrm_geopm_timer_callback(nrm_reactor_t *reactor)
 	{
 		nrm_geopm_eventinfo_t *event =
 		        nrm_vector_iterator_get(iterator);
-		pthread_mutext_lock(&geopm_lock);
+		pthread_mutex_lock(&geopm_lock);
 		for (int i = 0; i < event->num_domains; i++) {
 			double value = 0.0;
 			nrm_scope_t **s;
@@ -227,7 +227,7 @@ int nrm_geopm_timer_callback(nrm_reactor_t *reactor)
 			nrm_client_send_event(client, time, event->sensor, *s,
 			                      value);
 		}
-		pthread_mutext_unlock(&geopm_lock);
+		pthread_mutex_unlock(&geopm_lock);
 	}
 	return 0;
 }
