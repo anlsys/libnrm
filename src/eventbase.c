@@ -197,9 +197,9 @@ int nrm_eventbase_last_value(nrm_eventbase_t *eb,
 }
 
 int nrm_eventbase_current_events(nrm_eventbase_t *eb,
-                             nrm_string_t sensor_uuid,
-                             nrm_string_t scope_uuid,
-                             nrm_vector_t **events)
+                                 nrm_string_t sensor_uuid,
+                                 nrm_string_t scope_uuid,
+                                 nrm_vector_t **events)
 {
 	struct nrm_sensor2scope_s *s2s;
 	struct nrm_scope2ring_s *s2r;

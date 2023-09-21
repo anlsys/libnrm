@@ -69,8 +69,7 @@ int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
 	pthread_mutex_lock(&geopm_lock);
 	for (int i = 0; i < num_pus; i++) {
 		err = geopm_pio_write_control("CPU_POWER_LIMIT_CONTROL",
-		                                  GEOPM_DOMAIN_PACKAGE, i,
-		                                  value);
+		                              GEOPM_DOMAIN_PACKAGE, i, value);
 		if (err) {
 			nrm_log_debug(
 			        "ERROR writing to CPU_POWER_LIMIT_CONTROL\n");

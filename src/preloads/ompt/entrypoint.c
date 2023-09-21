@@ -24,18 +24,23 @@ nrm_sensor_t *global_sensor;
 ompt_finalize_tool_t nrm_finalizer;
 double global_count;
 nrm_time_t last_send;
+pthread_mutex_t global_lock;
 
 int nrm_ompt_ratelimit_init(void)
 {
 	nrm_time_gettime(&last_send);
+	pthread_mutex_init(&global_lock, NULL);
 	return 0;
 }
 
 int nrm_ompt_ratelimit_finalize(void)
 {
 	nrm_time_gettime(&last_send);
-	nrm_client_send_event(global_client, last_send, global_sensor,
-			global_scope, global_count);
+	if (global_count > 0.0) {
+		nrm_client_send_event(global_client, last_send, global_sensor,
+		                      global_scope, global_count);
+	}
+	pthread_mutex_destroy(&global_lock);
 	return 0;
 }
 

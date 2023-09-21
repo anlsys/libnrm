@@ -18,7 +18,7 @@
 
 typedef struct europar21_data {
 	int active;
-	double a, b, alpha, beta, Kl, t, e, max;
+	double a, b, alpha, beta, Kl, t, e, max, tobj;
 	double prev_e;
 	nrm_vector_t *inputs;
 	nrm_vector_t *outputs;
@@ -41,17 +41,17 @@ static inline double error(double e, double pmax, double pl)
 }
 
 static inline double actionL(double Ki,
-                            double deltaTi,
-                            double Kp,
-                            double e,
-                            double prev_e,
-                            double prev_pcapL)
+                             double deltaTi,
+                             double Kp,
+                             double e,
+                             double prev_e,
+                             double prev_pcapL)
 {
 	return (Ki * deltaTi + Kp) * e - Kp * prev_e + prev_pcapL;
 }
 
-static inline double action_L2raw(double actL, double alpha, double beta,
-				  double a, double b)
+static inline double
+action_L2raw(double actL, double alpha, double beta, double a, double b)
 {
 	return (-log(-actL) / alpha + beta - b) / a;
 }
@@ -117,10 +117,11 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 	int err;
 	json_error_t error;
 	err = json_unpack_ex(object, &error, 0,
-	                     "{s:f, s:f, s:f, s:f, s:f, s:f}", "a", &data->a,
-	                     "b", &data->b, "alpha", &data->alpha, "beta",
-	                     &data->beta, "Kl", &data->Kl, "t", &data->t, "e",
-	                     &data->e, "max", &data->max);
+	                     "{s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f}",
+	                     "a", &data->a, "b", &data->b, "alpha",
+	                     &data->alpha, "beta", &data->beta, "Kl", &data->Kl,
+	                     "t", &data->t, "e", &data->e, "max", &data->max,
+	                     "tobj", &data->tobj);
 	assert(!err);
 	*control = ret;
 	return 0;
@@ -137,15 +138,8 @@ int nrm_control_europar21_getargs(nrm_control_t *control,
 	return 0;
 }
 
-int nrm_control_double_sort(const void *a, const void *b)
-{
-	double d1 = *(double *)a;
-	double d2 = *(double *)b;
-	return d1 - d2;
-}
-
 double nrm_control_europar21_events2progress(nrm_vector_t *events)
-{	
+{
 	nrm_vector_t *diffs;
 	size_t numevents;
 	nrm_event_t *e, *prev_e;
@@ -156,19 +150,23 @@ double nrm_control_europar21_events2progress(nrm_vector_t *events)
 		nrm_vector_get_withtype(nrm_event_t, events, i, e);
 		int64_t delta = nrm_time_diff(&prev_e->time, &e->time);
 		double val = e->value;
-		val = val/(delta * 1e-9);
+		val = val / (delta * 1e-9);
 		nrm_vector_push_back(diffs, &val);
+		prev_e = e;
 	}
 
+	nrm_log_debug("progress: will use %zu freqs for median\n",
+	              numevents - 1);
 	double *a, *b, median;
-	nrm_vector_sort(diffs, nrm_control_double_sort);
+	nrm_vector_sort(diffs, nrm_vector_double_sort_cmp);
 	if (numevents - 1 % 2 == 1) {
-		nrm_vector_get_withtype(double, diffs, (numevents -1)/2, a);
+		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2, a);
 		median = *a;
 	} else {
-		nrm_vector_get_withtype(double, diffs, (numevents -1)/2-1, a);
-		nrm_vector_get_withtype(double, diffs, (numevents -1)/2, b);
-		median = (*a+*b)/2.0;
+		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2 - 1,
+		                        a);
+		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2, b);
+		median = (*a + *b) / 2.0;
 	}
 	nrm_vector_destroy(&diffs);
 	return median;
@@ -189,7 +187,7 @@ int nrm_control_europar21_action(nrm_control_t *control,
 
 	size_t numevents;
 	nrm_vector_length(in->events, &numevents);
-	if (numevents == 0)
+	if (in->events == NULL || numevents <= 1)
 		return 0;
 
 	prog = nrm_control_europar21_events2progress(in->events);
@@ -198,20 +196,21 @@ int nrm_control_europar21_action(nrm_control_t *control,
 		return -NRM_EINVAL;
 	pcap = out->value;
 
-	nrm_log_debug("progress: %f, pcap: %f\n", prog, pcap);
+	nrm_log_normal("progress: %f pcap: %f\n", prog, pcap);
 	if (data->active) {
 		double progL, pcapL, newe, actL, act;
 		progL = progress_raw2L(prog, data->Kl);
 		pcapL = pcap_raw2L(pcap, data->a, data->b, data->alpha,
 		                   data->beta);
-		newe = error(data->e, data->max, progL);
-		actL = actionL(1.0 / (data->Kl * data->t), 1,
-		               1.0 / (data->Kl * data->t), newe, data->prev_e,
-		               pcapL);
+		newe = error(data->e, data->max, prog);
+		actL = actionL(1.0 / (data->Kl * data->tobj), 1,
+		               data->t / (data->Kl * data->tobj), newe,
+		               data->prev_e, pcapL);
 		act = action_L2raw(actL, data->alpha, data->beta, data->a,
 		                   data->b);
 		data->prev_e = newe;
 		out->value = act;
+		nrm_log_debug("model: %f %f %f\n", progL, pcapL, actL);
 	}
 	nrm_log_debug("new pcap: %f\n", out->value);
 	return 0;

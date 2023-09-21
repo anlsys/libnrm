@@ -79,7 +79,7 @@ int nrmd_control_tick(nrm_server_t *server)
 	{
 		nrm_control_input_t *in = nrm_vector_iterator_get(iterator);
 		nrm_eventbase_current_events(my_daemon.events, in->sensor_uuid,
-		                         in->scope_uuid, &in->events);
+		                             in->scope_uuid, &in->events);
 	}
 
 	nrm_vector_foreach(outputs, iterator)
@@ -97,7 +97,7 @@ int nrmd_control_tick(nrm_server_t *server)
 		nrm_control_output_t *out = nrm_vector_iterator_get(iterator);
 		nrm_server_actuate(server, out->actuator_uuid, out->value);
 	}
-	
+
 	/* tick the event base */
 	nrm_log_debug("eventbase tick\n");
 	nrm_eventbase_tick(my_daemon.events, now);

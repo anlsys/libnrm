@@ -15,16 +15,18 @@
 
 void nrm_ompt_send_event()
 {
+	pthread_mutex_lock(&global_lock);
 	nrm_time_t now;
 	nrm_time_gettime(&now);
 	int64_t diff = nrm_time_diff(&last_send, &now);
 	global_count += 1.0;
 	if (diff > (int64_t)nrm_ratelimit) {
 		nrm_client_send_event(global_client, now, global_sensor,
-				global_scope, global_count);
+		                      global_scope, global_count);
 		global_count = 0.0;
 		last_send = now;
 	}
+	pthread_mutex_unlock(&global_lock);
 }
 
 void nrm_ompt_callback_thread_begin_cb(ompt_thread_t thread_type,

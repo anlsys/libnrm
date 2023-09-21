@@ -274,9 +274,9 @@ int nrm_eventbase_last_value(nrm_eventbase_t *,
                              double *);
 
 int nrm_eventbase_current_events(nrm_eventbase_t *,
-                             nrm_string_t,
-                             nrm_string_t,
-                             nrm_vector_t **);
+                                 nrm_string_t,
+                                 nrm_string_t,
+                                 nrm_vector_t **);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 

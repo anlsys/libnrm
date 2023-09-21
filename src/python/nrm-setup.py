@@ -14,7 +14,7 @@ class NRMBinary:
         self.name = name
         self.candie = candie
 
-    def launch(self, options):
+    def launch(self, options, config=None, freq=None):
         self.abspath = (options.prefix / self.name).absolute()
         self.stdout = open(options.output / (self.name + "-stdout.log"), "w+")
         self.stderr = open(options.output / (self.name + "-stderr.log"), "w+")
@@ -25,6 +25,10 @@ class NRMBinary:
         popencmd += os.environ.get('LOG_COMPILER', "").split()
         popencmd += os.environ.get('LOG_FLAGS', "").split()
         popencmd += [self.abspath, "-vvv"]
+        if freq is not None:
+            popencmd += ["-f", str(freq)]
+        if config:
+            popencmd += [config]
         self.proc = subprocess.Popen(
             popencmd, stdin=None, stdout=self.stdout, stderr=self.stderr
         )
@@ -46,7 +50,10 @@ class NRMSetup:
         self.others = []
 
     def launch(self, args, nrmd, others):
-        nrmd.launch(args)
+        if args.no_tick:
+            nrmd.launch(args, config=args.config, freq=0)
+        else:
+            nrmd.launch(args, config=args.config)
         self.nrmd = nrmd
 
         # wait for nrmd to respond
@@ -105,6 +112,8 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("-o", "--output", type=pathlib.Path, default=".")
 parser.add_argument("-p", "--prefix", type=pathlib.Path, default=".")
+parser.add_argument("-c", "--config", type=pathlib.Path, default=None)
+parser.add_argument("--no-tick", action="store_true")
 parser.add_argument("--dummy", action="store_true")
 
 args = parser.parse_args()
