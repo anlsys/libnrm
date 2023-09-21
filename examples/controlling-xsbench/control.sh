@@ -39,12 +39,10 @@ echo -e "\n$DELIMITER\n" >> $LOGFILE
 ############################
 
 PREFIX=$HOME/local
-APPPATH=$HOME/XSBench/openmp-threading
 
 REPEATS=5
-PRELOAD_PATH=$PREFIX/lib/libnrm-ompt.so
 
-export PATH=$PREFIX/bin:$APPPATH:$PATH
+export PATH=$PREFIX/bin:$PATH
 export OMP_PROC_BIND=true
 export OMP_NUM_THREADS=104
 
@@ -54,7 +52,7 @@ cat ./static.json
 ############################
 
 mkdir -p $LOGDIR
-taskset -a -c 0 nrm-setup -p $PREFIX/bin -o $LOGDIR -c ./static.json --no-tick &
+taskset -a -c 0 nrm-setup -p $PREFIX/bin -o $LOGDIR -c ./control.json &
 NRM_SETUP_PID=$!
 
 # wait for nrm-setup to start sleeping
@@ -73,17 +71,14 @@ do
 	for i in `seq 1 $REPEATS`;
 	do
 		now=`date +%s`
-		echo "xp start $now power $pcap $i" >> $LOGFILE
+		echo "control start $now power $pcap $i" >> $LOGFILE
 		geopmread CPU_ENERGY package 0 >> $LOGFILE
                 geopmread CPU_ENERGY package 1 >> $LOGFILE
-                nrmc tick
-                nrmc run -d $PRELOAD_PATH XSBench -s large -l 200 >> $LOGDIR/app.$pcap.$i.log
+                nrmc run ones-stream-full 83613830 600 >> $LOGDIR/app.$pcap.$i.log
                 now=`date +%s`
-                nrmc tick
                 geopmread CPU_ENERGY package 0 >> $LOGFILE
                 geopmread CPU_ENERGY package 1 >> $LOGFILE
-                echo "xp end $now power $pcap $i" >> $LOGFILE
-                sleep 1
+                echo "control end $now power $pcap $i" >> $LOGFILE
 	done
 done
 

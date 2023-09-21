@@ -9,25 +9,27 @@ LOGDIR=$DATE
 
 # find out how many pcaps were measured
 pcaps=`grep '^power' $LOGFILE | cut -d' ' -f 2 | sort -u`
-echo "list of pcaps: $pcaps"
 
 # same thing for repeats
 repeats=`grep '^power' $LOGFILE | cut -d' ' -f 3 | sort -u`
-echo "list of repeats: $repeats"
 
 # the goal is to create a file with on each line:
 # "pcap repeatno progress start_energy stop_energy exectime lookups/s"
+lines=1
 for pcap in $pcaps
 do
 	for i in $repeats
 	do
-		lookups=`grep Lookups/s $LOGDIR/app.$pcap.$i.log | cut -d' ' -f 4 | sed -e 's/,//g'`
-		runtime=`grep Runtime $LOGDIR/app.$pcap.$i.log | cut -d' ' -f 6`
-		progress=`grep nrm-ompt $LOGDIR/$pcap.$i.log | wc -l`
-		start_pkg0=`grep -m 1 nrm.geopm.CPU_ENERGY.package.0 $LOGDIR/$pcap.$i.log | cut -d' ' -f 5`
-		start_pkg1=`grep -m 1 nrm.geopm.CPU_ENERGY.package.1 $LOGDIR/$pcap.$i.log | cut -d' ' -f 5`
-		end_pkg0=`grep nrm.geopm.CPU_ENERGY.package.0 $LOGDIR/$pcap.$i.log | tail -n 1 | cut -d' ' -f 5`
-		end_pkg1=`grep nrm.geopm.CPU_ENERGY.package.1 $LOGDIR/$pcap.$i.log | tail -n 1 | cut -d' ' -f 5`
-		echo "$pcap $i $progress $start_pkg0 $end_pkg0 $start_pkg1 $end_pkg1 $runtime $lookups"
+		perf=`grep Lookups/s $LOGDIR/app.$pcap.$i.log | cut -d' ' -f 4 | sed -e 's/,//g'`
+-               appruntime=`grep Runtime $LOGDIR/app.$pcap.$i.log | cut -d' ' -f 6`
+		progress=`grep progress $LOGDIR/nrmd-stderr.log | awk "NR==$lines {print \\\$4 }" | sed -e's/,//g'`
+		start_time=`grep '^xp start' $LOGFILE | grep "power $pcap $i" | cut -d' ' -f 3`
+		end_time=`grep '^xp end' $LOGFILE | grep "power $pcap $i" | cut -d' ' -f 3`
+		start_pkg0=`grep -A 4 "^xp start .* power $pcap $i" $LOGFILE | awk 'NR==2 { print $1 }'`
+		start_pkg1=`grep -A 4 "^xp start .* power $pcap $i" $LOGFILE | awk 'NR==3 { print $1 }'`
+		end_pkg0=`grep -A 4 "^xp start .* power $pcap $i" $LOGFILE | awk 'NR==4 { print $1 }'`
+		end_pkg1=`grep -A 4 "^xp start .* power $pcap $i" $LOGFILE | awk 'NR==5 { print $1 }'`
+		echo "$pcap $i $progress $start_pkg0 $end_pkg0 $start_pkg1 $end_pkg1 $start_time $end_time $appruntime $perf"
+		lines=$(($lines+1))
 	done
 done
