@@ -158,7 +158,7 @@ double nrm_control_europar21_events2progress(nrm_vector_t *events)
 	nrm_log_debug("progress: will use %zu freqs for median\n",
 	              numevents - 1);
 	double *a, *b, median;
-	nrm_vector_sort(diffs, nrm_vector_double_sort_cmp);
+	nrm_vector_sort(diffs, nrm_vector_sort_double_cmp);
 	if (numevents - 1 % 2 == 1) {
 		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2, a);
 		median = *a;
