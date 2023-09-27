@@ -77,6 +77,16 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 		/* it's okay, we know we have enough room */
 		strcat(full_shortopts, fs);
 		full_longopts[longopts_idx] = fl;
+		longopts_idx++;
+	}
+	if (NRM_TOOLS_FLAGS_ISSET(args->flags, NRM_TOOLS_ARGS_FLAG_INHERIT)) {
+		args->inheritance = 0;
+		char *fs = "i";
+		struct option fl = {"inherit", no_argument, 0, 'i'};
+		/* it's okay, we know we have enough room */
+		strcat(full_shortopts, fs);
+		full_longopts[longopts_idx] = fl;
+		longopts_idx++;
 	}
 
 	/* default values */
@@ -162,6 +172,11 @@ int nrm_tools_parse_args(int argc, char *argv[], nrm_tools_args_t *args)
 			event = nrm_string_fromchar(optarg);
 			nrm_vector_push_back(args->events, &event);
 			break;
+		case 'i':
+			assert(NRM_TOOLS_FLAGS_ISSET(
+			        args->flags, NRM_TOOLS_ARGS_FLAG_INHERIT));
+			args->inheritance = 1;
+			break;
 		case ':':
 			nrm_log_error(
 			        "Missing command line argument after: '%s'\n",
@@ -192,13 +207,14 @@ int nrm_tools_print_help(const nrm_tools_args_t *args)
 	        "--quiet, -q            : no log output\n",
 	        "--log-level, -l <int>  : set log level (0-5)\n",
 	        "--uri, -u <str>        : daemon socket uri to connect to\n",
-	        "--rpc-port, -r  <uint> : daemon rpc port to use\n",
-	        "--pub-port, -p  <uint> : daemon pub/sub port to use\n",
+	        "--rpc, -r  <uint>      : daemon rpc port to use\n",
+	        "--pub, -p  <uint>      : daemon pub/sub port to use\n",
 	        NULL,
 	};
 	static const char *extra_help[] = {
 	        "--freq, -f <double>    : signal frequency (in Hz)\n",
-	        "--event, -e <string>   : event(s) name\n",
+	        "--event, -e <string>   : event name(s)\n",
+	        "--inherit, -i          : enable event inheritance\n",
 	        NULL,
 	};
 	fprintf(stdout, "Usage: %s [options]\n\n", args->progname);
