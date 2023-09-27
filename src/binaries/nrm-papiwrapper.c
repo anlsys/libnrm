@@ -116,13 +116,15 @@ int nrm_papiwrapper_signal_callback(nrm_reactor_t *reactor,
 	if (fdsi.ssi_signo != SIGCHLD)
 		return -1;
 
-	nrm_log_debug("Signal info: %d %d\n", fdsi.ssi_signo, fdsi.ssi_pid);
+	nrm_log_debug("Signal info: %d %d %d\n", fdsi.ssi_signo, fdsi.ssi_pid,
+	              fdsi.ssi_code);
 	/* ignore status updates on wrong pid */
 	if ((int)fdsi.ssi_pid != cmdpid)
 		return 0;
 
 	/* ignore stopped/restarted cmd */
-	if (fdsi.ssi_code == CLD_STOPPED || fdsi.ssi_code == CLD_CONTINUED)
+	if (fdsi.ssi_code == CLD_STOPPED || fdsi.ssi_code == CLD_CONTINUED ||
+	    fdsi.ssi_code == CLD_TRAPPED)
 		return 0;
 
 	/* we're here if the child command exited, so end the program by
@@ -135,6 +137,15 @@ int main(int argc, char **argv)
 {
 	int err;
 	nrm_tools_args_t args;
+	sigset_t sigmask;
+
+	/* Block signals early so that they don't get caught by any other
+	 * threads than intended.  */
+	sigemptyset(&sigmask);
+	sigaddset(&sigmask, SIGINT);
+	sigaddset(&sigmask, SIGTERM);
+	sigaddset(&sigmask, SIGCHLD);
+	pthread_sigmask(SIG_BLOCK, &sigmask, NULL);
 
 	nrm_init(NULL, NULL);
 	nrm_log_init(stderr, "nrm-papiwrapper");
@@ -142,7 +153,8 @@ int main(int argc, char **argv)
 	int ret = EXIT_FAILURE;
 
 	args.progname = "nrm-papiwrapper";
-	args.flags = NRM_TOOLS_ARGS_FLAG_FREQ | NRM_TOOLS_ARGS_FLAG_EVENT;
+	args.flags = NRM_TOOLS_ARGS_FLAG_FREQ | NRM_TOOLS_ARGS_FLAG_EVENT |
+	             NRM_TOOLS_ARGS_FLAG_INHERIT;
 
 	err = nrm_tools_parse_args(argc, argv, &args);
 	if (err < 0) {
@@ -275,6 +287,17 @@ int main(int argc, char **argv)
 		        "PAPI code string %s converted to PAPI code %i, and registered.\n",
 		        *EventName, EventCode);
 	}
+	if (args.inheritance) {
+		PAPI_option_t opt;
+		opt.inherit.inherit = PAPI_INHERIT_ALL;
+		opt.inherit.eventset = EventSet;
+		err = PAPI_set_opt(PAPI_INHERIT, &opt);
+		if (err != PAPI_OK) {
+			nrm_log_error("PAPI inheritance setting error: %s\n",
+			              PAPI_strerror(err));
+			goto cleanup;
+		}
+	}
 
 	cmdpid = fork();
 	if (cmdpid < 0) {
@@ -293,6 +316,8 @@ int main(int argc, char **argv)
 		nrm_log_error("Error executing command: %s\n", strerror(errno));
 		_exit(EXIT_FAILURE);
 	}
+
+	nrm_log_debug("cmdpid %d\n", cmdpid);
 
 	/* parent process */
 	if (cmpinfo->attach_must_ptrace) {
@@ -333,7 +358,6 @@ int main(int argc, char **argv)
 		goto cleanup;
 	}
 
-	sigset_t sigmask;
 	sigemptyset(&sigmask);
 	sigaddset(&sigmask, SIGINT);
 	sigaddset(&sigmask, SIGTERM);
