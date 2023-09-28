@@ -18,26 +18,28 @@
 
 typedef struct europar21_data {
 	int active;
-	double a, b, alpha, beta, Kl, t, e, max, tobj;
+	double a, b, alpha, beta, Kl, t, e, tobj;
+	double pcap_max;
+	double pcap_min_L, pcap_max_L;
 	double prev_e;
 	nrm_vector_t *inputs;
 	nrm_vector_t *outputs;
 } nrm_control_europar21_data_t;
 
 static inline double
-pcap_raw2L(double pcap, double a, double b, double alpha, double beta)
+linearize(double value, double a, double b, double alpha, double beta)
 {
-	return -exp(-alpha * (a * pcap + b - beta));
+	return -exp(-alpha * (a * value + b - beta));
 }
 
-static inline double progress_raw2L(double progress, double Kl)
+static inline double error(double e, double Kl, double pcap_max_L, double prog)
 {
-	return progress - Kl;
+	return e * Kl * (1 + pcap_max_L) - prog;
 }
 
-static inline double error(double e, double pmax, double pl)
+static inline double thresholding(double val, double min, double max)
 {
-	return (1.0 - e) * pmax - pl;
+	return fmax(fmin(val, max), min);
 }
 
 static inline double actionL(double Ki,
@@ -51,9 +53,9 @@ static inline double actionL(double Ki,
 }
 
 static inline double
-action_L2raw(double actL, double alpha, double beta, double a, double b)
+delinearize(double value, double a, double b, double alpha, double beta)
 {
-	return (-log(-actL) / alpha + beta - b) / a;
+	return (-log(-value) / alpha + beta - b) / a;
 }
 
 int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
@@ -117,11 +119,15 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 	int err;
 	json_error_t error;
 	err = json_unpack_ex(object, &error, 0,
-	                     "{s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f}",
+	                     "{s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f}",
 	                     "a", &data->a, "b", &data->b, "alpha",
 	                     &data->alpha, "beta", &data->beta, "Kl", &data->Kl,
-	                     "t", &data->t, "e", &data->e, "max", &data->max,
-	                     "tobj", &data->tobj);
+	                     "t", &data->t, "e", &data->e, "tobj", &data->tobj,
+			     "min", &data->pcap_min_L, "max", &data->pcap_max);
+	data->pcap_min_L = linearize(data->pcap_min_L, data->a, data->b, data->alpha, data->beta);
+	data->pcap_max_L = linearize(data->pcap_max, data->a, data->b, data->alpha, data->beta);
+	nrm_log_debug("europar21 params: %f %f %f %f %f %f %f %f %f %f\n", data->a, data->b, data->alpha,
+		      data->beta, data->Kl, data->t, data->e, data->tobj, data->pcap_min_L, data->pcap_max_L);
 	assert(!err);
 	*control = ret;
 	return 0;
@@ -198,19 +204,26 @@ int nrm_control_europar21_action(nrm_control_t *control,
 
 	nrm_log_normal("progress: %f pcap: %f\n", prog, pcap);
 	if (data->active) {
-		double progL, pcapL, newe, actL, act;
-		progL = progress_raw2L(prog, data->Kl);
-		pcapL = pcap_raw2L(pcap, data->a, data->b, data->alpha,
-		                   data->beta);
-		newe = error(data->e, data->max, prog);
-		actL = actionL(1.0 / (data->Kl * data->tobj), 1,
-		               data->t / (data->Kl * data->tobj), newe,
-		               data->prev_e, pcapL);
-		act = action_L2raw(actL, data->alpha, data->beta, data->a,
-		                   data->b);
-		data->prev_e = newe;
-		out->value = act;
-		nrm_log_debug("model: %f %f %f\n", progL, pcapL, actL);
+		/* sanity check, if prog is not even remotely close to Kl, we disable
+		 * control and use max power */
+		if (prog < (1.0-data->e)*data->Kl || prog > 2.0*data->Kl) {
+			out->value = data->pcap_max;
+			data->prev_e = 0;
+		} else {
+			double pcapL, newe, actL, threshold, act;
+			pcapL = linearize(pcap, data->a, data->b, data->alpha,
+					  data->beta);
+			newe = error(data->e, data->Kl, data->pcap_max_L, prog);
+			actL = actionL(1.0 / (data->Kl * data->tobj/3), 1,
+				       data->t / (data->Kl * data->tobj), newe,
+				       data->prev_e, pcapL);
+			threshold = thresholding(actL, data->pcap_min_L, data->pcap_max_L);
+			act = delinearize(threshold, data->a, data->b, data->alpha,
+					  data->beta);
+			data->prev_e = newe;
+			out->value = act;
+			nrm_log_debug("model: %f %f %f %f %f\n", pcapL, newe, act, threshold, actL);
+		}	
 	}
 	nrm_log_debug("new pcap: %f\n", out->value);
 	return 0;

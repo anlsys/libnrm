@@ -76,8 +76,8 @@ int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
 			goto error;
 		}
 	}
-	pthread_mutex_lock(&geopm_lock);
 error:
+	pthread_mutex_unlock(&geopm_lock);
 	return err;
 }
 
