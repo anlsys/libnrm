@@ -156,23 +156,26 @@ double nrm_control_europar21_events2progress(nrm_vector_t *events)
 		nrm_vector_get_withtype(nrm_event_t, events, i, e);
 		int64_t delta = nrm_time_diff(&prev_e->time, &e->time);
 		double val = e->value;
-		val = val / (delta * 1e-9);
-		nrm_vector_push_back(diffs, &val);
+		double nv = val / (delta * 1e-9);
+		nrm_vector_push_back(diffs, &nv);
 		prev_e = e;
+		nrm_log_debug("progress: event: %f %f %f\n", val, delta * 1e-9, nv);
 	}
 
 	nrm_log_debug("progress: will use %zu freqs for median\n",
 	              numevents - 1);
 	double *a, *b, median;
 	nrm_vector_sort(diffs, nrm_vector_sort_double_cmp);
-	if (numevents - 1 % 2 == 1) {
+	if ((numevents - 1) % 2 == 1) {
 		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2, a);
 		median = *a;
+		nrm_log_debug("median odd: %f %f\n", median, *a);
 	} else {
 		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2 - 1,
 		                        a);
 		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2, b);
 		median = (*a + *b) / 2.0;
+		nrm_log_debug("median even: %f %f %f\n", median, *a, *b);
 	}
 	nrm_vector_destroy(&diffs);
 	return median;
