@@ -118,16 +118,21 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 	assert(object != NULL);
 	int err;
 	json_error_t error;
-	err = json_unpack_ex(object, &error, 0,
-	                     "{s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f}",
-	                     "a", &data->a, "b", &data->b, "alpha",
-	                     &data->alpha, "beta", &data->beta, "Kl", &data->Kl,
-	                     "t", &data->t, "e", &data->e, "tobj", &data->tobj,
-			     "min", &data->pcap_min_L, "max", &data->pcap_max);
-	data->pcap_min_L = linearize(data->pcap_min_L, data->a, data->b, data->alpha, data->beta);
-	data->pcap_max_L = linearize(data->pcap_max, data->a, data->b, data->alpha, data->beta);
-	nrm_log_debug("europar21 params: %f %f %f %f %f %f %f %f %f %f\n", data->a, data->b, data->alpha,
-		      data->beta, data->Kl, data->t, data->e, data->tobj, data->pcap_min_L, data->pcap_max_L);
+	err = json_unpack_ex(
+	        object, &error, 0,
+	        "{s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f, s:f}", "a",
+	        &data->a, "b", &data->b, "alpha", &data->alpha, "beta",
+	        &data->beta, "Kl", &data->Kl, "t", &data->t, "e", &data->e,
+	        "tobj", &data->tobj, "min", &data->pcap_min_L, "max",
+	        &data->pcap_max);
+	data->pcap_min_L = linearize(data->pcap_min_L, data->a, data->b,
+	                             data->alpha, data->beta);
+	data->pcap_max_L = linearize(data->pcap_max, data->a, data->b,
+	                             data->alpha, data->beta);
+	nrm_log_debug("europar21 params: %f %f %f %f %f %f %f %f %f %f\n",
+	              data->a, data->b, data->alpha, data->beta, data->Kl,
+	              data->t, data->e, data->tobj, data->pcap_min_L,
+	              data->pcap_max_L);
 	assert(!err);
 	*control = ret;
 	return 0;
@@ -159,7 +164,8 @@ double nrm_control_europar21_events2progress(nrm_vector_t *events)
 		double nv = val / (delta * 1e-9);
 		nrm_vector_push_back(diffs, &nv);
 		prev_e = e;
-		nrm_log_debug("progress: event: %f %f %f\n", val, delta * 1e-9, nv);
+		nrm_log_debug("progress: event: %f %f %f\n", val, delta * 1e-9,
+		              nv);
 	}
 
 	nrm_log_debug("progress: will use %zu freqs for median\n",
@@ -207,26 +213,29 @@ int nrm_control_europar21_action(nrm_control_t *control,
 
 	nrm_log_normal("progress: %f pcap: %f\n", prog, pcap);
 	if (data->active) {
-		/* sanity check, if prog is not even remotely close to Kl, we disable
-		 * control and use max power */
-		if (prog < (1.0-data->e)*data->Kl || prog > 2.0*data->Kl) {
+		/* sanity check, if prog is not even remotely close to Kl, we
+		 * disable control and use max power */
+		if (prog < (1.0 - data->e) * data->Kl ||
+		    prog > 2.0 * data->Kl) {
 			out->value = data->pcap_max;
 			data->prev_e = 0;
 		} else {
 			double pcapL, newe, actL, threshold, act;
 			pcapL = linearize(pcap, data->a, data->b, data->alpha,
-					  data->beta);
+			                  data->beta);
 			newe = error(data->e, data->Kl, data->pcap_max_L, prog);
-			actL = actionL(1.0 / (data->Kl * data->tobj/3), 1,
-				       data->t / (data->Kl * data->tobj), newe,
-				       data->prev_e, pcapL);
-			threshold = thresholding(actL, data->pcap_min_L, data->pcap_max_L);
-			act = delinearize(threshold, data->a, data->b, data->alpha,
-					  data->beta);
+			actL = actionL(1.0 / (data->Kl * data->tobj / 3), 1,
+			               data->t / (data->Kl * data->tobj), newe,
+			               data->prev_e, pcapL);
+			threshold = thresholding(actL, data->pcap_min_L,
+			                         data->pcap_max_L);
+			act = delinearize(threshold, data->a, data->b,
+			                  data->alpha, data->beta);
 			data->prev_e = newe;
 			out->value = act;
-			nrm_log_debug("model: %f %f %f %f %f\n", pcapL, newe, act, threshold, actL);
-		}	
+			nrm_log_debug("model: %f %f %f %f %f\n", pcapL, newe,
+			              act, threshold, actL);
+		}
 	}
 	nrm_log_debug("new pcap: %f\n", out->value);
 	return 0;

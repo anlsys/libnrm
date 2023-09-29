@@ -84,14 +84,14 @@ void nrm_ompt_callback_work_cb(ompt_work_t wstype,
 }
 
 void nrm_ompt_callback_masked_cb(ompt_scope_endpoint_t endpoint,
-               ompt_data_t *parallel_data,
-               ompt_data_t *task_data,
-               const void *codeptr_ra)
+                                 ompt_data_t *parallel_data,
+                                 ompt_data_t *task_data,
+                                 const void *codeptr_ra)
 {
-       (void)endpoint;
-       (void)parallel_data;
-       (void)task_data;
-       (void)codeptr_ra;
+	(void)endpoint;
+	(void)parallel_data;
+	(void)task_data;
+	(void)codeptr_ra;
 }
 
 void nrm_ompt_callback_dispatch_cb(ompt_data_t *parallel_data,
@@ -357,8 +357,9 @@ void nrm_ompt_register_cbs(void)
 	ret = nrm_ompt_set_callback(ompt_callback_work,
 	                            (ompt_callback_t)nrm_ompt_callback_work_cb);
 
-	ret = nrm_ompt_set_callback(ompt_callback_masked,
-				    (ompt_callback_t)nrm_ompt_callback_masked_cb);
+	ret = nrm_ompt_set_callback(
+	        ompt_callback_masked,
+	        (ompt_callback_t)nrm_ompt_callback_masked_cb);
 
 	ret = nrm_ompt_set_callback(
 	        ompt_callback_dispatch,

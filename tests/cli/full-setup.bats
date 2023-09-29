@@ -70,19 +70,28 @@ setup_file() {
 }
 
 @test "listen (no argument)" {
-	run -143 --separate-stderr timeout --preserve-status 5 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc listen
+	if [ -n "$LOG_COMPILER" ]; then
+		skip "disabling signal tests on valgrind"
+	fi
+	run -143 --separate-stderr timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrmc listen
 	event_count=`echo "$output" | wc -l`
 	[ $event_count -ge 1 ]
 }
 
 @test "listen (daemon topic)" {
-	run -143 --separate-stderr timeout --preserve-status 5 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc listen daemon
+	if [ -n "$LOG_COMPILER" ]; then
+		skip "disabling signal tests on valgrind"
+	fi
+	run -143 --separate-stderr timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrmc listen daemon
 	event_count=`echo "$output" | wc -l`
 	[ $event_count -ge 1 ]
 }
 
 @test "listen (null topic)" {
-	run -143 --separate-stderr timeout --preserve-status 5 $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc listen null
+	if [ -n "$LOG_COMPILER" ]; then
+		skip "disabling signal tests on valgrind"
+	fi
+	run -143 --separate-stderr timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrmc listen null
 	event_count=`echo "$output" | wc -l`
 	[ $event_count -eq 1 ]
 }
