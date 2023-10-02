@@ -178,7 +178,6 @@ double nrm_control_europar21_events2progress(nrm_vector_t *events)
 		                        a);
 		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2, b);
 		median = (*a + *b) / 2.0;
-		nrm_log_debug("median even: %f %f %f\n", median, *a, *b);
 	}
 	nrm_vector_destroy(&diffs);
 	return median;
