@@ -173,7 +173,6 @@ double nrm_control_europar21_events2progress(nrm_vector_t *events)
 	if ((numevents - 1) % 2 == 1) {
 		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2, a);
 		median = *a;
-		nrm_log_debug("median odd: %f %f\n", median, *a);
 	} else {
 		nrm_vector_get_withtype(double, diffs, (numevents - 1) / 2 - 1,
 		                        a);
