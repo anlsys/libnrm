@@ -164,8 +164,6 @@ double nrm_control_europar21_events2progress(nrm_vector_t *events)
 		double nv = val / (delta * 1e-9);
 		nrm_vector_push_back(diffs, &nv);
 		prev_e = e;
-		nrm_log_debug("progress: event: %f %f %f\n", val, delta * 1e-9,
-		              nv);
 	}
 
 	nrm_log_debug("progress: will use %zu freqs for median\n",
