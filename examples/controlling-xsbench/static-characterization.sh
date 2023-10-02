@@ -48,13 +48,13 @@ export PATH=$PREFIX/bin:$APPPATH:$PATH
 export OMP_PROC_BIND=true
 export OMP_NUM_THREADS=104
 
-cat ./static.json
+cat ./static.json >> $LOGFILE
 
 # Experiment
 ############################
 
 mkdir -p $LOGDIR
-taskset -a -c 0 nrm-setup -p $PREFIX/bin -o $LOGDIR -c ./static.json --no-tick &
+taskset -a -c 0 nrm-setup -p $PREFIX/bin -o $LOGDIR -c ./static.json &
 NRM_SETUP_PID=$!
 
 # wait for nrm-setup to start sleeping
@@ -72,14 +72,13 @@ do
 	nrmc actuate nrm.geopm.cpu.power $pcap
 	for i in `seq 1 $REPEATS`;
 	do
-		now=`date +%s`
+		nrmc tick
+		now=`date +%s.%N`
 		echo "xp start $now power $pcap $i" >> $LOGFILE
 		geopmread CPU_ENERGY package 0 >> $LOGFILE
                 geopmread CPU_ENERGY package 1 >> $LOGFILE
-                nrmc tick
-                nrmc run -d $PRELOAD_PATH XSBench -s large -l 200 >> $LOGDIR/app.$pcap.$i.log
-                now=`date +%s`
-                nrmc tick
+                nrm-papiwrapper -i -e PAPI_TOT_INS -f 10 XSBench -s large -l 600 -t 104 >> $LOGDIR/app.$pcap.$i.log
+                now=`date +%s.%N`
                 geopmread CPU_ENERGY package 0 >> $LOGFILE
                 geopmread CPU_ENERGY package 1 >> $LOGFILE
                 echo "xp end $now power $pcap $i" >> $LOGFILE

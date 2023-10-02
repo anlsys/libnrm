@@ -46,7 +46,7 @@ export PATH=$PREFIX/bin:$PATH
 export OMP_PROC_BIND=true
 export OMP_NUM_THREADS=104
 
-cat ./static.json
+cat ./control.json >> $LOGFILE
 
 # Experiment
 ############################
@@ -65,21 +65,17 @@ nrm-geopm -vvv 1>$LOGDIR/nrm-geopm-stdout.log 2>$LOGDIR/nrm-geopm-stderr.log &
 NRM_GEOPM_PID=$!
 sleep 5
 
-for pcap in `nrmc find-actuator nrm.geopm.cpu.power | jq -r '.[0].choices | join("\n")'`
+for i in `seq 1 $REPEATS`;
 do
-	nrmc actuate nrm.geopm.cpu.power $pcap
-	for i in `seq 1 $REPEATS`;
-	do
-		now=`date +%s`
-		echo "control start $now power $pcap $i" >> $LOGFILE
-		geopmread CPU_ENERGY package 0 >> $LOGFILE
-                geopmread CPU_ENERGY package 1 >> $LOGFILE
-                nrmc run ones-stream-full 83613830 600 >> $LOGDIR/app.$pcap.$i.log
-                now=`date +%s`
-                geopmread CPU_ENERGY package 0 >> $LOGFILE
-                geopmread CPU_ENERGY package 1 >> $LOGFILE
-                echo "control end $now power $pcap $i" >> $LOGFILE
-	done
+	now=`date +%s.%N`
+	echo "control start $now power $i" >> $LOGFILE
+	geopmread CPU_ENERGY package 0 >> $LOGFILE
+	geopmread CPU_ENERGY package 1 >> $LOGFILE
+	nrmc run ones-stream-full 83613830 600 >> $LOGDIR/app.$i.log
+	now=`date +%s.%N`
+	geopmread CPU_ENERGY package 0 >> $LOGFILE
+	geopmread CPU_ENERGY package 1 >> $LOGFILE
+	echo "control end $now power $i" >> $LOGFILE
 done
 
 kill $NRM_GEOPM_PID

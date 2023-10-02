@@ -12,14 +12,13 @@ import numpy as np
 parse_file = sys.argv[1]+".parse"
 
 frame = pd.read_csv(parse_file, delim_whitespace=True, names=['pcap', 'rep',
-                                                              'progress'
-                                                              'start_pkg0'
+                                                              'progress',
+                                                              'start_pkg0',
                                                               'end_pkg0',
                                                               'start_pkg1',
                                                               'end_pkg1',
                                                               'start_time',
-                                                              'end_time','runtime',
-                                                              'perf'])
+                                                              'end_time','runtime'])
 
 # deal with wrap around on rapl counters
 energy_max = 262143328850 / 1000000
@@ -27,7 +26,7 @@ energy_max = 262143328850 / 1000000
 frame.loc[frame['end_pkg0'] < frame['start_pkg0'],'end_pkg0'] += energy_max
 frame.loc[frame['end_pkg1'] < frame['start_pkg1'],'end_pkg1'] += energy_max
 
-frame['total_energy'] = frame['end_pkg0'] - frame['start_pkg0'] +
+frame['total_energy'] = frame['end_pkg0'] - frame['start_pkg0'] + \
                         frame['end_pkg1'] - frame['start_pkg1']
 
 frame['exectime'] = (frame['end_time'] - frame['start_time'])
@@ -36,14 +35,14 @@ frame['power'] = frame['total_energy'] / frame['exectime']
 # two sockets
 frame.power = frame.power / 2
 # per second
-frame.runtime = frame.runtime / 1e9
+frame.runtime = frame.runtime
 
 grouped = frame.groupby(['pcap'])
 
 print("Power Cap, Exectime, Runtime, Power, Progress")
-for pcap in list(set(frame['pcap'])):
+for pcap in sorted(list(set(frame['pcap']))):
     g = grouped.get_group(pcap)
-    print pcap, g.exectime.mean(), g.runtime.mean(), g.power.mean(), g.progress.mean()
+    print(pcap, g.exectime.mean(), g.runtime.mean(), g.power.mean(), g.progress.mean())
 
 
 ###############################################################################
@@ -73,5 +72,5 @@ print(power2perf_param0)
 power2perf_params, power2perf_param_cov = opt.curve_fit(power2perf, frame['power'], frame['progress'], p0=power2perf_param0, maxfev=10000)
 
 print("Model α:", str(round(power2perf_params[0], 3)))
-print("Power offset: β:", str(round(power2perf_params[1], 1)))
-print("Linear Gain: K_l:", str(round(power2perf_params[2], 1)))
+print("Power offset: β:", str(round(power2perf_params[2], 1)))
+print("Linear Gain: K_l:", str(round(power2perf_params[1], 1)))
