@@ -74,7 +74,7 @@ do
 		echo "control start $now power $pcap $i" >> $LOGFILE
 		geopmread CPU_ENERGY package 0 >> $LOGFILE
                 geopmread CPU_ENERGY package 1 >> $LOGFILE
-                nrmc run ones-stream-full 83613830 600 >> $LOGDIR/app.$pcap.$i.log
+                nrm-papiwrapper -i -e PAPI_TOT_INS -f 10 XSBench -s large -l 600 -t 104 >> $LOGDIR/app.$i.log
                 now=`date +%s`
                 geopmread CPU_ENERGY package 0 >> $LOGFILE
                 geopmread CPU_ENERGY package 1 >> $LOGFILE
