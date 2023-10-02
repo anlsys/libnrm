@@ -44,6 +44,8 @@ int nrm_server_actuate_callback(nrm_server_t *self,
 		if (ret == 0) {
 			nrm_log_debug("actuating %s: %f\n", a->uuid,
 			              msg->value);
+			nrm_actuator_closest_choice(a, &msg->value);
+			nrm_actuator_set_value(a, msg->value);
 			nrm_msg_t *action = nrm_msg_create();
 			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 			nrm_msg_set_actuate(action, a->uuid, msg->value);
@@ -275,6 +277,17 @@ int nrm_server_exit_callback(nrm_server_t *self, nrm_uuid_t *uuid)
 	return -1;
 }
 
+int nrm_server_tick_callback(nrm_server_t *self, nrm_uuid_t *uuid)
+{
+	int err = 0;
+	if (self->callbacks.tick != NULL)
+		err = self->callbacks.tick(self);
+	nrm_msg_t *ret = nrm_msg_create();
+	nrm_msg_fill(ret, NRM_MSG_TYPE_ACK);
+	nrm_role_send(self->role, ret, uuid);
+	return err;
+}
+
 int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 {
 	(void)loop;
@@ -306,6 +319,9 @@ int nrm_server_role_callback(zloop_t *loop, zsock_t *socket, void *arg)
 		break;
 	case NRM_MSG_TYPE_EXIT:
 		err = nrm_server_exit_callback(self, uuid);
+		break;
+	case NRM_MSG_TYPE_TICK:
+		err = nrm_server_tick_callback(self, uuid);
 		break;
 	default:
 		nrm_log_error("message type not handled\n");
@@ -393,10 +409,13 @@ int nrm_server_actuate(nrm_server_t *self, nrm_string_t uuid, double value)
 	nrm_hash_find(self->state->actuators, uuid, (void *)&a);
 	if (a != NULL) {
 		nrm_log_debug("actuating %s: %f\n", a->uuid, value);
+		nrm_actuator_closest_choice(a, &value);
+		nrm_actuator_set_value(a, value);
 		nrm_msg_t *action = nrm_msg_create();
 		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 		nrm_msg_set_actuate(action, a->uuid, value);
-		nrm_role_send(self->role, action, a->clientid);
+		nrm_uuid_t *tmp = nrm_uuid_create_fromchar(*a->clientid);
+		nrm_role_send(self->role, action, tmp);
 	}
 	return 0;
 }
@@ -411,11 +430,12 @@ int nrm_server_setcallbacks(nrm_server_t *server,
 	return 0;
 }
 
-int nrm_server_settimer(nrm_server_t *server, int millisecs)
+int nrm_server_settimer(nrm_server_t *server, nrm_time_t sleeptime)
 {
 	if (server == NULL)
 		return -NRM_EINVAL;
 
+	int millisecs = sleeptime.tv_sec * 1000 + sleeptime.tv_nsec / 1000000;
 	zloop_timer(server->loop, millisecs, 0, nrm_server_timer_callback,
 	            server);
 	return 0;

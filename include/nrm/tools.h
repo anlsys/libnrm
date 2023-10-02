@@ -23,7 +23,8 @@ extern "C" {
 
 #define NRM_TOOLS_ARGS_FLAG_FREQ (1 << 0)
 #define NRM_TOOLS_ARGS_FLAG_EVENT (1 << 1)
-#define NRM_TOOLS_ARGS_FLAG_MAX 2
+#define NRM_TOOLS_ARGS_FLAG_INHERIT (1 << 2)
+#define NRM_TOOLS_ARGS_FLAG_MAX 3
 
 #define NRM_TOOLS_FLAGS_GET(f, i) (f & i)
 #define NRM_TOOLS_FLAGS_SET(f, i) (f | i)
@@ -43,6 +44,7 @@ typedef struct nrm_tools_args_s {
 	/* beginning of extra options */
 	double freq;
 	nrm_vector_t *events;
+	int inheritance;
 } nrm_tools_args_t;
 
 /* parse command-line arguments, consuming them,

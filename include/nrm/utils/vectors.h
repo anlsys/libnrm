@@ -75,6 +75,8 @@ int nrm_vector_find(const nrm_vector_t *vector,
                     int (*comp)(const void *, const void *),
                     size_t *pos);
 
+int nrm_vector_sort_double_cmp(const void *, const void *);
+
 /**
  * Sort vector elements.
  *

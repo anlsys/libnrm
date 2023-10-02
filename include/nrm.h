@@ -145,6 +145,7 @@ struct nrm_actuator_s {
 typedef struct nrm_actuator_s nrm_actuator_t;
 
 nrm_actuator_t *nrm_actuator_create(const char *name);
+int nrm_actuator_closest_choice(nrm_actuator_t *, double *);
 int nrm_actuator_set_value(nrm_actuator_t *, double);
 int nrm_actuator_set_choices(nrm_actuator_t *, size_t, double *);
 
@@ -248,6 +249,12 @@ void nrm_state_destroy(nrm_state_t **);
  * EventBase: a timeseries in-memory database
  ******************************************************************************/
 
+struct nrm_event_s {
+	nrm_time_t time;
+	double value;
+};
+typedef struct nrm_event_s nrm_event_t;
+
 struct nrm_eventbase_s;
 
 typedef struct nrm_eventbase_s nrm_eventbase_t;
@@ -265,6 +272,11 @@ int nrm_eventbase_last_value(nrm_eventbase_t *,
                              nrm_string_t,
                              nrm_string_t,
                              double *);
+
+int nrm_eventbase_current_events(nrm_eventbase_t *,
+                                 nrm_string_t,
+                                 nrm_string_t,
+                                 nrm_vector_t **);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 
@@ -406,6 +418,15 @@ int nrm_client_send_event(nrm_client_t *client,
 int nrm_client_send_exit(nrm_client_t *client);
 
 /**
+ * Asks the daemon to tick
+ *
+ * @param client: NRM client object
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_client_send_tick(nrm_client_t *client);
+
+/**
  * Set a callback function for client events
  * @param client: NRM client object
  * @param fn: function reference
@@ -455,6 +476,8 @@ struct nrm_server_user_callbacks_s {
 	int (*signal)(nrm_server_t *, int);
 	/* timer trigger */
 	int (*timer)(nrm_server_t *);
+	/* receive a request to tick */
+	int (*tick)(nrm_server_t *);
 };
 
 typedef struct nrm_server_user_callbacks_s nrm_server_user_callbacks_t;
@@ -482,7 +505,7 @@ int nrm_server_create(nrm_server_t **server,
 int nrm_server_setcallbacks(nrm_server_t *server,
                             nrm_server_user_callbacks_t callbacks);
 
-int nrm_server_settimer(nrm_server_t *server, int millisecs);
+int nrm_server_settimer(nrm_server_t *server, nrm_time_t sleeptime);
 
 int nrm_server_start(nrm_server_t *server);
 

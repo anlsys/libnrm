@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2023 UChicago Argonne, LLC.
+ * Copyright 2019 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
  * This file is part of the libnrm project.
@@ -26,6 +26,7 @@
 #include <getopt.h>
 #include <limits.h>
 #include <math.h>
+#include <pthread.h>
 #include <sched.h>
 #include <signal.h>
 #include <stdarg.h>
@@ -42,6 +43,7 @@ static nrm_client_t *client;
 static nrm_vector_t *events;
 static nrm_actuator_t *actuator;
 static size_t num_events;
+static pthread_mutex_t geopm_lock;
 
 /* 16 values is enough */
 #define GEOPM_ACTUATOR_CHOICES 16
@@ -59,21 +61,24 @@ typedef struct nrm_geopm_eventinfo_s nrm_geopm_eventinfo_t;
 int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
 {
 	(void)uuid;
+	int err = 0;
 	int num_pus = geopm_topo_num_domain(GEOPM_DOMAIN_PACKAGE);
 	nrm_log_debug(
 	        "Writing CPU_POWER_LIMIT_CONTROL to %d domains. Value: %f\n",
 	        num_pus, value);
+	pthread_mutex_lock(&geopm_lock);
 	for (int i = 0; i < num_pus; i++) {
-		int err = geopm_pio_write_control("CPU_POWER_LIMIT_CONTROL",
-		                                  GEOPM_DOMAIN_PACKAGE, i,
-		                                  value);
+		err = geopm_pio_write_control("CPU_POWER_LIMIT_CONTROL",
+		                              GEOPM_DOMAIN_PACKAGE, i, value);
 		if (err) {
 			nrm_log_debug(
 			        "ERROR writing to CPU_POWER_LIMIT_CONTROL\n");
-			return err;
+			goto error;
 		}
 	}
-	return 0;
+error:
+	pthread_mutex_unlock(&geopm_lock);
+	return err;
 }
 
 int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
@@ -208,6 +213,7 @@ int nrm_geopm_timer_callback(nrm_reactor_t *reactor)
 	{
 		nrm_geopm_eventinfo_t *event =
 		        nrm_vector_iterator_get(iterator);
+		pthread_mutex_lock(&geopm_lock);
 		for (int i = 0; i < event->num_domains; i++) {
 			double value = 0.0;
 			nrm_scope_t **s;
@@ -220,6 +226,7 @@ int nrm_geopm_timer_callback(nrm_reactor_t *reactor)
 			nrm_client_send_event(client, time, event->sensor, *s,
 			                      value);
 		}
+		pthread_mutex_unlock(&geopm_lock);
 	}
 	return 0;
 }
@@ -281,6 +288,8 @@ int main(int argc, char **argv)
 	assert(nsignals > 0); // just check that we can obtain signals
 	nrm_log_debug("GEOPM detects %d possible signals\n", nsignals);
 
+	pthread_mutex_init(&geopm_lock, NULL);
+
 	nrm_vector_create(&events, sizeof(nrm_geopm_eventinfo_t));
 	nrm_vector_foreach(args.events, iterator)
 	{
@@ -336,6 +345,7 @@ cleanup_act:
 	}
 	nrm_vector_destroy(&events);
 	nrm_client_destroy(&client);
+	pthread_mutex_destroy(&geopm_lock);
 cleanup_postinit:
 	nrm_tools_args_destroy(&args);
 	nrm_finalize();

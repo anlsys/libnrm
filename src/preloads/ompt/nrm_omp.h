@@ -13,6 +13,7 @@
 
 #include <nrm.h>
 #include <omp-tools.h>
+#include <pthread.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -21,6 +22,9 @@ extern "C" {
 extern nrm_client_t *global_client;
 extern nrm_scope_t *global_scope;
 extern nrm_sensor_t *global_sensor;
+extern nrm_time_t last_send;
+extern double global_count;
+extern pthread_mutex_t global_lock;
 
 extern char *upstream_uri;
 extern int pub_port;

@@ -16,6 +16,7 @@ enum MSGTYPE {
 	EVENT = 4;
 	ACTUATE = 5;
 	EXIT = 6;
+	TICK = 7;
 }
 
 message Scope {
