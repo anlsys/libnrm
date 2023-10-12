@@ -1,7 +1,34 @@
-{ stdenv, autoreconfHook, pkgconfig, zeromq, czmq, jansson, check, protobufc, hwloc, git }:
+{ stdenv
+, autoreconfHook
+, bats
+, check
+, czmq
+, git
+, hwloc
+, jansson
+, mpich
+, openmp
+, papi
+, geopmd
+, pkgconfig
+, protobufc
+, zeromq
+}:
 stdenv.mkDerivation {
   src = ../.;
   name = "libnrm";
   nativeBuildInputs = [ autoreconfHook pkgconfig git ];
-  buildInputs = [ zeromq check jansson czmq protobufc hwloc ];
+  buildInputs = [
+    bats
+    check
+    czmq
+    hwloc
+    jansson
+    mpich
+    openmp
+    papi
+    geopmd
+    protobufc
+    zeromq
+  ];
 }

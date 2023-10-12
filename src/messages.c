@@ -31,7 +31,7 @@ nrm_msg_t *nrm_msg_create(void)
 	return ret;
 }
 
-void nrm_msg_destroy(nrm_msg_t **msg)
+void nrm_msg_destroy_received(nrm_msg_t **msg)
 {
 	if (msg == NULL || *msg == NULL)
 		return;
@@ -58,6 +58,15 @@ nrm_msg_actuate_t *nrm_msg_actuate_new(nrm_string_t uuid, double value)
 	return ret;
 }
 
+void nrm_msg_actuate_destroy(nrm_msg_actuate_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->uuid);
+	free(msg);
+}
+
 nrm_msg_sensor_t *nrm_msg_sensor_new(const char *uuid)
 {
 	nrm_msg_sensor_t *ret = calloc(1, sizeof(nrm_msg_sensor_t));
@@ -68,6 +77,15 @@ nrm_msg_sensor_t *nrm_msg_sensor_new(const char *uuid)
 	return ret;
 }
 
+void nrm_msg_sensor_destroy(nrm_msg_sensor_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->uuid);
+	free(msg);
+}
+
 nrm_msg_slice_t *nrm_msg_slice_new(const char *uuid)
 {
 	nrm_msg_slice_t *ret = calloc(1, sizeof(nrm_msg_slice_t));
@@ -76,6 +94,15 @@ nrm_msg_slice_t *nrm_msg_slice_new(const char *uuid)
 	nrm_msg_slice_init(ret);
 	ret->uuid = strdup(uuid);
 	return ret;
+}
+
+void nrm_msg_slice_destroy(nrm_msg_slice_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->uuid);
+	free(msg);
 }
 
 nrm_msg_add_t *nrm_msg_add_new(int type)
@@ -97,6 +124,8 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	ret->uuid = strdup(actuator->uuid);
 	if (actuator->clientid)
 		ret->clientid = strdup(nrm_uuid_to_char(actuator->clientid));
+	else
+		ret->clientid = NULL;
 	ret->value = actuator->value;
 	nrm_vector_length(actuator->choices, &ret->n_choices);
 	ret->choices = calloc(ret->n_choices, sizeof(double));
@@ -107,6 +136,17 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 		ret->choices[i] = *d;
 	}
 	return ret;
+}
+
+void nrm_msg_actuator_destroy(nrm_msg_actuator_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->uuid);
+	free(msg->clientid);
+	free(msg->choices);
+	free(msg);
 }
 
 nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
@@ -125,6 +165,18 @@ nrm_msg_scope_t *nrm_msg_scope_new(nrm_scope_t *scope)
 	return ret;
 }
 
+void nrm_msg_scope_destroy(nrm_msg_scope_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->uuid);
+	free(msg->cpus);
+	free(msg->numas);
+	free(msg->gpus);
+	free(msg);
+}
+
 nrm_msg_event_t *nrm_msg_event_new(nrm_string_t uuid)
 {
 	nrm_msg_event_t *ret = calloc(1, sizeof(nrm_msg_event_t));
@@ -133,6 +185,16 @@ nrm_msg_event_t *nrm_msg_event_new(nrm_string_t uuid)
 	nrm_msg_event_init(ret);
 	ret->uuid = strdup(uuid);
 	return ret;
+}
+
+void nrm_msg_event_destroy(nrm_msg_event_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	nrm_msg_scope_destroy(msg->scope);
+	free(msg->uuid);
+	free(msg);
 }
 
 int nrm_msg_set_event(nrm_msg_t *msg,
@@ -210,6 +272,30 @@ int nrm_msg_set_add_slice(nrm_msg_t *msg, nrm_slice_t *slice)
 	return 0;
 }
 
+void nrm_msg_add_destroy(nrm_msg_add_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_msg_slice_destroy(msg->slice);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_msg_sensor_destroy(msg->sensor);
+		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_msg_scope_destroy(msg->scope);
+		break;
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_msg_actuator_destroy(msg->actuator);
+		break;
+	default:
+		break;
+	}
+	free(msg);
+}
+
 static nrm_msg_list_t *nrm_msg_list_new(int type)
 {
 	nrm_msg_list_t *ret = calloc(1, sizeof(nrm_msg_list_t));
@@ -242,6 +328,17 @@ nrm_msg_actuatorlist_t *nrm_msg_actuatorlist_new(nrm_vector_t *actuators)
 	return ret;
 }
 
+void nrm_msg_actuatorlist_destroy(nrm_msg_actuatorlist_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	for (size_t i = 0; i < msg->n_actuators; i++)
+		nrm_msg_actuator_destroy(msg->actuators[i]);
+	free(msg->actuators);
+	free(msg);
+}
+
 nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
 {
 	nrm_msg_scopelist_t *ret = calloc(1, sizeof(nrm_msg_scopelist_t));
@@ -262,6 +359,17 @@ nrm_msg_scopelist_t *nrm_msg_scopelist_new(nrm_vector_t *scopes)
 		ret->scopes[i] = nrm_msg_scope_new(s);
 	}
 	return ret;
+}
+
+void nrm_msg_scopelist_destroy(nrm_msg_scopelist_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	for (size_t i = 0; i < msg->n_scopes; i++)
+		nrm_msg_scope_destroy(msg->scopes[i]);
+	free(msg->scopes);
+	free(msg);
 }
 
 nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
@@ -287,6 +395,17 @@ nrm_msg_sensorlist_t *nrm_msg_sensorlist_new(nrm_vector_t *sensors)
 	return ret;
 }
 
+void nrm_msg_sensorlist_destroy(nrm_msg_sensorlist_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	for (size_t i = 0; i < msg->n_sensors; i++)
+		nrm_msg_sensor_destroy(msg->sensors[i]);
+	free(msg->sensors);
+	free(msg);
+}
+
 nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 {
 	nrm_msg_slicelist_t *ret = calloc(1, sizeof(nrm_msg_slicelist_t));
@@ -308,6 +427,17 @@ nrm_msg_slicelist_t *nrm_msg_slicelist_new(nrm_vector_t *slices)
 		ret->slices[i] = nrm_msg_slice_new(s->uuid);
 	}
 	return ret;
+}
+
+void nrm_msg_slicelist_destroy(nrm_msg_slicelist_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	for (size_t i = 0; i < msg->n_slices; i++)
+		nrm_msg_slice_destroy(msg->slices[i]);
+	free(msg->slices);
+	free(msg);
 }
 
 int nrm_msg_set_list_actuators(nrm_msg_t *msg, nrm_vector_t *actuators)
@@ -358,6 +488,30 @@ int nrm_msg_set_list_slices(nrm_msg_t *msg, nrm_vector_t *slices)
 	return 0;
 }
 
+void nrm_msg_list_destroy(nrm_msg_list_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	switch (msg->type) {
+	case NRM_MSG_TARGET_TYPE_SLICE:
+		nrm_msg_slicelist_destroy(msg->slices);
+		break;
+	case NRM_MSG_TARGET_TYPE_SENSOR:
+		nrm_msg_sensorlist_destroy(msg->sensors);
+		break;
+	case NRM_MSG_TARGET_TYPE_SCOPE:
+		nrm_msg_scopelist_destroy(msg->scopes);
+		break;
+	case NRM_MSG_TARGET_TYPE_ACTUATOR:
+		nrm_msg_actuatorlist_destroy(msg->actuators);
+		break;
+	default:
+		break;
+	}
+	free(msg);
+}
+
 nrm_msg_remove_t *nrm_msg_remove_new(int type, nrm_string_t uuid)
 {
 	nrm_msg_remove_t *ret = calloc(1, sizeof(nrm_msg_remove_t));
@@ -367,6 +521,15 @@ nrm_msg_remove_t *nrm_msg_remove_new(int type, nrm_string_t uuid)
 	ret->type = type;
 	ret->uuid = strdup(uuid);
 	return ret;
+}
+
+void nrm_msg_remove_destroy(nrm_msg_remove_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->uuid);
+	free(msg);
 }
 
 int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_string_t uuid)
@@ -379,6 +542,38 @@ int nrm_msg_set_remove(nrm_msg_t *msg, int type, nrm_string_t uuid)
 	return 0;
 }
 
+void nrm_msg_destroy_created(nrm_msg_t **msg)
+{
+	if (msg == NULL || *msg == NULL)
+		return;
+
+	nrm_msg_t *sub = *msg;
+	switch (sub->type) {
+	case NRM_MSG_TYPE_ACTUATE:
+		nrm_msg_actuate_destroy(sub->actuate);
+		break;
+	case NRM_MSG_TYPE_ADD:
+		nrm_msg_add_destroy(sub->add);
+		break;
+	case NRM_MSG_TYPE_LIST:
+		nrm_msg_list_destroy(sub->list);
+		break;
+	case NRM_MSG_TYPE_EVENT:
+		nrm_msg_event_destroy(sub->event);
+		break;
+	case NRM_MSG_TYPE_REMOVE:
+		nrm_msg_remove_destroy(sub->remove);
+		break;
+	case NRM_MSG_TYPE_ACK:
+	case NRM_MSG_TYPE_EXIT:
+	case NRM_MSG_TYPE_TICK:
+	default:
+		break;
+	}
+	free(*msg);
+	*msg = NULL;
+}
+
 /*******************************************************************************
  * Protobuf Management: Parsing Messages
  *******************************************************************************/
@@ -389,12 +584,13 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 		return NULL;
 	nrm_actuator_t *ret = nrm_actuator_create(msg->uuid);
 	if (msg->clientid)
-		ret->clientid = nrm_uuid_create_fromchar(msg->uuid);
+		ret->clientid = nrm_uuid_create_fromchar(msg->clientid);
 	ret->value = msg->value;
 	nrm_vector_resize(ret->choices, msg->n_choices);
 	nrm_vector_clear(ret->choices);
 	for (size_t i = 0; i < msg->n_choices; i++)
 		nrm_vector_push_back(ret->choices, &msg->choices[i]);
+	nrm_vector_sort(ret->choices, nrm_vector_sort_double_cmp);
 	return ret;
 }
 
@@ -516,7 +712,11 @@ static int nrm_msg_push_packed_frames(zmsg_t *zm, nrm_msg_t *msg)
 static int nrm_msg_pop_identity(zmsg_t *zm, nrm_uuid_t **uuid)
 {
 	zframe_t *frame = zmsg_pop(zm);
-	nrm_uuid_t *id = nrm_uuid_create_fromchar((char *)zframe_data(frame));
+	assert(frame != NULL);
+	char *identity = (char *)zframe_data(frame);
+	size_t len = zframe_size(frame);
+	assert(identity != NULL);
+	nrm_uuid_t *id = nrm_uuid_create_frombuf(identity, len);
 	zframe_destroy(&frame);
 	*uuid = id;
 	return 0;
@@ -616,6 +816,7 @@ struct nrm_msg_type_table_s {
 
 typedef struct nrm_msg_type_table_s nrm_msg_type_table_t;
 
+/* clang-format off */
 static const nrm_msg_type_table_t nrm_msg_type_table[] = {
         {NRM_MSG_TYPE_ACK, "ACK"},
         {NRM_MSG_TYPE_LIST, "LIST"},
@@ -623,8 +824,11 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
         {NRM_MSG_TYPE_REMOVE, "REMOVE"},
         {NRM_MSG_TYPE_EVENT, "EVENT"},
         {NRM_MSG_TYPE_ACTUATE, "ACTUATE"},
+        {NRM_MSG_TYPE_EXIT, "EXIT"},
+	{NRM_MSG_TYPE_TICK, "TICK"},
         {0, NULL},
 };
+/* clang-format on */
 
 static const nrm_msg_type_table_t nrm_msg_target_table[] = {
         {NRM_MSG_TARGET_TYPE_ACTUATOR, "ACTUATOR"},
@@ -868,6 +1072,7 @@ int nrm_msg_is_reply(nrm_msg_t *msg)
 {
 	switch (msg->type) {
 	case NRM_MSG_TYPE_ACTUATE:
+	case NRM_MSG_TYPE_TICK:
 		return 0;
 	default:
 		return 1;
@@ -934,6 +1139,7 @@ int nrm_ctrlmsg__recv(zsock_t *socket, int *type, void **p1, void **p2)
 	if (p2 != NULL) {
 		*p2 = q;
 	}
+	free(s);
 	return err;
 }
 
@@ -965,6 +1171,7 @@ nrm_msg_t *nrm_ctrlmsg_recvmsg(zsock_t *socket, int *type, nrm_uuid_t **from)
 	int err;
 	void *p, *q;
 	err = nrm_ctrlmsg__recv(socket, type, &p, &q);
+	assert(err == 0);
 	nrm_log_printmsg(NRM_LOG_DEBUG, (nrm_msg_t *)p);
 	if (from != NULL) {
 		*from = (nrm_uuid_t *)q;

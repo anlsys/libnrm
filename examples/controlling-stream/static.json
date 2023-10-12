@@ -1,0 +1,20 @@
+{
+	"control": {
+		"name": "europar21",
+		"active": false,
+		"inputs": [ { "sensor": "nrm.benchmarks.progress", "scope": "nrm.hwloc.Machine.0"} ],
+		"outputs": [ "nrm.geopm.cpu.power" ],
+		"args": {
+			"a": 1.0,
+			"b": 1.0,
+			"alpha": 1.0,
+			"beta": 1.0,
+			"Kl": 1.0,
+			"t": 0.33,
+			"e": 0.1,
+			"tobj": 10.0,
+			"min": 219.0,
+			"max": 350.0
+		}
+	}
+}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2022 UChicago Argonne, LLC.
+ * Copyright 2019 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
  * This file is part of the libnrm project.
@@ -18,7 +18,7 @@
 int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 {
 	int depth_of_machine;
-	int depth_of_osdev;
+	int num_of_osdev;
 	char buffer[128];
 	char *namespace = "nrm.hwloc.";
 	char scope_name[256];
@@ -51,9 +51,13 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 			this_scope = nrm_scope_create(scope_name);
 			unsigned int bit;
 			// Nodeset
+			int numa_count = 0;
 			hwloc_bitmap_foreach_begin(bit, object->nodeset)
-			        nrm_scope_add(this_scope, NRM_SCOPE_TYPE_NUMA,
-			                      bit);
+			{
+				nrm_scope_add(this_scope, NRM_SCOPE_TYPE_NUMA,
+				              bit);
+				numa_count++;
+			}
 			hwloc_bitmap_foreach_end();
 			// Cpuset
 			hwloc_bitmap_foreach_begin(bit, object->cpuset)
@@ -62,29 +66,75 @@ int nrm_scope_hwloc_scopes(nrm_hash_t **scopes)
 			hwloc_bitmap_foreach_end();
 			nrm_hash_add(scopes, nrm_scope_uuid(this_scope),
 			             this_scope);
+			if (object->type == HWLOC_OBJ_PU && numa_count > 1) {
+				// Add additional scopes each with a single NUMA
+				// node only.
+				hwloc_bitmap_foreach_begin(bit, object->nodeset)
+				{
+					snprintf(scope_name, sizeof(scope_name),
+					         "%s%s.%u.%u", namespace,
+					         buffer, object->logical_index,
+					         bit);
+					this_scope =
+					        nrm_scope_create(scope_name);
+					nrm_scope_add(this_scope,
+					              NRM_SCOPE_TYPE_NUMA, bit);
+					unsigned int cpubit;
+					hwloc_bitmap_foreach_begin(
+					        cpubit, object->cpuset)
+					        nrm_scope_add(
+					                this_scope,
+					                NRM_SCOPE_TYPE_CPU,
+					                cpubit);
+					hwloc_bitmap_foreach_end();
+					nrm_hash_add(scopes,
+					             nrm_scope_uuid(this_scope),
+					             this_scope);
+				}
+				hwloc_bitmap_foreach_end();
+			}
 		}
 	}
 
-	depth_of_osdev =
-	        hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_OS_DEVICE);
+	num_of_osdev = hwloc_get_nbobjs_by_type(topology, HWLOC_OBJ_OS_DEVICE);
 	// Iterating over OS objects
 	// OS objects don't have cpusets/nodesets, see
 	// https://www.open-mpi.org/projects/hwloc/doc/v2.5.0/a00363.php
-	for (int i = 0, counter = 0; i < depth_of_osdev; i++) {
+
+	// check first if we're seeing subdevices
+	int subdevices = 0;
+	for (int i = 0; i < num_of_osdev; i++) {
+		hwloc_obj_t object =
+		        hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
+		if (object->attr->osdev.type != HWLOC_OBJ_OSDEV_GPU &&
+		    object->attr->osdev.type != HWLOC_OBJ_OSDEV_COPROC)
+			continue;
+
+		if (object->io_arity != 0)
+			subdevices = 1;
+	}
+
+	for (int i = 0, counter = 0; i < num_of_osdev; i++) {
 		hwloc_obj_t object =
 		        hwloc_get_obj_by_type(topology, HWLOC_OBJ_OS_DEVICE, i);
 		assert(object->cpuset == NULL);
-		if (object->attr->osdev.type == HWLOC_OBJ_OSDEV_GPU ||
-		    object->attr->osdev.type == HWLOC_OBJ_OSDEV_COPROC) {
-			nrm_scope_t *this_scope = NULL;
-			snprintf(scope_name, sizeof(scope_name), "%s%s",
-			         namespace, object->name);
-			this_scope = nrm_scope_create(scope_name);
-			nrm_scope_add(this_scope, NRM_SCOPE_TYPE_GPU, counter);
-			counter++;
-			nrm_hash_add(scopes, nrm_scope_uuid(this_scope),
-			             this_scope);
-		}
+
+		/* only looking for GPUs */
+		if (object->attr->osdev.type != HWLOC_OBJ_OSDEV_GPU &&
+		    object->attr->osdev.type != HWLOC_OBJ_OSDEV_COPROC)
+			continue;
+
+		/* if we have subdevices, we don't count them */
+		if (subdevices && object->io_arity == 0)
+			continue;
+
+		nrm_scope_t *this_scope = NULL;
+		snprintf(scope_name, sizeof(scope_name), "%s%s", namespace,
+		         object->name);
+		this_scope = nrm_scope_create(scope_name);
+		nrm_scope_add(this_scope, NRM_SCOPE_TYPE_GPU, counter);
+		counter++;
+		nrm_hash_add(scopes, nrm_scope_uuid(this_scope), this_scope);
 	}
 	hwloc_topology_destroy(topology);
 	return 0;

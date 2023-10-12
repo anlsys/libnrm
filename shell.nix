@@ -19,9 +19,12 @@ mkShell {
     python3Packages.sphinx
     python3Packages.breathe
     python3Packages.sphinx_rtd_theme
+    python3Packages.sphinx-design
     jq
+    bats
   ];
-
+  GEOPM_CFLAGS = "-I${geopmd}/include";
+  GEOPM_LIBS = "-L${geopmd}/lib -lgeopmd";
   CFLAGS =
-    "-std=c99 -pedantic -Wall -Wextra -g -O0";
+    "-std=c17 -Wall -Wextra -Werror -Wno-builtin-declaration-mismatch";
 }

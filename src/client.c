@@ -11,6 +11,7 @@
 #include "config.h"
 
 #include "nrm.h"
+#include <pthread.h>
 
 #include "internal/nrmi.h"
 
@@ -29,7 +30,8 @@ struct nrm_client_s {
 	nrm_role_t *role;
 	nrm_client_event_listener_fn *user_fn;
 	nrm_client_actuate_listener_fn *actuate_fn;
-	void *arg;
+	pthread_mutex_t lock;
+    void *arg;
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -49,7 +51,8 @@ int nrm_client_create(nrm_client_t **client,
 		return -NRM_EINVAL;
 	ret->user_fn = NULL;
 	ret->actuate_fn = NULL;
-	ret->arg = NULL;
+	pthread_mutex_init(&(ret->lock), NULL);
+    ret->arg = NULL;
 
 	*client = ret;
 	return 0;
@@ -60,28 +63,28 @@ int nrm_pyinfo_create(pyinfo_t **pyinfo,
                       nrm_client_event_listener_fn *extern_user_fn,
                       nrm_client_actuate_listener_fn *extern_actuate_fn)
 {
-	if (pyinfo == NULL)
-		return -NRM_EINVAL;
-
-	pyinfo_t *ret = calloc(1, sizeof(pyinfo_t));
-	if (ret == NULL)
-		return -NRM_ENOMEM;
-	ret->pyclient = pyclient;
-	ret->extern_user_fn = extern_user_fn;
-	ret->extern_actuate_fn = extern_actuate_fn;
-	*pyinfo = ret;
-	return 0;
+    if (pyinfo == NULL)
+        return -NRM_EINVAL;
+    
+    pyinfo_t *ret = calloc(1, sizeof(pyinfo_t));
+    if (ret == NULL)
+        return -NRM_ENOMEM;
+    ret->pyclient = pyclient;
+    ret->extern_user_fn = extern_user_fn;
+    ret->extern_actuate_fn = extern_actuate_fn;
+    *pyinfo = ret;
+    return 0;
 }
 
 int nrm_client_actuate(const nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value)
 {
-	if (client == NULL || actuator == NULL)
+	if (client == NULL || actuator == NULL || actuator->choices == NULL)
 		return -NRM_EINVAL;
 
-	nrm_log_debug("checking value is valid");
-	size_t i, len;
+	nrm_log_debug("checking value is valid\n");
+	size_t i, len = 0;
 	nrm_vector_length(actuator->choices, &len);
 	for (i = 0; i < len; i++) {
 		double d;
@@ -103,20 +106,24 @@ int nrm_client_actuate(const nrm_client_t *client,
 	nrm_msg_set_actuate(msg, actuator->uuid, value);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_add_actuator(const nrm_client_t *client,
-                            nrm_actuator_t *actuator)
+int nrm_client_add_actuator(nrm_client_t *client, nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
@@ -128,21 +135,26 @@ int nrm_client_add_actuator(const nrm_client_t *client,
 	nrm_msg_set_add_actuator(msg, actuator);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_ACTUATOR);
 	nrm_actuator_update_frommsg(actuator, msg->add->actuator);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
+int nrm_client_add_scope(nrm_client_t *client, nrm_scope_t *scope)
 {
 	if (client == NULL || scope == NULL)
 		return -NRM_EINVAL;
@@ -154,21 +166,26 @@ int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	nrm_msg_set_add_scope(msg, scope);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SCOPE);
 	nrm_scope_update_frommsg(scope, msg->add->scope);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
+int nrm_client_add_slice(nrm_client_t *client, nrm_slice_t *slice)
 {
 	if (client == NULL || slice == NULL)
 		return -NRM_EINVAL;
@@ -180,21 +197,26 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	nrm_msg_set_add_slice(msg, slice);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SLICE);
 	nrm_slice_update_frommsg(slice, msg->add->slice);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
+int nrm_client_add_sensor(nrm_client_t *client, nrm_sensor_t *sensor)
 {
 	if (client == NULL || sensor == NULL)
 		return -NRM_EINVAL;
@@ -206,21 +228,26 @@ int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	nrm_msg_set_add_sensor(msg, sensor);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply:\t");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ADD);
 	assert(msg->add->type == NRM_MSG_TARGET_TYPE_SENSOR);
 	nrm_sensor_update_frommsg(sensor, msg->add->sensor);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_find(const nrm_client_t *client,
+int nrm_client_find(nrm_client_t *client,
                     int type,
                     const char *uuid,
                     nrm_vector_t **results)
@@ -255,22 +282,26 @@ int nrm_client_find(const nrm_client_t *client,
 		assert(0);
 	}
 	assert(msg->type == NRM_MSG_TYPE_LIST);
-	assert(msg->list->type == type);
+	assert((int)msg->list->type == type);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	assert(msg->type == NRM_MSG_TYPE_LIST);
-	assert(msg->list->type == type);
+	assert((int)msg->list->type == type);
 
 	nrm_vector_t *ret;
 	if (type == NRM_MSG_TARGET_TYPE_ACTUATOR) {
-		err = nrm_vector_create(&ret, sizeof(nrm_actuator_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_actuator_t *));
 		if (err)
 			return err;
 
@@ -281,10 +312,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_actuator_t *s = nrm_actuator_create_frommsg(
 			        msg->list->actuators->actuators[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SCOPE) {
-		err = nrm_vector_create(&ret, sizeof(nrm_scope_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_scope_t *));
 		if (err)
 			return err;
 
@@ -293,10 +324,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_scope_t *s = nrm_scope_create_frommsg(
 			        msg->list->scopes->scopes[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SENSOR) {
-		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_sensor_t *));
 		if (err)
 			return err;
 
@@ -305,10 +336,10 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_sensor_t *s = nrm_sensor_create_frommsg(
 			        msg->list->sensors->sensors[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	} else if (type == NRM_MSG_TARGET_TYPE_SLICE) {
-		err = nrm_vector_create(&ret, sizeof(nrm_slice_t));
+		err = nrm_vector_create(&ret, sizeof(nrm_slice_t *));
 		if (err)
 			return err;
 
@@ -317,10 +348,11 @@ int nrm_client_find(const nrm_client_t *client,
 				continue;
 			nrm_slice_t *s = nrm_slice_create_frommsg(
 			        msg->list->slices->slices[i]);
-			nrm_vector_push_back(ret, s);
+			nrm_vector_push_back(ret, &s);
 		}
 	}
 	*results = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
@@ -394,7 +426,7 @@ int nrm_client__actuate_callback(nrm_msg_t *msg, void *arg)
 	if (self->actuate_fn == NULL)
 		return 0;
 	nrm_uuid_t *uuid = nrm_uuid_create_fromchar(msg->actuate->uuid);
-	self->actuate_fn(uuid, msg->event->value, arg);
+	self->actuate_fn(uuid, msg->actuate->value, arg);
 	return 0;
 }
 
@@ -418,8 +450,7 @@ int nrm_client_start_actuate_listener(nrm_client_t *client)
 	return 0;
 }
 
-int nrm_client_list_actuators(const nrm_client_t *client,
-                              nrm_vector_t **actuators)
+int nrm_client_list_actuators(nrm_client_t *client, nrm_vector_t **actuators)
 {
 	if (client == NULL || actuators == NULL)
 		return -NRM_EINVAL;
@@ -432,11 +463,15 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 	nrm_msg_set_list_actuators(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -453,10 +488,11 @@ int nrm_client_list_actuators(const nrm_client_t *client,
 		nrm_vector_push_back(ret, &s);
 	}
 	*actuators = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
+int nrm_client_list_scopes(nrm_client_t *client, nrm_vector_t **scopes)
 {
 	if (client == NULL || scopes == NULL)
 		return -NRM_EINVAL;
@@ -469,11 +505,15 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 	nrm_msg_set_list_scopes(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -490,10 +530,11 @@ int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes)
 		nrm_vector_push_back(ret, &s);
 	}
 	*scopes = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
+int nrm_client_list_sensors(nrm_client_t *client, nrm_vector_t **sensors)
 {
 	if (client == NULL || sensors == NULL)
 		return -NRM_EINVAL;
@@ -506,11 +547,15 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 	nrm_msg_set_list_sensors(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -527,10 +572,11 @@ int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors)
 		nrm_vector_push_back(ret, &s);
 	}
 	*sensors = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
+int nrm_client_list_slices(nrm_client_t *client, nrm_vector_t **slices)
 {
 	if (client == NULL || slices == NULL)
 		return -NRM_EINVAL;
@@ -543,11 +589,15 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 	nrm_msg_set_list_slices(msg, NULL);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
@@ -564,11 +614,11 @@ int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices)
 		nrm_vector_push_back(ret, &s);
 	}
 	*slices = ret;
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_remove_actuator(const nrm_client_t *client,
-                               nrm_actuator_t *actuator)
+int nrm_client_remove_actuator(nrm_client_t *client, nrm_actuator_t *actuator)
 {
 	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
@@ -580,19 +630,24 @@ int nrm_client_remove_actuator(const nrm_client_t *client,
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_ACTUATOR, actuator->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
+int nrm_client_remove_scope(nrm_client_t *client, nrm_scope_t *scope)
 {
 	if (client == NULL || scope == NULL)
 		return -NRM_EINVAL;
@@ -604,19 +659,24 @@ int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope)
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SCOPE, scope->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
+int nrm_client_remove_sensor(nrm_client_t *client, nrm_sensor_t *sensor)
 {
 	if (client == NULL || sensor == NULL)
 		return -NRM_EINVAL;
@@ -628,19 +688,24 @@ int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor)
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SENSOR, sensor->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
+int nrm_client_remove_slice(nrm_client_t *client, nrm_slice_t *slice)
 {
 	if (client == NULL || slice == NULL)
 		return -NRM_EINVAL;
@@ -652,19 +717,24 @@ int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice)
 	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_SLICE, slice->uuid);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
 
 	/* wait for the answer */
 	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
 	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
 	nrm_log_debug("parsing reply\n");
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 
-int nrm_client_send_event(const nrm_client_t *client,
+int nrm_client_send_event(nrm_client_t *client,
                           nrm_time_t time,
                           nrm_sensor_t *sensor,
                           nrm_scope_t *scope,
@@ -679,8 +749,50 @@ int nrm_client_send_event(const nrm_client_t *client,
 	nrm_msg_set_event(msg, time, sensor->uuid, scope, value);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
+	return 0;
+}
 
+int nrm_client_send_exit(nrm_client_t *client)
+{
+	if (client == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_EXIT);
+	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
+	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
+	return 0;
+}
+
+int nrm_client_send_tick(nrm_client_t *client)
+{
+	if (client == NULL)
+		return -NRM_EINVAL;
+
+	nrm_log_debug("crafting message\n");
+	nrm_msg_t *msg = nrm_msg_create();
+	nrm_msg_fill(msg, NRM_MSG_TYPE_TICK);
+	nrm_log_debug("sending request\n");
+	pthread_mutex_lock(&(client->lock));
+	nrm_role_send(client->role, msg, NULL);
+	pthread_mutex_unlock(&(client->lock));
+
+	/* wait for the answer */
+	nrm_log_debug("receiving reply\n");
+	pthread_mutex_lock(&(client->lock));
+	msg = nrm_role_recv(client->role, NULL);
+	pthread_mutex_unlock(&(client->lock));
+	nrm_log_debug("parsing reply\n");
+	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
+
+	assert(msg->type == NRM_MSG_TYPE_ACK);
+	nrm_msg_destroy_received(&msg);
 	return 0;
 }
 

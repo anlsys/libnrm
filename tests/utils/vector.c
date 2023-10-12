@@ -57,7 +57,6 @@ START_TEST(test_iter)
 {
 	nrm_vector_t *vector = NULL;
 	nrm_vector_create(&vector, sizeof(nrm_string_t));
-	int a = 42, b = 43, c = 44;
 	int err;
 	nrm_string_t fortytwo = nrm_string_fromchar("fortytwo");
 	nrm_string_t fortythree = nrm_string_fromchar("fortythree");
@@ -94,6 +93,27 @@ START_TEST(test_iter)
 	nrm_string_decref(fortyfour);
 }
 
+START_TEST(test_sort)
+{
+	nrm_vector_t *vector = NULL;
+	nrm_vector_create(&vector, sizeof(double));
+
+	for (int i = -5; i < 5; i++) {
+		double d = (double)i;
+		nrm_vector_push_back(vector, &d);
+	}
+
+	nrm_vector_sort(vector, nrm_vector_sort_double_cmp);
+
+	int i = -5;
+	nrm_vector_foreach(vector, iterator)
+	{
+		double *d = nrm_vector_iterator_get(iterator);
+		ck_assert_int_eq((int)*d, i);
+		i++;
+	}
+}
+
 Suite *vector_suite(void)
 {
 	Suite *s;
@@ -103,6 +123,7 @@ Suite *vector_suite(void)
 	TCase *tc_basics = tcase_create("basics");
 	tcase_add_test(tc_basics, test_basics);
 	tcase_add_test(tc_basics, test_iter);
+	tcase_add_test(tc_basics, test_sort);
 	suite_add_tcase(s, tc_basics);
 
 	return s;

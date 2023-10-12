@@ -31,6 +31,12 @@ int64_t nrm_time_tons(const nrm_time_t *now)
 	return now->tv_nsec + 1000000000 * now->tv_sec;
 }
 
+nrm_time_t nrm_time_fromfreq(double freq)
+{
+	int64_t sleeptime = 1e9 / freq;
+	return nrm_time_fromns(sleeptime);
+}
+
 nrm_time_t nrm_time_fromns(int64_t ns)
 {
 	nrm_time_t ret;

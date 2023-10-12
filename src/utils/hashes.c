@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright 2022 UChicago Argonne, LLC.
+ * Copyright 2019 UChicago Argonne, LLC.
  * (c.f. AUTHORS, LICENSE)
  *
  * This file is part of the libnrm project.
@@ -32,7 +32,7 @@ static int nrm_hash_create_element(nrm_hash_t **element)
 int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t uuid, void *ptr)
 {
 	nrm_hash_t *local = NULL;
-	HASH_FIND(hh, (*hash_table), uuid, strlen(uuid), local);
+	HASH_FIND(hh, (*hash_table), uuid, nrm_string_strlen(uuid), local);
 	if (local != NULL)
 		return -NRM_FAILURE;
 
@@ -41,7 +41,8 @@ int nrm_hash_add(nrm_hash_t **hash_table, nrm_string_t uuid, void *ptr)
 		return -NRM_ENOMEM;
 	local->uuid = uuid;
 	local->ptr = ptr;
-	HASH_ADD_KEYPTR(hh, (*hash_table), uuid, strlen(uuid), local);
+	HASH_ADD_KEYPTR(hh, (*hash_table), uuid, nrm_string_strlen(uuid),
+	                local);
 	return NRM_SUCCESS;
 }
 
@@ -51,7 +52,7 @@ int nrm_hash_remove(nrm_hash_t **hash_table, nrm_string_t uuid, void **ptr)
 		return -NRM_EINVAL;
 
 	nrm_hash_t *tmp;
-	HASH_FIND(hh, (*hash_table), &uuid, strlen(uuid), tmp);
+	HASH_FIND(hh, (*hash_table), &uuid, nrm_string_strlen(uuid), tmp);
 
 	*ptr = tmp;
 	if (tmp != NULL) {
@@ -81,7 +82,7 @@ int nrm_hash_find(nrm_hash_t *hash_table, nrm_string_t uuid, void **ptr)
 		return -NRM_EINVAL;
 
 	nrm_hash_t *tmp = NULL;
-	HASH_FIND(hh, hash_table, uuid, strlen(uuid), tmp);
+	HASH_FIND(hh, hash_table, uuid, nrm_string_strlen(uuid), tmp);
 	if (tmp == NULL)
 		return -NRM_EINVAL;
 

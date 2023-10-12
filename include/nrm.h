@@ -23,12 +23,15 @@ extern "C" {
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
+#include <sys/signalfd.h>
 #include <time.h>
 
 // clang-format off
 #include "nrm/utils/alloc.h"
 #include "nrm/utils/bitmaps.h"
 #include "nrm/utils/error.h"
+#include "nrm/utils/parsers.h"
 #include "nrm/utils/ringbuffer.h"
 #include "nrm/utils/strings.h"
 #include "nrm/utils/scopes.h"
@@ -36,6 +39,7 @@ extern "C" {
 #include "nrm/utils/uuids.h"
 #include "nrm/utils/vectors.h"
 #include "nrm/utils/hashes.h"
+#include "nrm/utils/variables.h"
 #include "nrm/utils/version.h"
 // clang-format on
 //
@@ -77,6 +81,12 @@ int nrm_finalize(void);
 #define NRM_LOG_DEBUG 5
 
 /**
+ * Set to one by the library if at least one nrm_log_init has
+ * been called
+ */
+extern int nrm_log_initialized;
+
+/**
  * Initializes NRM logging
  *
  * @param f: file descriptor
@@ -112,15 +122,14 @@ int nrm_log_setlevel(int level);
 	nrm_log_printf(NRM_LOG_INFO, __FILE__, __LINE__, __VA_ARGS__)
 #define nrm_log_debug(...)                                                     \
 	nrm_log_printf(NRM_LOG_DEBUG, __FILE__, __LINE__, __VA_ARGS__)
-
-/*******************************************************************************
- * NRM Messages
- * Messages being transmitted between nrm components
- ******************************************************************************/
-
-typedef struct _Nrm__Message nrm_msg_t;
-
-void nrm_msg_destroy(nrm_msg_t **msg);
+#define nrm_log_perror(...)                                                    \
+	do {                                                                   \
+		char *__nrm_errstr = strerror(errno);                          \
+		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
+		               __VA_ARGS__);                                   \
+		nrm_log_printf(NRM_LOG_ERROR, __FILE__, __LINE__,              \
+		               "perror: %s\n", __nrm_errstr);                  \
+	} while (0)
 
 /*******************************************************************************
  * Actuator: something capable of actions on the system
@@ -136,6 +145,9 @@ struct nrm_actuator_s {
 typedef struct nrm_actuator_s nrm_actuator_t;
 
 nrm_actuator_t *nrm_actuator_create(const char *name);
+int nrm_actuator_closest_choice(nrm_actuator_t *, double *);
+int nrm_actuator_set_value(nrm_actuator_t *, double);
+int nrm_actuator_set_choices(nrm_actuator_t *, size_t, double *);
 
 void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
@@ -193,6 +205,8 @@ typedef struct nrm_sensor_s nrm_sensor_t;
  */
 nrm_sensor_t *nrm_sensor_create(const char *name);
 
+nrm_string_t nrm_sensor_uuid(nrm_sensor_t *sensor);
+
 /**
  * Removes an NRM sensor. Do this for each sensor before an instrumented program
  * exits.
@@ -205,14 +219,29 @@ void nrm_sensor_destroy(nrm_sensor_t **);
 
 struct nrm_state_s {
 	nrm_hash_t *actuators;
-	nrm_hash_t *slices;
-	nrm_hash_t *sensors;
 	nrm_hash_t *scopes;
+	nrm_hash_t *sensors;
+	nrm_hash_t *slices;
 };
 
 typedef struct nrm_state_s nrm_state_t;
 
 nrm_state_t *nrm_state_create(void);
+
+int nrm_state_list_actuators(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_scopes(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_sensors(nrm_state_t *, nrm_vector_t *);
+int nrm_state_list_slices(nrm_state_t *, nrm_vector_t *);
+
+int nrm_state_add_actuator(nrm_state_t *, nrm_actuator_t *);
+int nrm_state_add_scope(nrm_state_t *, nrm_scope_t *);
+int nrm_state_add_sensor(nrm_state_t *, nrm_sensor_t *);
+int nrm_state_add_slice(nrm_state_t *, nrm_slice_t *);
+
+int nrm_state_remove_actuator(nrm_state_t *, const char *uuid);
+int nrm_state_remove_scope(nrm_state_t *, const char *uuid);
+int nrm_state_remove_sensor(nrm_state_t *, const char *uuid);
+int nrm_state_remove_slice(nrm_state_t *, const char *uuid);
 
 void nrm_state_destroy(nrm_state_t **);
 
@@ -220,11 +249,19 @@ void nrm_state_destroy(nrm_state_t **);
  * EventBase: a timeseries in-memory database
  ******************************************************************************/
 
+struct nrm_event_s {
+	nrm_time_t time;
+	double value;
+};
+typedef struct nrm_event_s nrm_event_t;
+
 struct nrm_eventbase_s;
 
 typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
+
+size_t nrm_eventbase_get_maxperiods(nrm_eventbase_t *);
 
 int nrm_eventbase_push_event(
         nrm_eventbase_t *, nrm_string_t, nrm_scope_t *, nrm_time_t, double);
@@ -235,6 +272,11 @@ int nrm_eventbase_last_value(nrm_eventbase_t *,
                              nrm_string_t,
                              nrm_string_t,
                              double *);
+
+int nrm_eventbase_current_events(nrm_eventbase_t *,
+                                 nrm_string_t,
+                                 nrm_string_t,
+                                 nrm_vector_t **);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 
@@ -281,26 +323,25 @@ int nrm_client_actuate(const nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value);
 
-int nrm_client_add_actuator(const nrm_client_t *client,
-                            nrm_actuator_t *actuator);
+int nrm_client_add_actuator(nrm_client_t *client, nrm_actuator_t *actuator);
 
 /**
  * Adds an NRM scope to an NRM client.
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_add_scope(const nrm_client_t *client, nrm_scope_t *scope);
+int nrm_client_add_scope(nrm_client_t *client, nrm_scope_t *scope);
 
 /**
  * Adds an NRM sensor to an NRM client.
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_add_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
+int nrm_client_add_sensor(nrm_client_t *client, nrm_sensor_t *sensor);
 
 /**
  * Adds an NRM slice to an NRM client.
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
+int nrm_client_add_slice(nrm_client_t *client, nrm_slice_t *slice);
 
 /**
  * Find matching NRM objects within a client
@@ -310,56 +351,54 @@ int nrm_client_add_slice(const nrm_client_t *client, nrm_slice_t *slice);
  * @param results: NRM vector for containing results
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_find(const nrm_client_t *client,
+int nrm_client_find(nrm_client_t *client,
                     int type,
                     const char *uuid,
                     nrm_vector_t **results);
 
-int nrm_client_list_actuators(const nrm_client_t *client,
-                              nrm_vector_t **actuators);
+int nrm_client_list_actuators(nrm_client_t *client, nrm_vector_t **actuators);
 
 /**
  * Lists an NRM client's registered scopes into a vector
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_list_scopes(const nrm_client_t *client, nrm_vector_t **scopes);
+int nrm_client_list_scopes(nrm_client_t *client, nrm_vector_t **scopes);
 
 /**
  * Lists an NRM client's registered sensors into a vector
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_list_sensors(const nrm_client_t *client, nrm_vector_t **sensors);
+int nrm_client_list_sensors(nrm_client_t *client, nrm_vector_t **sensors);
 
 /**
  * Lists an NRM client's registered slices into a vector
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_list_slices(const nrm_client_t *client, nrm_vector_t **slices);
+int nrm_client_list_slices(nrm_client_t *client, nrm_vector_t **slices);
 
 /**
  * Removes an NRM actuator from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_actuator(const nrm_client_t *client,
-                               nrm_actuator_t *actuator);
+int nrm_client_remove_actuator(nrm_client_t *client, nrm_actuator_t *actuator);
 
 /**
  * Removes an NRM slice from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_slice(const nrm_client_t *client, nrm_slice_t *slice);
+int nrm_client_remove_slice(nrm_client_t *client, nrm_slice_t *slice);
 
 /**
  * Removes an NRM sensor from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_sensor(const nrm_client_t *client, nrm_sensor_t *sensor);
+int nrm_client_remove_sensor(nrm_client_t *client, nrm_sensor_t *sensor);
 
 /**
  * Removes an NRM scope from a daemon
  * @return 0 if successful, an error code otherwise
  */
-int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope);
+int nrm_client_remove_scope(nrm_client_t *client, nrm_scope_t *scope);
 
 /**
  * Sends a measurement to the NRM daemon
@@ -372,11 +411,29 @@ int nrm_client_remove_scope(const nrm_client_t *client, nrm_scope_t *scope);
  * @return 0 if successful, an error code otherwise
  *
  */
-int nrm_client_send_event(const nrm_client_t *client,
+int nrm_client_send_event(nrm_client_t *client,
                           nrm_time_t time,
                           nrm_sensor_t *sensor,
                           nrm_scope_t *scope,
                           double value);
+
+/**
+ * Asks the daemon to exit
+ *
+ * @param client: NRM client object
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_client_send_exit(nrm_client_t *client);
+
+/**
+ * Asks the daemon to tick
+ *
+ * @param client: NRM client object
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_client_send_tick(nrm_client_t *client);
 
 /**
  * Set a callback function for client events
@@ -433,36 +490,115 @@ int nrm_client_externpython_actuate(nrm_uuid_t *uuid, double value, void *arg);
 void nrm_client_destroy(nrm_client_t **client);
 
 /*******************************************************************************
- * NRM Role API
- * A "role" is a set of features of NRM that a client of this library is using.
- * A typical role is a sensor, or an actuator, or something monitoring sensor
- * messages and so on.
- * Behind each role is an event loop and a helper thread, related to its actions
- * in the communication infrastructure of the NRM.
+ * NRM Server object
+ * Used by any program that wants to act as a control loop: it can receive
+ * requests from clients and send actions back.
  ******************************************************************************/
 
-typedef struct nrm_role_s nrm_role_t;
-typedef int(nrm_role_sub_callback_fn)(nrm_msg_t *msg, void *arg);
-typedef int(nrm_role_cmd_callback_fn)(nrm_msg_t *msg, void *arg);
+typedef struct nrm_server_s nrm_server_t;
 
-nrm_role_t *nrm_role_monitor_create_fromenv();
+/** User-level callbacks on server events */
+struct nrm_server_user_callbacks_s {
+	/* receiving a sensor event */
+	int (*event)(nrm_server_t *,
+	             nrm_string_t,
+	             nrm_scope_t *,
+	             nrm_time_t,
+	             double value);
+	/* receiving a request to actuate */
+	int (*actuate)(nrm_server_t *, nrm_actuator_t *, double value);
+	/* receiving a POSIX signal */
+	int (*signal)(nrm_server_t *, int);
+	/* timer trigger */
+	int (*timer)(nrm_server_t *);
+	/* receive a request to tick */
+	int (*tick)(nrm_server_t *);
+};
 
-nrm_role_t *nrm_role_sensor_create_fromenv(const char *sensor_name);
+typedef struct nrm_server_user_callbacks_s nrm_server_user_callbacks_t;
 
-nrm_role_t *nrm_role_client_create_fromparams(const char *, int, int);
+/**
+ * Creates a new NRM server.
+ *
+ * Uses a state to keep track of server objects that clients can add/remove
+ * from the system.
+ *
+ * @param server: pointer to a variable that will contain the server handle
+ * @param server: pointer to a valid state handle
+ * @param uri: address for listening to clients
+ * @param pub_port: port for publishing server events
+ * @param rpc_port: port for listening to requests
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_server_create(nrm_server_t **server,
+                      nrm_state_t *state,
+                      const char *uri,
+                      int pub_port,
+                      int rpc_port);
 
-int nrm_role_send(const nrm_role_t *role, nrm_msg_t *msg, nrm_uuid_t *to);
-nrm_msg_t *nrm_role_recv(const nrm_role_t *role, nrm_uuid_t **from);
-int nrm_role_pub(const nrm_role_t *role, nrm_string_t topic, nrm_msg_t *msg);
-int nrm_role_register_sub_cb(const nrm_role_t *role,
-                             nrm_role_sub_callback_fn *fn,
-                             void *arg);
-int nrm_role_register_cmd_cb(const nrm_role_t *role,
-                             nrm_role_cmd_callback_fn *fn,
-                             void *arg);
-int nrm_role_sub(const nrm_role_t *role, nrm_string_t topic);
+int nrm_server_setcallbacks(nrm_server_t *server,
+                            nrm_server_user_callbacks_t callbacks);
 
-void nrm_role_destroy(nrm_role_t **);
+int nrm_server_settimer(nrm_server_t *server, nrm_time_t sleeptime);
+
+int nrm_server_start(nrm_server_t *server);
+
+int nrm_server_publish(nrm_server_t *server,
+                       nrm_string_t topic,
+                       nrm_time_t now,
+                       nrm_string_t sensor_uuid,
+                       nrm_scope_t *scope,
+                       double value);
+
+int nrm_server_actuate(nrm_server_t *server, nrm_string_t uuid, double value);
+
+/**
+ * Destroys an NRM server. Closes connections.
+ */
+void nrm_server_destroy(nrm_server_t **server);
+
+/*******************************************************************************
+ * NRM Reactor object
+ * Used by any program that wants to become an idle loop only waking up on
+ * signals or timers.
+ ******************************************************************************/
+
+typedef struct nrm_reactor_s nrm_reactor_t;
+
+/** User-level callbacks on reactor events */
+struct nrm_reactor_user_callbacks_s {
+	/* receiving a POSIX signal */
+	int (*signal)(nrm_reactor_t *, struct signalfd_siginfo);
+	/* timer trigger */
+	int (*timer)(nrm_reactor_t *);
+};
+
+typedef struct nrm_reactor_user_callbacks_s nrm_reactor_user_callbacks_t;
+
+/**
+ * Creates a new NRM reactor.
+ *
+ * Uses a state to keep track of reactor objects that clients can add/remove
+ * from the system.
+ *
+ * @param reactor: pointer to a valid state handle
+ * @return 0 if successful, an error code otherwise
+ *
+ */
+int nrm_reactor_create(nrm_reactor_t **reactor, sigset_t *mask);
+
+int nrm_reactor_setcallbacks(nrm_reactor_t *reactor,
+                             nrm_reactor_user_callbacks_t callbacks);
+
+int nrm_reactor_settimer(nrm_reactor_t *reactor, nrm_time_t sleeptime);
+
+int nrm_reactor_start(nrm_reactor_t *reactor);
+
+/**
+ * Destroys an NRM reactor. Closes connections.
+ */
+void nrm_reactor_destroy(nrm_reactor_t **reactor);
 
 #ifdef __cplusplus
 }

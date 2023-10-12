@@ -31,9 +31,10 @@ void setup_pubsub(void)
 	ck_assert_int_eq(nrm_net_sub_init(&client), 0);
 	ck_assert_ptr_nonnull(client);
 	ck_assert_int_eq(
-	        nrm_net_connect_and_wait_2(client, NRM_DEFAULT_UPSTREAM_URI,
-	                                   NRM_DEFAULT_UPSTREAM_PUB_PORT),
+	        nrm_net_connect_and_wait(client, NRM_DEFAULT_UPSTREAM_URI,
+	                                 NRM_DEFAULT_UPSTREAM_PUB_PORT),
 	        0);
+	ck_assert_int_eq(nrm_net_sub_set_topic(client, ""), 0);
 	/* subscription is as annoying as usual, can't guarantee that the
 	 * messages are showing up without waiting a bit
 	 */
@@ -58,8 +59,8 @@ void setup_rpc(void)
 	ck_assert_int_eq(nrm_net_rpc_client_init(&client), 0);
 	ck_assert_ptr_nonnull(client);
 	ck_assert_int_eq(
-	        nrm_net_connect_and_wait_2(client, NRM_DEFAULT_UPSTREAM_URI,
-	                                   NRM_DEFAULT_UPSTREAM_RPC_PORT),
+	        nrm_net_connect_and_wait(client, NRM_DEFAULT_UPSTREAM_URI,
+	                                 NRM_DEFAULT_UPSTREAM_RPC_PORT),
 	        0);
 }
 

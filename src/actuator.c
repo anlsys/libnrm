@@ -44,6 +44,45 @@ int nrm_actuator_set_choices(nrm_actuator_t *actuator,
 	nrm_vector_clear(actuator->choices);
 	for (size_t i = 0; i < nchoices; i++)
 		nrm_vector_push_back(actuator->choices, &choices[i]);
+	nrm_vector_sort(actuator->choices, nrm_vector_sort_double_cmp);
+	return 0;
+}
+
+int nrm_actuator_closest_choice(nrm_actuator_t *actuator, double *value)
+{
+	if (actuator == NULL || value == NULL)
+		return -NRM_EINVAL;
+
+	double *min, *max;
+	size_t length;
+	nrm_vector_length(actuator->choices, &length);
+	if (length == 0)
+		return -NRM_EINVAL;
+
+	nrm_vector_get_withtype(double, actuator->choices, 0, min);
+	nrm_vector_get_withtype(double, actuator->choices, length - 1, max);
+
+	if (*value < *min) {
+		*value = *min;
+		return 0;
+	}
+
+	if (*value > *max) {
+		*value = *max;
+		return 0;
+	}
+
+	double dist = DBL_MAX;
+	double ret = *value;
+	nrm_vector_foreach(actuator->choices, iterator)
+	{
+		double *d = nrm_vector_iterator_get(iterator);
+		if (fabs(*value - *d) < dist) {
+			ret = *d;
+			dist = fabs(*value - ret);
+		}
+	}
+	*value = ret;
 	return 0;
 }
 
@@ -78,15 +117,13 @@ int nrm_vector_d_from_json(nrm_vector_t *vector, json_t *json)
 
 json_t *nrm_actuator_to_json(nrm_actuator_t *actuator)
 {
-	json_t *uuid = NULL;
 	json_t *clientid = NULL;
 	json_t *choices = NULL;
-	if (actuator->clientid != NULL)
-		clientid = nrm_uuid_to_json(actuator->clientid);
+	clientid = nrm_uuid_to_json(actuator->clientid);
 	choices = nrm_vector_d_to_json(actuator->choices);
 	return json_pack("{s:s, s:o?, s:f, s:o?}", "uuid", actuator->uuid,
-	                 "uuid", uuid, "clientid", clientid, "value",
-	                 actuator->value, "choices", choices);
+	                 "clientid", clientid, "value", actuator->value,
+	                 "choices", choices);
 }
 
 int nrm_actuator_from_json(nrm_actuator_t *actuator, json_t *json)
@@ -116,8 +153,11 @@ void nrm_actuator_destroy(nrm_actuator_t **actuator)
 {
 	if (actuator == NULL || *actuator == NULL)
 		return;
-	nrm_string_decref((*actuator)->uuid);
-	nrm_uuid_destroy(&(*actuator)->clientid);
-	nrm_vector_destroy(&(*actuator)->choices);
+
+	nrm_actuator_t *a = *actuator;
+	nrm_string_decref(a->uuid);
+	nrm_uuid_destroy(&a->clientid);
+	nrm_vector_destroy(&a->choices);
+	free(a);
 	*actuator = NULL;
 }
