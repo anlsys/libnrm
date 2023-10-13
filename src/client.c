@@ -76,7 +76,7 @@ int nrm_pyinfo_create(pyinfo_t **pyinfo,
     return 0;
 }
 
-int nrm_client_actuate(const nrm_client_t *client,
+int nrm_client_actuate(nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value)
 {

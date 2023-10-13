@@ -25,9 +25,10 @@ static nrm_sensor_t *sensor;
 static nrm_scope_t *scope;
 static nrm_actuator_t *actuator;
 
-int nrm_dummy_extra_action_callback(nrm_uuid_t *uuid, double value)
+int nrm_dummy_extra_action_callback(nrm_uuid_t *uuid, double value, void *arg)
 {
 	(void)uuid;
+	(void)arg;
 	nrm_log_debug("action %f\n", value);
 	return 0;
 }
@@ -113,7 +114,7 @@ int main(int argc, char *argv[])
 
 	nrm_log_info("starting dummy actuate callback\n");
 	nrm_client_set_actuate_listener(client,
-	                                nrm_dummy_extra_action_callback);
+	                                nrm_dummy_extra_action_callback, NULL);
 	nrm_client_start_actuate_listener(client);
 
 	err = nrm_reactor_create(&reactor, NULL);

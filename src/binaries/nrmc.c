@@ -346,8 +346,10 @@ int cmd_find_slice(int argc, char **argv)
 int client_listen_callback(nrm_string_t sensor_uuid,
                            nrm_time_t time,
                            nrm_scope_t *scope,
-                           double value)
+                           double value,
+						   void *arg)
 {
+	(void)arg;
 	int64_t nstime = nrm_time_tons(&time);
 	fprintf(stdout, "event: %" PRId64 " %s %s %f\n", nstime, sensor_uuid,
 	        scope->uuid, value);
