@@ -347,7 +347,7 @@ int client_listen_callback(nrm_string_t sensor_uuid,
                            nrm_time_t time,
                            nrm_scope_t *scope,
                            double value,
-						   void *arg)
+                           void *arg)
 {
 	(void)arg;
 	int64_t nstime = nrm_time_tons(&time);

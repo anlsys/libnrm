@@ -83,7 +83,6 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-
 	nrm_log_info("creating dummy sensor\n");
 	sensor = nrm_sensor_create("nrm-dummy-extra-sensor");
 	err = nrm_client_add_sensor(client, sensor);
@@ -113,8 +112,8 @@ int main(int argc, char *argv[])
 	}
 
 	nrm_log_info("starting dummy actuate callback\n");
-	nrm_client_set_actuate_listener(client,
-	                                nrm_dummy_extra_action_callback, NULL);
+	nrm_client_set_actuate_listener(client, nrm_dummy_extra_action_callback,
+	                                NULL);
 	nrm_client_start_actuate_listener(client);
 
 	err = nrm_reactor_create(&reactor, NULL);

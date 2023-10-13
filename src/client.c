@@ -31,7 +31,7 @@ struct nrm_client_s {
 	nrm_client_event_listener_fn *user_fn;
 	nrm_client_actuate_listener_fn *actuate_fn;
 	pthread_mutex_t lock;
-    void *arg;
+	void *arg;
 };
 
 int nrm_client_create(nrm_client_t **client,
@@ -52,7 +52,7 @@ int nrm_client_create(nrm_client_t **client,
 	ret->user_fn = NULL;
 	ret->actuate_fn = NULL;
 	pthread_mutex_init(&(ret->lock), NULL);
-    ret->arg = NULL;
+	ret->arg = NULL;
 
 	*client = ret;
 	return 0;
@@ -63,17 +63,17 @@ int nrm_pyinfo_create(pyinfo_t **pyinfo,
                       nrm_client_event_listener_fn *extern_user_fn,
                       nrm_client_actuate_listener_fn *extern_actuate_fn)
 {
-    if (pyinfo == NULL)
-        return -NRM_EINVAL;
-    
-    pyinfo_t *ret = calloc(1, sizeof(pyinfo_t));
-    if (ret == NULL)
-        return -NRM_ENOMEM;
-    ret->pyclient = pyclient;
-    ret->extern_user_fn = extern_user_fn;
-    ret->extern_actuate_fn = extern_actuate_fn;
-    *pyinfo = ret;
-    return 0;
+	if (pyinfo == NULL)
+		return -NRM_EINVAL;
+
+	pyinfo_t *ret = calloc(1, sizeof(pyinfo_t));
+	if (ret == NULL)
+		return -NRM_ENOMEM;
+	ret->pyclient = pyclient;
+	ret->extern_user_fn = extern_user_fn;
+	ret->extern_actuate_fn = extern_actuate_fn;
+	*pyinfo = ret;
+	return 0;
 }
 
 int nrm_client_actuate(nrm_client_t *client,
