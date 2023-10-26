@@ -1,8 +1,30 @@
-from loguru import logger
+"""
+/*******************************************************************************
+ * Copyright 2023 UChicago Argonne, LLC.
+ * (c.f. AUTHORS, LICENSE)
+ *
+ * This file is part of the libnrm project.
+ * For more info, see https://github.com/anlsys/libnrm
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ ******************************************************************************/
+"""
+
+import sys
+import logging as logger
 from ctypes import byref
 from dataclasses import dataclass
-from nrm.bindings import nrm_client_create, nrm_client_destroy
+from .bindings import nrm_client_create, nrm_client_destroy, NRM_SUCCESS, NRM_EINVAL, NRM_ENOMEM
 
+def _determine_status(flag, good_message="Success"):
+    if flag == NRM_SUCCESS:
+        logger.debug(good_message)
+        return
+    elif flag == -NRM_EINVAL:
+        logger.error("Invalid argument")
+    elif flag == -NRM_ENOMEM:
+        logger.error("Not enough memory")
+    sys.exit(flag)
 
 @dataclass
 class Client:
@@ -22,7 +44,7 @@ class Client:
     ```
     """
 
-    def __enter__(
+    def __init__(
         self, uri: str = "tcp://127.0.0.1", pub_port: int = 2345, rpc_port: int = 3456
     ):
         self.uri = uri
@@ -30,12 +52,12 @@ class Client:
         self.rpc_port = rpc_port
         self.client = nrm_client(0)
 
-        assert not NRM.nrm_client_create(
+        flag =  NRM.nrm_client_create(
             byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port
-        ), "Unable to instantiate an NRM client"
-        logger.debug("NRM client created")
+        )
+        _determine_status(flag, "NRM Client created")
+
 
     def __exit__(self, exc_type, exc_value, traceback):
         logger.debug("Destroying Client instance")
         NRM.nrm_client_destroy(byref(self.client))
-        assert not NRM.nrm_finalize(), "Unable to exit NRM"

@@ -1,4 +1,13 @@
-"""Argo Node Resource Manager
+"""
+/*******************************************************************************
+ * Copyright 2023 UChicago Argonne, LLC.
+ * (c.f. AUTHORS, LICENSE)
+ *
+ * This file is part of the libnrm project.
+ * For more info, see https://github.com/anlsys/libnrm
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ ******************************************************************************/
 """
 
 from setuptools import setup, find_packages
@@ -6,7 +15,7 @@ from setuptools import setup, find_packages
 setup(
     name="nrm",
     version="0.7.0",
-    description="Argo Node Resource Manager",
+    description="Argo Node Resource Manager Python Bindings",
     author="Swann Perarnau",
     author_email="swann@anl.gov",
     url="https://github.com/anlsys/libnrm",
@@ -17,5 +26,4 @@ setup(
         "Programming Language :: Python :: 3.10",
     ],
     packages=find_packages(),
-    install_requires=["loguru"],
 )

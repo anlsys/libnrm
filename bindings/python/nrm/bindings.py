@@ -1,9 +1,21 @@
+"""
+/*******************************************************************************
+ * Copyright 2023 UChicago Argonne, LLC.
+ * (c.f. AUTHORS, LICENSE)
+ *
+ * This file is part of the libnrm project.
+ * For more info, see https://github.com/anlsys/libnrm
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ ******************************************************************************/
+"""
+
 import atexit
 from ctypes import *
 from ctypes.util import find_library
-from loguru import logger
+import logging as logger
 
-NRMH_PATH = find_library("nrm")
+NRM_PATH = find_library("nrm")
 
 ########## types ##########
 
@@ -31,13 +43,23 @@ def _nrm_get_function(method, argtypes=[], restype=c_int):
     res.argtypes = argtypes
     return res
 
-libnrm = CDLL(NRMH_PATH)
+libnrm = CDLL(NRM_PATH)
 
 nrm_init = _nrm_get_function("nrm_init", [POINTER(c_int), POINTER(c_char_p)], c_int)
 nrm_finalize = _nrm_get_function("nrm_finalize", [], c_int)
 nrm_client_create = _nrm_get_function("nrm_client_create", [POINTER(nrm_client), c_char_p, c_int, c_int], c_int)
 nrm_client_destroy = _nrm_get_function("nrm_client_destroy", [POINTER(nrm_client)], None)
 
+##### errors #####
+
+NRM_SUCCESS = 0
+NRM_FAILURE = 1
+NRM_ENOMEM = 2
+NRM_EINVAL = 3
+NRM_EDOM = 4
+NRM_EBUSY = 6
+NRM_EPERM = 7
+NRM_ERROR_MAX = 8
 
 ##### setup #####
 
