@@ -1,15 +1,16 @@
 from loguru import logger
 from ctypes import byref
 from dataclasses import dataclass
-from bindings import NRM, nrm_client
+from nrm.bindings import nrm_client_create, nrm_client_destroy
 
 
 @dataclass
 class Client:
-    """Client class for interacting with NRM C interface. Use as a context switcher.
-    Tentative usage:
+    """Client class for interacting with NRM C interface. Tentative usage:
     ```
-    from nrm.api import Client, Actuator
+    from nrm import Client, Actuator
+
+    my_client = Client("tcp://127.0.0.1", 2345, 3456)
     with Client("tcp://127.0.0.1", 2345, 3456) as nrmc:
         ...
         nrmc.scopes["uuid"] = my_scope
@@ -28,10 +29,6 @@ class Client:
         self.pub_port = pub_port
         self.rpc_port = rpc_port
         self.client = nrm_client(0)
-        assert not NRM.nrm_init(
-            None, None
-        ), "NRM library did not initialize successfully"
-        logger.debug("NRM initialized")
 
         assert not NRM.nrm_client_create(
             byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port
