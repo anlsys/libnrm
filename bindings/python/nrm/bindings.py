@@ -1,3 +1,4 @@
+import atexit
 from ctypes import *
 from ctypes.util import find_library
 from loguru import logger
@@ -47,4 +48,4 @@ logger.debug("NRM initialized")
 
 ##### teardown #####
 
-assert not nrm_finalize(), "Unable to exit NRM"
+atexit.register(nrm_finalize)
