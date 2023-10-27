@@ -14,7 +14,7 @@ import sys
 import logging as logger
 from ctypes import byref
 from dataclasses import dataclass
-from .bindings import nrm_client_create, nrm_client_destroy, NRM_SUCCESS, NRM_EINVAL, NRM_ENOMEM
+from nrm.bindings import nrm_client, nrm_client_create, nrm_client_destroy, NRM_SUCCESS, NRM_EINVAL, NRM_ENOMEM
 
 def _determine_status(flag, good_message="Success"):
     if flag == NRM_SUCCESS:
@@ -52,12 +52,12 @@ class Client:
         self.rpc_port = rpc_port
         self.client = nrm_client(0)
 
-        flag =  NRM.nrm_client_create(
+        flag =  nrm_client_create(
             byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port
         )
         _determine_status(flag, "NRM Client created")
 
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __del__(self):
         logger.debug("Destroying Client instance")
-        NRM.nrm_client_destroy(byref(self.client))
+        nrm_client_destroy(byref(self.client))

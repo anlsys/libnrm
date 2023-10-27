@@ -11,13 +11,16 @@
 """
 
 from nrm import Client
+import unittest
 
 
-def test_client_init():
-    print("test_client_init")
-    with Client() as nrmc:
-        pass
+class TestClient(unittest.TestCase):
+
+    def test_client_init(self):
+        print("test_client_init")
+        with Client() as nrmc:
+            pass
 
 
 if __name__ == "__main__":
-    test_client_init()
+    unittest.main()

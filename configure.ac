@@ -201,6 +201,7 @@ AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_FILES([Makefile
          bindings/Makefile
          bindings/python/Makefile
+		 bindings/python/nrm/bindings.py
 		 src/preloads/pmpi/Makefile
 		 libnrm.pc
 	 	 doc/Makefile

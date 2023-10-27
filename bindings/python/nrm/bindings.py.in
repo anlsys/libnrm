@@ -18,7 +18,7 @@ import logging as logger
 if os.environ.get('LIBNRM_SO_'):
   libnrm = cdll.LoadLibrary(os.environ.get('LIBNRM_SO_'))
 else:
-  libnrm = cdll.LoadLibrary('libnrm.so.0.0.0')
+  libnrm = cdll.LoadLibrary('@prefix@/lib/libnrm.so.0.0.0')
 
 ########## types ##########
 
