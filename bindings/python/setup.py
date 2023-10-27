@@ -25,5 +25,6 @@ setup(
         "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3.10",
     ],
-    packages=find_packages(),
+    packages=["nrm"],
+    package_dir={"nrm": "nrm"},
 )

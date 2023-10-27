@@ -10,12 +10,15 @@
  ******************************************************************************/
 """
 
+import os
 import atexit
 from ctypes import *
-from ctypes.util import find_library
 import logging as logger
 
-NRM_PATH = find_library("nrm")
+if os.environ.get('LIBNRM_SO_'):
+  libnrm = cdll.LoadLibrary(os.environ.get('LIBNRM_SO_'))
+else:
+  libnrm = cdll.LoadLibrary('libnrm.so.0.0.0')
 
 ########## types ##########
 
@@ -42,8 +45,6 @@ def _nrm_get_function(method, argtypes=[], restype=c_int):
     res.restype = restype
     res.argtypes = argtypes
     return res
-
-libnrm = CDLL(NRM_PATH)
 
 nrm_init = _nrm_get_function("nrm_init", [POINTER(c_int), POINTER(c_char_p)], c_int)
 nrm_finalize = _nrm_get_function("nrm_finalize", [], c_int)

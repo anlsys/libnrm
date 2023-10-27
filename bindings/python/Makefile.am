@@ -7,6 +7,6 @@ EXTRA_DIST = \
 python_PYTHON = setup.py
 
 check: FORCE
-	python3 -m unittest discover -s $(srcdir)/tests/
+	PYTHONPATH=$(srcdir)/ LIBNRM_SO_=$(libdir).so python3 -m unittest discover -s $(srcdir)/tests/
 
 FORCE:
