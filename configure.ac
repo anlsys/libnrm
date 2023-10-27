@@ -144,6 +144,24 @@ AM_CONDITIONAL([HAVE_GEOPM],[test "$have_geopm" = "1"])
 AC_DEFINE_UNQUOTED([HAVE_GEOPM],[$have_geopm], [geopm support])
 AC_SUBST([HAVE_GEOPM],[$have_geopm])
 
+# PYTHON
+#########
+
+AC_ARG_WITH([python],
+               AS_HELP_STRING([--with-python], [Install Python Client interface]),
+               [with_python=yes], [with_python=no]
+               )
+AS_IF([test "$with_python" != "no"],
+       [
+               PKG_CHECK_MODULES([PYTHON], [python3])
+               with_python=yes
+       ],
+       [with_python=no]
+)
+
+AM_CONDITIONAL([WITH_PYTHON],[test "$with_python" == "yes"])
+AC_SUBST([WITH_PYTHON],[$with_python])
+
 # omp-tools support
 ####################
 
@@ -180,6 +198,8 @@ AS_IF([test "x${PROTOCC}" == "xno"],
 AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile
+         bindings/Makefile
+         bindings/python/Makefile
 		 src/preloads/pmpi/Makefile
 		 libnrm.pc
 	 	 doc/Makefile
@@ -263,6 +283,11 @@ PMPI:
 ENABLED: $have_pmpi
 MPICC: $MPICC
 MPILIBS: $MPILIBS
+
+PYTHON CLIENT:
+======
+
+ENABLED: $with_python
 
 -------------------------------------------------------------------------------
 EOF
