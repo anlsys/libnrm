@@ -4,6 +4,8 @@ EXTRA_DIST = \
 	nrm/client.py \
 	setup.py
 
+python_PYTHON = setup.py
+
 check: FORCE
 	python3 -m unittest discover -s $(srcdir)/tests/
 

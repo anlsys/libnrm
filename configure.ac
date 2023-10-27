@@ -154,6 +154,7 @@ AC_ARG_WITH([python],
 AS_IF([test "$with_python" != "no"],
        [
                PKG_CHECK_MODULES([PYTHON], [python3])
+			   AM_PATH_PYTHON([3.8])
                with_python=yes
        ],
        [with_python=no]
