@@ -148,20 +148,19 @@ AC_SUBST([HAVE_GEOPM],[$have_geopm])
 #########
 
 AC_ARG_WITH([python],
-               AS_HELP_STRING([--with-python], [Install Python Client interface]),
-               [with_python=yes], [with_python=no]
-               )
-AS_IF([test "$with_python" != "no"],
-       [
-               PKG_CHECK_MODULES([PYTHON], [python3])
-			   AM_PATH_PYTHON([3.8])
-               with_python=yes
-       ],
-       [with_python=no]
+	    [AS_HELP_STRING([--with-python],
+			    [Install Python Client interface])],
+	    [with_python=$withval], [with_python=no])
+AS_IF([test "x$with_python" != "xno"],
+      [
+       AM_PATH_PYTHON([3.8], have_python=1, have_python=0)
+      ],
+      [have_python=0]
 )
 
-AM_CONDITIONAL([WITH_PYTHON],[test "$with_python" == "yes"])
-AC_SUBST([WITH_PYTHON],[$with_python])
+AM_CONDITIONAL([HAVE_PYTHON],[test "$have_python" == "1"])
+AC_DEFINE_UNQUOTED([HAVE_PYTHON],[$have_python], [python support])
+AC_SUBST([HAVE_PYTHON],[$have_python])
 
 # omp-tools support
 ####################
@@ -199,9 +198,7 @@ AS_IF([test "x${PROTOCC}" == "xno"],
 AC_CONFIG_HEADERS([src/config.h])
 
 AC_CONFIG_FILES([Makefile
-         bindings/Makefile
-         bindings/python/Makefile
-		 bindings/python/nrm/bindings.py
+		 bindings/python/Makefile
 		 src/preloads/pmpi/Makefile
 		 libnrm.pc
 	 	 doc/Makefile
@@ -277,19 +274,20 @@ OMPT:
 ======
 
 ENABLED: $have_ompt
-CFLAGS: $OPENMP_CFLAGS
+CFLAGS:  $OPENMP_CFLAGS
 
 PMPI:
 ======
 
 ENABLED: $have_pmpi
-MPICC: $MPICC
+MPICC:   $MPICC
 MPILIBS: $MPILIBS
 
-PYTHON CLIENT:
+PYTHON BINDINGS:
 ======
 
-ENABLED: $with_python
+Active:  $have_python
+PYTHON:  $PYTHON
 
 -------------------------------------------------------------------------------
 EOF

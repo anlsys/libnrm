@@ -195,7 +195,9 @@ bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 # Bindings
 ###############################################################################
 
-SUBDIRS += bindings
+if HAVE_PYTHON
+SUBDIRS += bindings/python
+endif
 
 ###############################################################################
 # Documentation
