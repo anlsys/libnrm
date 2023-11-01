@@ -11,7 +11,6 @@ import unittest
 
 
 class TestClient(unittest.TestCase):
-
     def test_client_init(self):
         client = Client()
         del client

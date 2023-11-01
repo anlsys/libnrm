@@ -10,13 +10,23 @@ import os
 import platform
 import ctypes as ct
 
-if os.environ.get('LIBNRM_SO_'):
-    libnrm = ct.cdll.LoadLibrary(os.environ.get('LIBNRM_SO_'))
+if os.environ.get("LIBNRM_SO_"):
+    libnrm = ct.cdll.LoadLibrary(os.environ.get("LIBNRM_SO_"))
 else:
-    if platform.uname()[0] == 'Linux':
-        libnrm = ct.cdll.LoadLibrary('libnrm.so')
+    if platform.uname()[0] == "Linux":
+        libnrm = ct.cdll.LoadLibrary("libnrm.so")
     else:
-        libnrm = ct.cdll.LoadLibrary('libnrm.dylib')
+        libnrm = ct.cdll.LoadLibrary("libnrm.dylib")
 
-from .base import Error, Result
+from .base import (
+    Error,
+    Result,
+    upstream_uri,
+    upstream_rpc_port,
+    upstream_pub_port,
+    ratelimit,
+    transmit,
+    timeout,
+)
+
 from .client import Client

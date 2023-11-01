@@ -8,12 +8,21 @@
 
 from ctypes import byref, POINTER
 from dataclasses import dataclass
-from .base import _nrm_get_function, Error, nrm_client, nrm_str, nrm_int
+from .base import (
+    _nrm_get_checked_function,
+    _nrm_get_void_function,
+    Error,
+    nrm_client,
+    nrm_str,
+    nrm_int,
+)
 
-nrm_client_create = _nrm_get_function(
-        "nrm_client_create", [POINTER(nrm_client), nrm_str, nrm_int, nrm_int])
-nrm_client_destroy = _nrm_get_function(
-        "nrm_client_destroy", [POINTER(nrm_client)], None)
+nrm_client_create = _nrm_get_checked_function(
+    "nrm_client_create", [POINTER(nrm_client), nrm_str, nrm_int, nrm_int]
+)
+nrm_client_destroy = _nrm_get_void_function(
+    "nrm_client_destroy", [POINTER(nrm_client)]
+)
 
 
 @dataclass
@@ -30,9 +39,10 @@ class Client:
     """
 
     def __init__(
-        self, uri: str = "tcp://127.0.0.1",
+        self,
+        uri: str = "tcp://127.0.0.1",
         pub_port: int = 2345,
-        rpc_port: int = 3456
+        rpc_port: int = 3456,
     ):
         self.uri = uri
         self.pub_port = pub_port
@@ -40,7 +50,7 @@ class Client:
         self.client = nrm_client(0)
 
         _res = nrm_client_create(
-                byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port
+            byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port
         )
         Error.check(_res)
 
