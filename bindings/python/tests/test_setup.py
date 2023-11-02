@@ -10,7 +10,7 @@ from nrm import Setup
 import unittest
 import os
 
-options = {'prefix': os.environ.get('ABS_TOP_BUILDDIR')}
+options = {"prefix": os.environ.get("ABS_TOP_BUILDDIR")}
 
 
 class TestSetup(unittest.TestCase):
