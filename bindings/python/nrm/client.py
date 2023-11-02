@@ -35,7 +35,7 @@ nrm_client_list_actuators - _nrm_get_function(
 )
 
 nrm_client_list_sensors - _nrm_get_function(
-    "nrm_client_list_sensors", [nrm_client, POINTER(nrm_sensor)]
+    "nrm_client_list_sensors", [nrm_client, POINTER(nrm_vector)]
 )
 
 
@@ -48,8 +48,10 @@ class Client:
 
     my_client = Client("tcp://127.0.0.1", 2345, 3456)
     ...
+    my_client.append_actuator(my_actuator)
+    # OR???
+    my_client.actuators.append(my_actuator)
 
-    ```
     """
 
     def __init__(
@@ -65,13 +67,28 @@ class Client:
 
         nrm_client_create(byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port)
 
-    def list_actuators(self):
+    @property
+    def sensors(self) -> list:
+        vector = nrm_vector(0)
+        nrm_client_list_sensors(self.client, byref(vector))
+        return _nrm_vector_to_list(vector)
+
+    def append_sensor(self, obj: Sensor):
         pass
 
-    def list_sensors(self):
+    @property
+    def actuators(self) -> list:
+        vector = nrm_vector(0)
+        nrm_client_list_actuators(self.client, byref(vector))
+        return _nrm_vector_to_list(vector)
+
+    def append_actuator(self, obj: Actuator):
         pass
 
     def send_event(self):
+        pass
+
+    def actuate(self):
         pass
 
     def find(self):
