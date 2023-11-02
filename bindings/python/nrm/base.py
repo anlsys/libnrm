@@ -49,26 +49,21 @@ class Error(Exception):
 # Utils
 
 
-def _nrm_get_checked_function(
+def _nrm_get_function(
     method, argtypes=[], restype=nrm_int, errcheck=Error.check
 ):
     res = getattr(libnrm, method)
     res.restype = restype
     res.argtypes = argtypes
-    res.errcheck = errcheck
+    if errcheck is not None:
+        res.errcheck = errcheck
     return res
 
 
-def _nrm_get_void_function(method, argtypes=[]):
-    res = getattr(libnrm, method)
-    res.restype = None
-    return res
-
-
-nrm_init = _nrm_get_checked_function(
+nrm_init = _nrm_get_function(
     "nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)]
 )
-nrm_finalize = _nrm_get_void_function("nrm_finalize")
+nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
 
 
 def _init_and_register_exit():

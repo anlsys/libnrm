@@ -30,3 +30,4 @@ from .base import (
 )
 
 from .client import Client
+from .setup import Setup

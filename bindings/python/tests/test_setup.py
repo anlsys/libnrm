@@ -6,18 +6,17 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from nrm import Client, Setup
+from nrm import Setup
 import unittest
 import os
 
 options = {'prefix': os.environ.get('ABS_TOP_BUILDDIR')}
 
 
-class TestClient(unittest.TestCase):
-    def test_client_init(self):
+class TestSetup(unittest.TestCase):
+    def test_setup_init(self):
         with Setup("nrmd", options=options):
-            client = Client()
-            del client
+            pass
 
 
 if __name__ == "__main__":
