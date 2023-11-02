@@ -17,6 +17,11 @@ nrm_uint = ct.c_uint
 nrm_long = ct.c_longlong
 nrm_str = ct.c_char_p
 nrm_client = ct.c_void_p
+nrm_actuator = ct.c_void_p
+nrm_sensor = ct.c_void_p
+nrm_scope = ct.c_void_p
+nrm_slice = ct.c_void_p
+nrm_vector = ct.c_void_p
 
 # Error types
 
@@ -49,9 +54,7 @@ class Error(Exception):
 # Utils
 
 
-def _nrm_get_function(
-    method, argtypes=[], restype=nrm_int, errcheck=Error.check
-):
+def _nrm_get_function(method, argtypes=[], restype=nrm_int, errcheck=Error.check):
     res = getattr(libnrm, method)
     res.restype = restype
     res.argtypes = argtypes
@@ -60,10 +63,26 @@ def _nrm_get_function(
     return res
 
 
-nrm_init = _nrm_get_function(
-    "nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)]
-)
+nrm_init = _nrm_get_function("nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)])
 nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
+
+nrm_vector_length = _nrm_get_function(
+    "nrm_vector_length", [nrm_vector, POINTER(nrm_int)]
+)
+nrm_vector_get = _nrm_get_function(
+    "nrm_vector_get", [nrm_vector, nrm_int, POINTER(ct.c_void_p)]
+)
+
+
+def _nrm_vector_to_list(vector_p: nrm_vector) -> list:
+    length = nrm_int(0)
+    nrm_vector_length(nrm_vector, byref(length))
+    pylist = []
+    out = ct.c_void_p
+    for i in range(length):
+        nrm_vector_get(vector_p, i, byref(out))
+        pylist[i] = out.value
+    return pylist
 
 
 def _init_and_register_exit():

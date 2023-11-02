@@ -6,13 +6,21 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from ctypes import byref, POINTER
+from ctypes import byref, POINTER, sizeof
 from dataclasses import dataclass
+from pydantic import BaseModel
 from .base import (
     _nrm_get_function,
+    _nrm_vector_to_list,
     nrm_client,
     nrm_str,
     nrm_int,
+    nrm_vector,
+    nrm_sensor,
+    nrm_actuator,
+    upstream_uri,
+    upstream_pub_port,
+    upstream_rpc_port,
 )
 
 nrm_client_create = _nrm_get_function(
@@ -20,6 +28,14 @@ nrm_client_create = _nrm_get_function(
 )
 nrm_client_destroy = _nrm_get_function(
     "nrm_client_destroy", [POINTER(nrm_client)], None, None
+)
+
+nrm_client_list_actuators - _nrm_get_function(
+    "nrm_client_list_actuators", [nrm_client, POINTER(nrm_vector)]
+)
+
+nrm_client_list_sensors - _nrm_get_function(
+    "nrm_client_list_sensors", [nrm_client, POINTER(nrm_sensor)]
 )
 
 
@@ -38,18 +54,46 @@ class Client:
 
     def __init__(
         self,
-        uri: str = "tcp://127.0.0.1",
-        pub_port: int = 2345,
-        rpc_port: int = 3456,
+        uri: str = None,
+        pub_port: int = None,
+        rpc_port: int = None,
     ):
-        self.uri = uri
-        self.pub_port = pub_port
-        self.rpc_port = rpc_port
+        self.uri = uri if uri else upstream_uri
+        self.pub_port = pub_port if pub_port else upstream_pub_port
+        self.rpc_port = rpc_port if rpc_port else upstream_rpc_port
         self.client = nrm_client(0)
 
-        nrm_client_create(
-            byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port
-        )
+        nrm_client_create(byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port)
+
+    def list_actuators(self):
+        pass
+
+    def list_sensors(self):
+        pass
+
+    def send_event(self):
+        pass
+
+    def find(self):
+        pass
 
     def __del__(self):
         nrm_client_destroy(byref(self.client))
+
+
+class _NRMComponent(BaseModel):
+    uuid: str
+
+
+class Actuator(_NRMComponent):
+    clientid: str
+    value: float
+    choices: list
+
+
+class Sensor(_NRMComponent):
+    pass
+
+
+class Scope(_NRMComponent):
+    maps: list
