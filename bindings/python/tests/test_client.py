@@ -29,5 +29,6 @@ class TestClient(unittest.TestCase):
             client = Client()
             client.append_new_actuator("test_actuator")
 
+
 if __name__ == "__main__":
     unittest.main()

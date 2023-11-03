@@ -56,7 +56,9 @@ nrm_client_add_actuator = _nrm_get_function(
     "nrm_client_add_actuator", [nrm_client, nrm_actuator]
 )
 
-nrm_actuator_create = _nrm_get_function("nrm_actuator_create", [nrm_str], nrm_actuator, None)
+nrm_actuator_create = _nrm_get_function(
+    "nrm_actuator_create", [nrm_str], nrm_actuator, None
+)
 
 nrm_sensor_create = _nrm_get_function("nrm_sensor_create", [nrm_str], nrm_sensor, None)
 
@@ -87,9 +89,7 @@ class Client:
         if isinstance(self.uri, str):
             self.uri = bytes(self.uri, "utf-8")
 
-        nrm_client_create(
-            byref(self.client), self.uri, self.pub_port, self.rpc_port
-        )
+        nrm_client_create(byref(self.client), self.uri, self.pub_port, self.rpc_port)
 
     @property
     def sensors(self) -> list:
@@ -129,16 +129,20 @@ class Client:
 class _NRMComponent(BaseModel):
     uuid: nrm_str
 
+
 class Actuator(_NRMComponent):
     clientid: nrm_str
     value: nrm_float
     choices: nrm_vector
 
+
 class Sensor(_NRMComponent):
     pass
 
+
 class Scope(_NRMComponent):
     maps: nrm_vector
+
 
 class Slice(_NRMComponent):
     pass
