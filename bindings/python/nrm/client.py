@@ -46,14 +46,9 @@ nrm_client_add_actuator = _nrm_get_function(
     "nrm_client_add_actuator", [nrm_client, nrm_actuator]
 )
 
-nrm_actuator_create = _nrm_get_function(
-    "nrm_actuator_create", [nrm_str], nrm_actuator
-)
+nrm_actuator_create = _nrm_get_function("nrm_actuator_create", [nrm_str], nrm_actuator)
 
-nrm_sensor_create = _nrm_get_function(
-    "nrm_sensor_create", [nrm_str], nrm_sensor
-)
-
+nrm_sensor_create = _nrm_get_function("nrm_sensor_create", [nrm_str], nrm_sensor)
 
 
 class Client:
@@ -81,13 +76,20 @@ class Client:
         self.rpc_port = rpc_port if rpc_port else upstream_rpc_port
         self.client = nrm_client(0)
 
-        nrm_client_create(byref(self.client), bytes(self.uri, "utf-8"), self,pub_port, self.rpc_port)
+        if isinstance(self.uri, str):
+            self.uri = bytes(self.uri, "utf-8")
+
+        nrm_client_create(
+            byref(self.client), self.uri, self.pub_port, self.rpc_port
+        )
 
     @property
     def sensors(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_sensors(self.client, byref(vector))
-        return _nrm_vector_to_list(vector)
+        cval_list = _nrm_vector_to_list(vector)
+        pyval_list = [Sensor(uuid=i.contents.uuid) for i in cval_list]
+        return pyval_list
 
     def append_new_sensor(self, name: str):
         sensor = nrm_sensor_create(bytes(name, "utf-8"))
@@ -97,7 +99,16 @@ class Client:
     def actuators(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_actuators(self.client, byref(vector))
-        return _nrm_vector_to_list(vector)
+        cval_list = _nrm_vector_to_list(vector)
+        pyval_list = [
+            Actuator(
+                uuid=i.contents.uuid,
+                clientid=str(i.contents.clientid),
+                value=i.contents.value,
+                choices=i.contents.choices,
+            )
+            for i in cval_list
+        ]
 
     def append_new_actuator(self, name: str):
         actuator = nrm_actuator_create(bytes(name, "utf-8"))
@@ -107,17 +118,16 @@ class Client:
         nrm_client_destroy(byref(self.client))
 
 
+class _NRMComponent(BaseModel):
+    uuid: str
+
 class Actuator(_NRMComponent):
     clientid: str
     value: float
     choices: list
 
-class _NRMComponent(BaseModel):
-    uuid: str
-
 class Sensor(_NRMComponent):
     pass
-
 
 class Scope(_NRMComponent):
     maps: list

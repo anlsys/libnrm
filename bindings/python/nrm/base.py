@@ -74,7 +74,7 @@ nrm_vector_get = _nrm_get_function(
 )
 
 nrm_vector_destroy = _nrm_get_function(
-    "nrm_vector_destroy", [ct.POINTER(nrm_vector), None]
+    "nrm_vector_destroy", [ct.POINTER(nrm_vector)], None
 )
 
 
