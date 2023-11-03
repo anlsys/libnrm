@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from nrm import Client, Setup
+from nrm import Client, Setup, Actuator, Sensor
 import unittest
 import os
 

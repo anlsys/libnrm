@@ -14,6 +14,7 @@ from .base import (
     _nrm_vector_to_list,
     nrm_client,
     nrm_str,
+    nrm_float,
     nrm_int,
     nrm_uint,
     nrm_vector,
@@ -39,6 +40,14 @@ nrm_client_list_sensors = _nrm_get_function(
     "nrm_client_list_sensors", [nrm_client, POINTER(nrm_vector)]
 )
 
+nrm_client_list_scopes = _nrm_get_function(
+    "nrm_client_list_scopes", [nrm_client, POINTER(nrm_vector)]
+)
+
+nrm_client_list_slices = _nrm_get_function(
+    "nrm_client_list_slices", [nrm_client, POINTER(nrm_vector)]
+)
+
 nrm_client_add_sensor = _nrm_get_function(
     "nrm_client_add_sensor", [nrm_client, nrm_sensor]
 )
@@ -61,8 +70,6 @@ class Client:
     my_client = Client("tcp://127.0.0.1", 2345, 3456)
     ...
     my_client.append_actuator(my_actuator)
-    # OR???
-    my_client.actuators.append(my_actuator)
 
     """
 
@@ -92,10 +99,6 @@ class Client:
         pyval_list = [Sensor(uuid=i.contents.uuid) for i in cval_list]
         return pyval_list
 
-    def append_new_sensor(self, name: str):
-        sensor = nrm_sensor_create(bytes(name, "utf-8"))
-        nrm_client_add_sensor(self.client, sensor)
-
     @property
     def actuators(self) -> list:
         vector = nrm_vector(0)
@@ -111,6 +114,10 @@ class Client:
             for i in cval_list
         ]
 
+    def append_new_sensor(self, name: str):
+        sensor = nrm_sensor_create(bytes(name, "utf-8"))
+        nrm_client_add_sensor(self.client, sensor)
+
     def append_new_actuator(self, name: str):
         actuator = nrm_actuator_create(bytes(name, "utf-8"))
         nrm_client_add_actuator(self.client, actuator)
@@ -120,15 +127,18 @@ class Client:
 
 
 class _NRMComponent(BaseModel):
-    uuid: str
+    uuid: nrm_str
 
 class Actuator(_NRMComponent):
-    clientid: str
-    value: float
-    choices: list
+    clientid: nrm_str
+    value: nrm_float
+    choices: nrm_vector
 
 class Sensor(_NRMComponent):
     pass
 
 class Scope(_NRMComponent):
-    maps: list
+    maps: nrm_vector
+
+class Slice(_NRMComponent):
+    pass
