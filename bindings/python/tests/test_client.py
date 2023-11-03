@@ -21,7 +21,6 @@ class TestClient(unittest.TestCase):
 
     def test_append_sensor(self):
         with Setup("nrmd", options=options):
-            import pdb; pdb.set_trace()
             client = Client()
             client.append_new_sensor("test_sensor")
 

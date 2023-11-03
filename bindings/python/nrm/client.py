@@ -15,6 +15,7 @@ from .base import (
     nrm_client,
     nrm_str,
     nrm_int,
+    nrm_uint,
     nrm_vector,
     nrm_sensor,
     nrm_actuator,
@@ -24,7 +25,7 @@ from .base import (
 )
 
 nrm_client_create = _nrm_get_function(
-    "nrm_client_create", [POINTER(nrm_client), nrm_str, nrm_int, nrm_int]
+    "nrm_client_create", [POINTER(nrm_client), nrm_str, nrm_uint, nrm_uint]
 )
 nrm_client_destroy = _nrm_get_function(
     "nrm_client_destroy", [POINTER(nrm_client)], None, None
@@ -46,9 +47,9 @@ nrm_client_add_actuator = _nrm_get_function(
     "nrm_client_add_actuator", [nrm_client, nrm_actuator]
 )
 
-nrm_actuator_create = _nrm_get_function("nrm_actuator_create", [nrm_str], nrm_actuator)
+nrm_actuator_create = _nrm_get_function("nrm_actuator_create", [nrm_str], nrm_actuator, None)
 
-nrm_sensor_create = _nrm_get_function("nrm_sensor_create", [nrm_str], nrm_sensor)
+nrm_sensor_create = _nrm_get_function("nrm_sensor_create", [nrm_str], nrm_sensor, None)
 
 
 class Client:
