@@ -30,16 +30,32 @@ nrm_client_destroy = _nrm_get_function(
     "nrm_client_destroy", [POINTER(nrm_client)], None, None
 )
 
-nrm_client_list_actuators - _nrm_get_function(
+nrm_client_list_actuators = _nrm_get_function(
     "nrm_client_list_actuators", [nrm_client, POINTER(nrm_vector)]
 )
 
-nrm_client_list_sensors - _nrm_get_function(
+nrm_client_list_sensors = _nrm_get_function(
     "nrm_client_list_sensors", [nrm_client, POINTER(nrm_vector)]
 )
 
+nrm_client_add_sensor = _nrm_get_function(
+    "nrm_client_add_sensor", [nrm_client, nrm_sensor]
+)
 
-@dataclass
+nrm_client_add_actuator = _nrm_get_function(
+    "nrm_client_add_actuator", [nrm_client, nrm_actuator]
+)
+
+nrm_actuator_create = _nrm_get_function(
+    "nrm_actuator_create", [nrm_str], nrm_actuator
+)
+
+nrm_sensor_create = _nrm_get_function(
+    "nrm_sensor_create", [nrm_str], nrm_sensor
+)
+
+
+
 class Client:
     """Client class for interacting with NRM C interface.
     Tentative usage:
@@ -65,7 +81,7 @@ class Client:
         self.rpc_port = rpc_port if rpc_port else upstream_rpc_port
         self.client = nrm_client(0)
 
-        nrm_client_create(byref(self.client), bytes(uri, "utf-8"), pub_port, rpc_port)
+        nrm_client_create(byref(self.client), bytes(self.uri, "utf-8"), self,pub_port, self.rpc_port)
 
     @property
     def sensors(self) -> list:
@@ -73,8 +89,9 @@ class Client:
         nrm_client_list_sensors(self.client, byref(vector))
         return _nrm_vector_to_list(vector)
 
-    def append_sensor(self, obj: Sensor):
-        pass
+    def append_new_sensor(self, name: str):
+        sensor = nrm_sensor_create(bytes(name, "utf-8"))
+        nrm_client_add_sensor(self.client, sensor)
 
     @property
     def actuators(self) -> list:
@@ -82,24 +99,12 @@ class Client:
         nrm_client_list_actuators(self.client, byref(vector))
         return _nrm_vector_to_list(vector)
 
-    def append_actuator(self, obj: Actuator):
-        pass
-
-    def send_event(self):
-        pass
-
-    def actuate(self):
-        pass
-
-    def find(self):
-        pass
+    def append_new_actuator(self, name: str):
+        actuator = nrm_actuator_create(bytes(name, "utf-8"))
+        nrm_client_add_actuator(self.client, actuator)
 
     def __del__(self):
         nrm_client_destroy(byref(self.client))
-
-
-class _NRMComponent(BaseModel):
-    uuid: str
 
 
 class Actuator(_NRMComponent):
@@ -107,6 +112,8 @@ class Actuator(_NRMComponent):
     value: float
     choices: list
 
+class _NRMComponent(BaseModel):
+    uuid: str
 
 class Sensor(_NRMComponent):
     pass

@@ -19,6 +19,15 @@ class TestClient(unittest.TestCase):
             client = Client()
             del client
 
+    def test_append_sensor(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            client.append_new_sensor("test_sensor")
+
+    def test_append_actuator(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            client.append_new_actuator("test_actuator")
 
 if __name__ == "__main__":
     unittest.main()
