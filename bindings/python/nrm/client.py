@@ -10,6 +10,7 @@ from ctypes import byref, POINTER, sizeof
 from dataclasses import dataclass
 from pydantic import BaseModel
 from .base import (
+    Error,
     _nrm_get_function,
     _nrm_vector_to_list,
     nrm_client,
@@ -57,10 +58,10 @@ nrm_client_add_actuator = _nrm_get_function(
 )
 
 nrm_actuator_create = _nrm_get_function(
-    "nrm_actuator_create", [nrm_str], nrm_actuator, None
+    "nrm_actuator_create", [nrm_str], nrm_actuator, Error.checkptr
 )
 
-nrm_sensor_create = _nrm_get_function("nrm_sensor_create", [nrm_str], nrm_sensor, None)
+nrm_sensor_create = _nrm_get_function("nrm_sensor_create", [nrm_str], nrm_sensor, Error.checkptr)
 
 
 class Client:
@@ -91,16 +92,14 @@ class Client:
 
         nrm_client_create(byref(self.client), self.uri, self.pub_port, self.rpc_port)
 
-    @property
-    def sensors(self) -> list:
+    def list_sensors(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_sensors(self.client, byref(vector))
         cval_list = _nrm_vector_to_list(vector)
         pyval_list = [Sensor(uuid=i.contents.uuid) for i in cval_list]
         return pyval_list
 
-    @property
-    def actuators(self) -> list:
+    def list_actuators(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_actuators(self.client, byref(vector))
         cval_list = _nrm_vector_to_list(vector)
@@ -113,6 +112,7 @@ class Client:
             )
             for i in cval_list
         ]
+        return pyval_list
 
     def append_new_sensor(self, name: str):
         sensor = nrm_sensor_create(bytes(name, "utf-8"))

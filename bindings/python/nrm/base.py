@@ -51,6 +51,12 @@ class Error(Exception):
             raise cls(ret)
         return ret
 
+    @classmethod
+    def checkptr(cls, result, func, args):
+        if isinstance(result, ct.c_void_p):
+            raise cls(-1)
+        return result
+
 
 # Utils
 
