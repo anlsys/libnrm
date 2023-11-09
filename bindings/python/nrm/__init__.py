@@ -29,5 +29,5 @@ from .base import (
     timeout,
 )
 
-from .client import Client
+from .client import Client, Actuator, Sensor
 from .setup import Setup

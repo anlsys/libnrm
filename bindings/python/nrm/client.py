@@ -8,11 +8,10 @@
 
 from ctypes import byref, POINTER, sizeof
 from dataclasses import dataclass
-from pydantic import BaseModel
 from .base import (
     Error,
     _nrm_get_function,
-    _nrm_vector_to_list,
+    _nrm_vector_to_list_by_type,
     nrm_client,
     nrm_str,
     nrm_float,
@@ -61,7 +60,9 @@ nrm_actuator_create = _nrm_get_function(
     "nrm_actuator_create", [nrm_str], nrm_actuator, Error.checkptr
 )
 
-nrm_sensor_create = _nrm_get_function("nrm_sensor_create", [nrm_str], nrm_sensor, Error.checkptr)
+nrm_sensor_create = _nrm_get_function(
+    "nrm_sensor_create", [nrm_str], nrm_sensor, Error.checkptr
+)
 
 
 class Client:
@@ -95,23 +96,15 @@ class Client:
     def list_sensors(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_sensors(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list(vector)
-        pyval_list = [Sensor(uuid=i.contents.uuid) for i in cval_list]
+        cval_list = _nrm_vector_to_list_by_type(vector)
+        pyval_list = [Sensor(ptr=i) for i in cval_list]
         return pyval_list
 
     def list_actuators(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_actuators(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list(vector)
-        pyval_list = [
-            Actuator(
-                uuid=i.contents.uuid,
-                clientid=str(i.contents.clientid),
-                value=i.contents.value,
-                choices=i.contents.choices,
-            )
-            for i in cval_list
-        ]
+        cval_list = _nrm_vector_to_list_by_type(vector)
+        pyval_list = [Actuator(ptr=i) for i in cval_list]
         return pyval_list
 
     def append_new_sensor(self, name: str):
@@ -126,14 +119,23 @@ class Client:
         nrm_client_destroy(byref(self.client))
 
 
-class _NRMComponent(BaseModel):
-    uuid: nrm_str
+@dataclass
+class _NRMComponent:
+    ptr: int
+
+    def get_uuid(self):
+        pass
 
 
 class Actuator(_NRMComponent):
-    clientid: nrm_str
-    value: nrm_float
-    choices: nrm_vector
+    def get_clientid(self):
+        pass
+
+    def get_value(self):
+        pass
+
+    def list_choices(self):
+        pass
 
 
 class Sensor(_NRMComponent):
@@ -141,7 +143,7 @@ class Sensor(_NRMComponent):
 
 
 class Scope(_NRMComponent):
-    maps: nrm_vector
+    pass
 
 
 class Slice(_NRMComponent):

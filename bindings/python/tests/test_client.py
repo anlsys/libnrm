@@ -23,11 +23,15 @@ class TestClient(unittest.TestCase):
         with Setup("nrmd", options=options):
             client = Client()
             client.append_new_sensor("test_sensor")
+            assert len(client.list_sensors())
+            assert isinstance(client.list_sensors()[0], Sensor)
 
     def test_append_actuator(self):
         with Setup("nrmd", options=options):
             client = Client()
             client.append_new_actuator("test_actuator")
+            assert len(client.list_actuators())
+            assert isinstance(client.list_actuators()[0], Actuator)
 
 
 if __name__ == "__main__":

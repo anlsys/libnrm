@@ -81,19 +81,19 @@ nrm_vector_get = _nrm_get_function(
 )
 
 nrm_vector_destroy = _nrm_get_function(
-    "nrm_vector_destroy", [ct.POINTER(nrm_vector)], None
+    "nrm_vector_destroy", [ct.POINTER(nrm_vector)], None, None
 )
 
 
-def _nrm_vector_to_list(vector_p: nrm_vector) -> list:
+def _nrm_vector_to_list_by_type(vector_p: nrm_vector, nrm_type=ct.c_void_p) -> list:
     length = nrm_int(0)
-    nrm_vector_length(nrm_vector, byref(length))
+    nrm_vector_length(vector_p, ct.byref(length))
     pylist = []
-    out = ct.c_void_p
-    for i in range(length):
-        nrm_vector_get(vector_p, i, byref(out))
-        pylist[i] = out.value
-    nrm_vector_destroy(byref(nrm_vector))
+    out = nrm_type(0)
+    for i in range(length.value):
+        nrm_vector_get(vector_p, i, ct.byref(out))
+        pylist.append(out.value)
+    nrm_vector_destroy(ct.byref(vector_p))
     return pylist
 
 
