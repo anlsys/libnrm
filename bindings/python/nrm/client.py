@@ -20,6 +20,8 @@ from .base import (
     nrm_vector,
     nrm_sensor,
     nrm_actuator,
+    nrm_scope,
+    nrm_slice,
     upstream_uri,
     upstream_pub_port,
     upstream_rpc_port,
@@ -56,12 +58,28 @@ nrm_client_add_actuator = _nrm_get_function(
     "nrm_client_add_actuator", [nrm_client, nrm_actuator]
 )
 
-nrm_actuator_create = _nrm_get_function(
-    "nrm_actuator_create", [nrm_str], nrm_actuator, Error.checkptr
+nrm_client_add_scope = _nrm_get_function(
+    "nrm_client_add_scope", [nrm_client, nrm_scope]
+)
+
+nrm_client_add_slice = _nrm_get_function(
+    "nrm_client_add_slice", [nrm_client, nrm_slice]
 )
 
 nrm_sensor_create = _nrm_get_function(
     "nrm_sensor_create", [nrm_str], nrm_sensor, Error.checkptr
+)
+
+nrm_actuator_create = _nrm_get_function(
+    "nrm_actuator_create", [nrm_str], nrm_actuator, Error.checkptr
+)
+
+nrm_scope_create = _nrm_get_function(
+    "nrm_scope_create", [nrm_str], nrm_scope, Error.checkptr
+)
+
+nrm_slice_create = _nrm_get_function(
+    "nrm_slice_create", [nrm_str], nrm_slice, Error.checkptr
 )
 
 
@@ -97,15 +115,25 @@ class Client:
         vector = nrm_vector(0)
         nrm_client_list_sensors(self.client, byref(vector))
         cval_list = _nrm_vector_to_list_by_type(vector)
-        pyval_list = [Sensor(ptr=i) for i in cval_list]
-        return pyval_list
+        return [Sensor(ptr=i) for i in cval_list]
 
     def list_actuators(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_actuators(self.client, byref(vector))
         cval_list = _nrm_vector_to_list_by_type(vector)
-        pyval_list = [Actuator(ptr=i) for i in cval_list]
-        return pyval_list
+        return [Actuator(ptr=i) for i in cval_list]
+
+    def list_scopes(self) -> list:
+        vector = nrm_vector(0)
+        nrm_client_list_scopes(self.client, byref(vector))
+        cval_list = _nrm_vector_to_list_by_type(vector)
+        return [Scope(ptr=i) for i in cval_list]
+
+    def list_slices(self) -> list:
+        vector = nrm_vector(0)
+        nrm_client_list_slices(self.client, byref(vector))
+        cval_list = _nrm_vector_to_list_by_type(vector)
+        return [Slice(ptr=i) for i in cval_list]
 
     def append_new_sensor(self, name: str):
         sensor = nrm_sensor_create(bytes(name, "utf-8"))
@@ -114,6 +142,14 @@ class Client:
     def append_new_actuator(self, name: str):
         actuator = nrm_actuator_create(bytes(name, "utf-8"))
         nrm_client_add_actuator(self.client, actuator)
+
+    def append_new_scope(self, name: str):
+        scope = nrm_scope_create(bytes(name, "utf-8"))
+        nrm_client_add_scope(self.client, scope)
+
+    def append_new_slice(self, name: str):
+        nslice = nrm_slice_create(bytes(name, "utf-8"))  # "slice" is builtin
+        nrm_client_add_slice(self.client, nslice)
 
     def __del__(self):
         nrm_client_destroy(byref(self.client))

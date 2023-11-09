@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from nrm import Client, Setup, Actuator, Sensor
+from nrm import Client, Setup, Actuator, Sensor, Scope, Slice
 import unittest
 import os
 
@@ -33,6 +33,19 @@ class TestClient(unittest.TestCase):
             assert len(client.list_actuators())
             assert isinstance(client.list_actuators()[0], Actuator)
 
+    def test_append_scope(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            client.append_new_scope("test_scope")
+            assert len(client.list_scopes())
+            assert isinstance(client.list_scopes()[0], Scope)
+
+    def test_append_slice(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            client.append_new_slice("test_slice")
+            assert len(client.list_slices())
+            assert isinstance(client.list_slices()[0], Slice)
 
 if __name__ == "__main__":
     unittest.main()
