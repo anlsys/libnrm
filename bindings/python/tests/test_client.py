@@ -19,33 +19,37 @@ class TestClient(unittest.TestCase):
             client = Client()
             del client
 
-    def test_append_sensor(self):
+    def test_append_list_del_sensor(self):
         with Setup("nrmd", options=options):
             client = Client()
             client.append_new_sensor("test_sensor")
-            assert len(client.list_sensors())
-            assert isinstance(client.list_sensors()[0], Sensor)
+            sensors = client.list_sensors()
+            assert len(sensors)
+            assert isinstance(sensors[0], Sensor)
 
-    def test_append_actuator(self):
+    def test_append_list_del_actuator(self):
         with Setup("nrmd", options=options):
             client = Client()
             client.append_new_actuator("test_actuator")
-            assert len(client.list_actuators())
-            assert isinstance(client.list_actuators()[0], Actuator)
+            actuators = client.list_actuators()
+            assert len(actuators)
+            assert isinstance(actuators[0], Actuator)
 
-    def test_append_scope(self):
+    def test_append_list_del_scope(self):
         with Setup("nrmd", options=options):
             client = Client()
             client.append_new_scope("test_scope")
-            assert len(client.list_scopes())
-            assert isinstance(client.list_scopes()[0], Scope)
+            scopes = client.list_scopes()
+            assert len(scopes)
+            assert isinstance(scopes[0], Scope)
 
-    def test_append_slice(self):
+    def test_append_list_del_slice(self):
         with Setup("nrmd", options=options):
             client = Client()
             client.append_new_slice("test_slice")
-            assert len(client.list_slices())
-            assert isinstance(client.list_slices()[0], Slice)
+            slices = client.list_slices()
+            assert len(slices)
+            assert isinstance(slices[0], Slice)
 
 if __name__ == "__main__":
     unittest.main()

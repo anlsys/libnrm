@@ -82,6 +82,20 @@ nrm_slice_create = _nrm_get_function(
     "nrm_slice_create", [nrm_str], nrm_slice, Error.checkptr
 )
 
+nrm_sensor_destroy = _nrm_get_function(
+    "nrm_sensor_destroy", [POINTER(nrm_sensor)], None, None
+)
+
+nrm_actuator_destroy = _nrm_get_function(
+    "nrm_actuator_destroy", [POINTER(nrm_actuator)], None, None
+)
+
+nrm_scope_destroy = _nrm_get_function("nrm_scope_destroy", [nrm_scope])
+
+nrm_slice_destroy = _nrm_get_function(
+    "nrm_slice_destroy", [POINTER(nrm_slice)], None, None
+)
+
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -173,14 +187,23 @@ class Actuator(_NRMComponent):
     def list_choices(self):
         pass
 
+    def __del__(self):
+        nrm_actuator_destroy(byref(nrm_actuator(self.ptr)))
+
 
 class Sensor(_NRMComponent):
-    pass
+    def __del__(self):
+        nrm_sensor_destroy(byref(nrm_sensor(self.ptr)))
 
 
 class Scope(_NRMComponent):
-    pass
+    def get_resources(self):
+        pass
+
+    def __del__(self):
+        nrm_scope_destroy(nrm_scope(self.ptr))
 
 
 class Slice(_NRMComponent):
-    pass
+    def __del__(self):
+        nrm_slice_destroy(byref(nrm_slice(self.ptr)))
