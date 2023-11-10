@@ -24,7 +24,6 @@ nrm_scope = ct.c_void_p
 nrm_slice = ct.c_void_p
 nrm_vector = ct.c_void_p
 nrm_uuid = nrm_str
-json = ct.c_void_p
 
 
 # Error types
@@ -95,7 +94,7 @@ def _nrm_vector_to_list_by_type(vector_p: nrm_vector, nrm_type=ct.c_void_p) -> l
     out = nrm_type(0)
     for i in range(length.value):
         nrm_vector_get(vector_p, i, ct.byref(out))
-        pylist.append(out.value)
+        pylist.append(out)
     nrm_vector_destroy(ct.byref(vector_p))
     return pylist
 

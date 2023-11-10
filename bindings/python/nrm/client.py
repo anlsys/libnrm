@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from ctypes import byref, POINTER, sizeof, c_void_p
+from ctypes import byref, POINTER, sizeof, c_void_p, c_double, cast
 from dataclasses import dataclass
 from .base import (
     Error,
@@ -14,6 +14,7 @@ from .base import (
     _nrm_vector_to_list_by_type,
     nrm_client,
     nrm_str,
+    nrm_uuid,
     nrm_float,
     nrm_int,
     nrm_uint,
@@ -22,7 +23,6 @@ from .base import (
     nrm_actuator,
     nrm_scope,
     nrm_slice,
-    json,
     upstream_uri,
     upstream_pub_port,
     upstream_rpc_port,
@@ -101,10 +101,21 @@ nrm_scope_uuid = _nrm_get_function(
     "nrm_scope_uuid", [nrm_scope], nrm_str, Error.checkptr
 )
 
-nrm_scope_to_json = _nrm_get_function(
-    "nrm_scope_to_json", [nrm_scope], json, Error.checkptr
+nrm_actuator_uuid = _nrm_get_function(
+    "nrm_actuator_uuid", [nrm_actuator], nrm_str, Error.checkptr
 )
 
+nrm_actuator_clientid = _nrm_get_function(
+    "nrm_actuator_clientid", [nrm_actuator], nrm_uuid, Error.checkptr
+)
+
+nrm_actuator_value = _nrm_get_function(
+    "nrm_actuator_value", [nrm_actuator],  c_double, None
+)
+
+nrm_actuator_choices = _nrm_get_function(
+    "nrm_actuator_choices", [nrm_actuator], nrm_vector, Error.checkptr
+)
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -137,26 +148,26 @@ class Client:
     def list_sensors(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_sensors(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector)
-        return [Sensor(ptr=i) for i in cval_list]
+        cval_list = _nrm_vector_to_list_by_type(vector, nrm_sensor)
+        return [Sensor(ptr=cast(i, nrm_sensor)) for i in cval_list]
 
     def list_actuators(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_actuators(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector)
-        return [Actuator(ptr=i) for i in cval_list]
+        cval_list = _nrm_vector_to_list_by_type(vector, nrm_actuator)
+        return [Actuator(ptr=cast(i, nrm_actuator)) for i in cval_list]
 
     def list_scopes(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_scopes(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector)
-        return [Scope(ptr=i) for i in cval_list]
+        cval_list = _nrm_vector_to_list_by_type(vector, nrm_scope)
+        return [Scope(ptr=cast(i, nrm_scope)) for i in cval_list]
 
     def list_slices(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_slices(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector)
-        return [Slice(ptr=i) for i in cval_list]
+        cval_list = _nrm_vector_to_list_by_type(vector, nrm_slice)
+        return [Slice(ptr=cast(i, nrm_slice)) for i in cval_list]
 
     def add_sensor(self, name: str):
         sensor = nrm_sensor_create(bytes(name, "utf-8"))
@@ -186,19 +197,20 @@ class _NRMComponent:
 class Actuator(_NRMComponent):
 
     def get_uuid(self):
-        pass
+        return str(nrm_actuator_uuid(self.ptr))
 
     def get_clientid(self):
-        pass
+        return str(nrm_actuator_clientid(self.ptr).value)
 
     def get_value(self):
-        pass
+        return nrm_actuator_value(self.ptr)
 
     def list_choices(self):
-        pass
+        vector = nrm_actuator_choices(self.ptr)
+        return _nrm_vector_to_list_by_type(vector, c_double)
 
-    def __del__(self):
-        nrm_actuator_destroy(byref(nrm_actuator(self.ptr)))
+    # def __del__(self):
+    #     nrm_actuator_destroy(byref(self.ptr))
 
 
 class Sensor(_NRMComponent):
@@ -207,7 +219,7 @@ class Sensor(_NRMComponent):
         pass
 
     def __del__(self):
-        nrm_sensor_destroy(byref(nrm_sensor(self.ptr)))
+        nrm_sensor_destroy(byref(self.ptr))
 
 
 class Scope(_NRMComponent):
@@ -215,11 +227,8 @@ class Scope(_NRMComponent):
     def get_uuid(self):
         return str(nrm_scope_uuid(self.ptr))
 
-    def to_json(self):
-        return str(nrm_scope_to_json(self.ptr))
-
-    def __del__(self):
-        nrm_scope_destroy(nrm_scope(self.ptr))
+    # def __del__(self):
+    #     nrm_scope_destroy(self.ptr)
 
 
 class Slice(_NRMComponent):
@@ -227,5 +236,5 @@ class Slice(_NRMComponent):
     def get_uuid(self):
         pass 
 
-    def __del__(self):
-        nrm_slice_destroy(byref(nrm_slice(self.ptr)))
+    # def __del__(self):
+    #     nrm_slice_destroy(byref(self.ptr))

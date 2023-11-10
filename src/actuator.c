@@ -60,8 +60,8 @@ double nrm_actuator_value(nrm_actuator_t *actuator){
 	return actuator->value;
 }
 
-nrm_vector_t nrm_actuator_choices(nrm_actuator_t *actuator){
-	retsurn actuator->choices;
+nrm_vector_t *nrm_actuator_choices(nrm_actuator_t *actuator){
+	return actuator->choices;
 }
 
 int nrm_actuator_closest_choice(nrm_actuator_t *actuator, double *value)
