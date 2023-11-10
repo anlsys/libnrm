@@ -48,6 +48,22 @@ int nrm_actuator_set_choices(nrm_actuator_t *actuator,
 	return 0;
 }
 
+nrm_string_t nrm_actuator_uuid(nrm_actuator_t *actuator){
+	return actuator->uuid;
+}
+
+nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *actuator){
+	return actuator->clientid;
+}
+
+double nrm_actuator_value(nrm_actuator_t *actuator){
+	return actuator->value;
+}
+
+nrm_vector_t nrm_actuator_choices(nrm_actuator_t *actuator){
+	retsurn actuator->choices;
+}
+
 int nrm_actuator_closest_choice(nrm_actuator_t *actuator, double *value)
 {
 	if (actuator == NULL || value == NULL)

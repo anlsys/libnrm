@@ -23,6 +23,9 @@ nrm_sensor = ct.c_void_p
 nrm_scope = ct.c_void_p
 nrm_slice = ct.c_void_p
 nrm_vector = ct.c_void_p
+nrm_uuid = nrm_str
+json = ct.c_void_p
+
 
 # Error types
 
@@ -53,7 +56,7 @@ class Error(Exception):
 
     @classmethod
     def checkptr(cls, result, func, args):
-        if isinstance(result, ct.c_void_p):
+        if not result:
             raise cls(-1)
         return result
 
@@ -74,7 +77,7 @@ nrm_init = _nrm_get_function("nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_st
 nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
 
 nrm_vector_length = _nrm_get_function(
-    "nrm_vector_length", [nrm_vector, ct.POINTER(nrm_int)]
+    "nrm_vector_length", [nrm_vector, ct.POINTER(ct.c_size_t)]
 )
 nrm_vector_get = _nrm_get_function(
     "nrm_vector_get", [nrm_vector, nrm_int, ct.POINTER(ct.c_void_p)]
@@ -86,7 +89,7 @@ nrm_vector_destroy = _nrm_get_function(
 
 
 def _nrm_vector_to_list_by_type(vector_p: nrm_vector, nrm_type=ct.c_void_p) -> list:
-    length = nrm_int(0)
+    length = ct.c_size_t(0)
     nrm_vector_length(vector_p, ct.byref(length))
     pylist = []
     out = nrm_type(0)

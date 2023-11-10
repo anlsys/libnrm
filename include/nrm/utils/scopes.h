@@ -8,6 +8,8 @@
  * SPDX-License-Identifier: BSD-3-Clause
  *******************************************************************************/
 
+#include "internal/nrmi.h"
+
 #ifndef NRM_SCOPES_H
 #define NRM_SCOPES_H 1
 
@@ -77,9 +79,11 @@ int nrm_scope_snprintf(char *buf, size_t bufsize, const nrm_scope_t *scope);
 
 /**
  * Returns the UUID of an NRM scope
- * @return the UUID if successful, an error code otherwise
+ * @return the UUID if successful
  */
 nrm_string_t nrm_scope_uuid(nrm_scope_t *scope);
+
+json_t *nrm_scope_to_json(nrm_scope_t *scope);
 
 /*******************************************************************************
  * Scope Utils
