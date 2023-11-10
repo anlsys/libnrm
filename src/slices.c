@@ -26,6 +26,10 @@ nrm_slice_t *nrm_slice_create(const char *name)
 	return ret;
 }
 
+nrm_string_t nrm_slice_uuid(nrm_slice_t *slice){
+	return slice->uuid;
+}
+
 json_t *nrm_slice_to_json(nrm_slice_t *slice)
 {
 	return json_pack("{s:s}", "uuid", slice->uuid);

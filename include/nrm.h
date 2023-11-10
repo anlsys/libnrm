@@ -152,9 +152,7 @@ int nrm_actuator_set_choices(nrm_actuator_t *, size_t, double *);
 nrm_string_t nrm_actuator_uuid(nrm_actuator_t *);
 nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *);
 double nrm_actuator_value(nrm_actuator_t *);
-nrm_vector_t nrm_actuator_choices(nrm_actuator_t *);
-
-json_t *nrm_actuator_to_json(nrm_actuator_t *);
+nrm_vector_t *nrm_actuator_choices(nrm_actuator_t *);
 
 void nrm_actuator_destroy(nrm_actuator_t **);
 void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
@@ -183,6 +181,8 @@ typedef struct nrm_slice_s nrm_slice_t;
  * @return: a new NRM slice structure
  */
 nrm_slice_t *nrm_slice_create(const char *name);
+
+nrm_string_t nrm_slice_uuid(nrm_slice_t *);
 
 /**
  * Removes an NRM slice. Do this for each slice before an instrumented program
