@@ -63,7 +63,9 @@ class Error(Exception):
 # Utils
 
 
-def _nrm_get_function(method, argtypes=[], restype=nrm_int, errcheck=Error.check):
+def _nrm_get_function(
+    method, argtypes=[], restype=nrm_int, errcheck=Error.check
+):
     res = getattr(libnrm, method)
     res.restype = restype
     res.argtypes = argtypes
@@ -72,29 +74,48 @@ def _nrm_get_function(method, argtypes=[], restype=nrm_int, errcheck=Error.check
     return res
 
 
-nrm_init = _nrm_get_function("nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)])
+nrm_init = _nrm_get_function(
+    "nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)]
+)
 nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
+
+nrm_vector_create = _nrm_get_function(
+    "nrm_vector_create", [ct.POINTER(nrm_vector), ct.c_size_t]
+)
 
 nrm_vector_length = _nrm_get_function(
     "nrm_vector_length", [nrm_vector, ct.POINTER(ct.c_size_t)]
 )
 nrm_vector_get = _nrm_get_function(
-    "nrm_vector_get", [nrm_vector, nrm_int, ct.POINTER(ct.c_void_p)]
+    "nrm_vector_get", [nrm_vector, ct.c_size_t, ct.POINTER(ct.c_void_p)]
 )
 
 nrm_vector_destroy = _nrm_get_function(
     "nrm_vector_destroy", [ct.POINTER(nrm_vector)], None, None
 )
 
+nrm_vector_push_back = _nrm_get_function(
+    "nrm_vector_push_back", [nrm_vector, ct.c_void_p]
+)
 
-def _nrm_vector_to_list_by_type(vector_p: nrm_vector, nrm_type=ct.c_void_p) -> list:
+
+def _nrm_vector_to_list_by_type(
+    vector_p: nrm_vector, nrm_type: ct.c_void_p
+) -> list:
     length = ct.c_size_t(0)
     nrm_vector_length(vector_p, ct.byref(length))
     pylist = []
-    out = nrm_type(0)
+    out = ct.c_void_p(0)
     for i in range(length.value):
         nrm_vector_get(vector_p, i, ct.byref(out))
-        pylist.append(out)
+        # out is a pointer to the slot in vector_p where the nrm_type is stored
+        # we thus convert it to a pointer of the right type
+        restype = ct.POINTER(nrm_type)
+        elem_p = ct.cast(out, restype)
+        # elem_p gets invalidated by ctypes as soon as vector_destroy is called
+        # so we create a new element from the pointer right away
+        elem = nrm_type(elem_p.contents.value)
+        pylist.append(elem)
     nrm_vector_destroy(ct.byref(vector_p))
     return pylist
 

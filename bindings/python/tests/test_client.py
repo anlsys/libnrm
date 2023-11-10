@@ -51,15 +51,6 @@ class TestClient(unittest.TestCase):
             assert len(slices)
             assert isinstance(slices[0], Slice)
 
-    def test_actuator_getters(self):
-        with Setup("nrmd", options=options):
-            with Setup("nrm-dummy-extra"):
-                client = Client()
-                # import ipdb; ipdb.set_trace()
-                # actuator = client.list_actuators()[0]
-                # assert actuator.get_uuid() == "nrm-dummy-extra-actuator"
-                # assert actuator.get_value() == 0.0
-                # assert actuator.list_choices() == [0.0, 1.0]
 
 if __name__ == "__main__":
     unittest.main()

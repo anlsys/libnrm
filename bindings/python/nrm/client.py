@@ -118,12 +118,13 @@ nrm_actuator_clientid = _nrm_get_function(
 )
 
 nrm_actuator_value = _nrm_get_function(
-    "nrm_actuator_value", [nrm_actuator],  c_double, None
+    "nrm_actuator_value", [nrm_actuator], c_double, None
 )
 
 nrm_actuator_choices = _nrm_get_function(
     "nrm_actuator_choices", [nrm_actuator], nrm_vector, Error.checkptr
 )
+
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -151,31 +152,33 @@ class Client:
         if isinstance(self.uri, str):
             self.uri = bytes(self.uri, "utf-8")
 
-        nrm_client_create(byref(self.client), self.uri, self.pub_port, self.rpc_port)
+        nrm_client_create(
+            byref(self.client), self.uri, self.pub_port, self.rpc_port
+        )
 
     def list_sensors(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_sensors(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector, nrm_sensor)
-        return [Sensor(ptr=cast(i, nrm_sensor)) for i in cval_list]
+        pylist = _nrm_vector_to_list_by_type(vector, nrm_sensor)
+        return [Sensor(i) for i in pylist]
 
     def list_actuators(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_actuators(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector, nrm_actuator)
-        return [Actuator(ptr=cast(i, nrm_actuator)) for i in cval_list]
+        pylist = _nrm_vector_to_list_by_type(vector, nrm_actuator)
+        return [Actuator(i) for i in pylist]
 
     def list_scopes(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_scopes(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector, nrm_scope)
-        return [Scope(ptr=cast(i, nrm_scope)) for i in cval_list]
+        pylist = _nrm_vector_to_list_by_type(vector, nrm_sensor)
+        return [Scope(i) for i in pylist]
 
     def list_slices(self) -> list:
         vector = nrm_vector(0)
         nrm_client_list_slices(self.client, byref(vector))
-        cval_list = _nrm_vector_to_list_by_type(vector, nrm_slice)
-        return [Slice(ptr=cast(i, nrm_slice)) for i in cval_list]
+        pylist = _nrm_vector_to_list_by_type(vector, nrm_slice)
+        return [Slice(i) for i in pylist]
 
     def add_sensor(self, name: str):
         sensor = nrm_sensor_create(bytes(name, "utf-8"))
@@ -203,7 +206,6 @@ class _NRMComponent:
 
 
 class Actuator(_NRMComponent):
-
     def get_uuid(self):
         return str(nrm_actuator_uuid(self.ptr))
 
@@ -215,14 +217,13 @@ class Actuator(_NRMComponent):
 
     def list_choices(self):
         vector = nrm_actuator_choices(self.ptr)
-        return _nrm_vector_to_list_by_type(vector, c_double)
+        return _nrm_vector_to_list_by_type(vector, float)
 
     def __del__(self):
         nrm_actuator_destroy(byref(self.ptr))
 
 
 class Sensor(_NRMComponent):
-
     def get_uuid(self):
         return str(nrm_sensor_uuid(self.ptr))
 
@@ -231,7 +232,6 @@ class Sensor(_NRMComponent):
 
 
 class Scope(_NRMComponent):
-
     def get_uuid(self):
         return str(nrm_scope_uuid(self.ptr))
 
@@ -240,7 +240,6 @@ class Scope(_NRMComponent):
 
 
 class Slice(_NRMComponent):
-
     def get_uuid(self):
         return str(nrm_slice_uuid(self.ptr))
 

@@ -19,8 +19,12 @@ class NRMBinary:
 
     def launch(self, options, args):
         self.abspath = (options["prefix"] / self.name).absolute()
-        self.stdout = open(options["output"] / (self.name + "-stdout.log"), "w+")
-        self.stderr = open(options["output"] / (self.name + "-stderr.log"), "w+")
+        self.stdout = open(
+            options["output"] / (self.name + "-stdout.log"), "w+"
+        )
+        self.stderr = open(
+            options["output"] / (self.name + "-stderr.log"), "w+"
+        )
         assert self.stdout is not None
         assert self.stderr is not None
         popencmd = []
