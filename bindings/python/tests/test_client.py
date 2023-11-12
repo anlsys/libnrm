@@ -9,6 +9,7 @@
 from nrm import Client, Setup, Actuator, Sensor, Scope, Slice
 import unittest
 import os
+import time
 
 options = {"prefix": os.environ.get("ABS_TOP_BUILDDIR")}
 
@@ -26,6 +27,7 @@ class TestClient(unittest.TestCase):
             sensors = client.list_sensors()
             assert len(sensors)
             assert isinstance(sensors[0], Sensor)
+            assert sensors[0].get_uuid() == "test_sensor"
 
     def test_append_list_del_actuator(self):
         with Setup("nrmd", options=options):
@@ -34,6 +36,7 @@ class TestClient(unittest.TestCase):
             actuators = client.list_actuators()
             assert len(actuators)
             assert isinstance(actuators[0], Actuator)
+            assert actuators[0].get_uuid() == "test_actuator"
 
     def test_append_list_del_scope(self):
         with Setup("nrmd", options=options):
@@ -41,7 +44,9 @@ class TestClient(unittest.TestCase):
             client.add_scope("test_scope")
             scopes = client.list_scopes()
             assert len(scopes)
-            assert isinstance(scopes[0], Scope)
+            assert all([isinstance(scope, Scope) for scope in scopes])
+            assert scopes[0].get_uuid() == "nrm.hwloc.Machine.0"
+            assert scopes[-1].get_uuid() == "test_scope"
 
     def test_append_list_del_slice(self):
         with Setup("nrmd", options=options):
@@ -50,7 +55,19 @@ class TestClient(unittest.TestCase):
             slices = client.list_slices()
             assert len(slices)
             assert isinstance(slices[0], Slice)
+            assert slices[0].get_uuid() == "test_slice"
 
+    def test_actuator_values_from_extra(self):
+        with Setup("nrmd", options=options):
+            with Setup("nrm-dummy-extra", options=options):
+                client = Client()
+                attempt = 0
+                actuators = client.list_actuators()
+                assert len(actuators)
+                dummy_act = actuators[0]
+                assert dummy_act.get_uuid() == "nrm-dummy-extra-actuator"
+                assert dummy_act.get_value() == 0.0
+                assert dummy_act.list_choices() == [0.0, 1.0]
 
 if __name__ == "__main__":
     unittest.main()

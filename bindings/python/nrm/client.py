@@ -207,17 +207,18 @@ class _NRMComponent:
 
 class Actuator(_NRMComponent):
     def get_uuid(self):
-        return str(nrm_actuator_uuid(self.ptr))
+        return nrm_actuator_uuid(self.ptr).decode()
 
     def get_clientid(self):
-        return str(nrm_actuator_clientid(self.ptr).value)
+        return nrm_actuator_clientid(self.ptr).decode()
 
     def get_value(self):
         return nrm_actuator_value(self.ptr)
 
     def list_choices(self):
-        vector = nrm_actuator_choices(self.ptr)
-        return _nrm_vector_to_list_by_type(vector, float)
+        vector = nrm_vector(nrm_actuator_choices(self.ptr))
+        cval_list = _nrm_vector_to_list_by_type(vector, nrm_float)
+        return [i.value for i in cval_list]
 
     def __del__(self):
         nrm_actuator_destroy(byref(self.ptr))
@@ -225,7 +226,7 @@ class Actuator(_NRMComponent):
 
 class Sensor(_NRMComponent):
     def get_uuid(self):
-        return str(nrm_sensor_uuid(self.ptr))
+        return nrm_sensor_uuid(self.ptr).decode()
 
     def __del__(self):
         nrm_sensor_destroy(byref(self.ptr))
@@ -233,7 +234,7 @@ class Sensor(_NRMComponent):
 
 class Scope(_NRMComponent):
     def get_uuid(self):
-        return str(nrm_scope_uuid(self.ptr))
+        return nrm_scope_uuid(self.ptr).decode()
 
     def __del__(self):
         nrm_scope_destroy(self.ptr)
@@ -241,7 +242,7 @@ class Scope(_NRMComponent):
 
 class Slice(_NRMComponent):
     def get_uuid(self):
-        return str(nrm_slice_uuid(self.ptr))
+        return nrm_slice_uuid(self.ptr).decode()
 
     def __del__(self):
         nrm_slice_destroy(byref(self.ptr))

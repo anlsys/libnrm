@@ -110,7 +110,7 @@ def _nrm_vector_to_list_by_type(
         nrm_vector_get(vector_p, i, ct.byref(out))
         # out is a pointer to the slot in vector_p where the nrm_type is stored
         # we thus convert it to a pointer of the right type
-        restype = ct.POINTER(nrm_type)
+        restype = ct.POINTER(nrm_type)  # can't define a non-ctype pointer. but can easily cast later
         elem_p = ct.cast(out, restype)
         # elem_p gets invalidated by ctypes as soon as vector_destroy is called
         # so we create a new element from the pointer right away

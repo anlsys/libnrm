@@ -60,9 +60,12 @@ def nrmd_waitready(options):
     nrmc_cmd = [(options["prefix"] / "nrmc").absolute(), "-q", "connect"]
     subprocess.run(nrmc_cmd, check=True)
 
+def dummy_timebuffer(options):
+    import time
+    time.sleep(1)
 
 class Setup:
-    binaries = {"nrmd": NRMBinary("nrmd", False, nrmd_waitready)}
+    binaries = {"nrmd": NRMBinary("nrmd", False, nrmd_waitready), "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_timebuffer)}
 
     def __init__(self, name, args=[], options={}):
         assert name in self.binaries
