@@ -262,8 +262,10 @@ struct nrm_event_s {
 };
 typedef struct nrm_event_s nrm_event_t;
 
-struct nrm_eventbase_s;
+struct nrm_timeserie_s;
+typedef struct nrm_timeserie_s nrm_timeserie_t;
 
+struct nrm_eventbase_s;
 typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);

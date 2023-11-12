@@ -177,13 +177,14 @@ void nrm_msg_scope_destroy(nrm_msg_scope_t *msg)
 	free(msg);
 }
 
-nrm_msg_event_t *nrm_msg_event_new(nrm_string_t uuid)
+nrm_msg_event_t *nrm_msg_event_new(nrm_event_t *event)
 {
 	nrm_msg_event_t *ret = calloc(1, sizeof(nrm_msg_event_t));
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_event_init(ret);
-	ret->uuid = strdup(uuid);
+	ret->time = nrm_time_tons(&event->time);
+	ret->value = event->value;
 	return ret;
 }
 
@@ -192,26 +193,61 @@ void nrm_msg_event_destroy(nrm_msg_event_t *msg)
 	if (msg == NULL)
 		return;
 
-	nrm_msg_scope_destroy(msg->scope);
-	free(msg->uuid);
 	free(msg);
 }
 
-int nrm_msg_set_event(nrm_msg_t *msg,
-                      nrm_time_t time,
-                      nrm_string_t sensor_uuid,
-                      nrm_scope_t *scope,
-                      double value)
+nrm_msg_timeserie_t *nrm_msg_timeserie_new(nrm_timeserie_t *timeserie)
+{
+	nrm_msg_timeserie_t *ret = calloc(1, sizeof(nrm_msg_timeserie_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_timeserie_init(ret);
+	ret->sensor_uuid = strdup(timeserie->sensor->uuid);
+	ret->scope_uuid = strdup(timeserie->scope->uuid);
+	ret->start = nrm_time_tons(timeserie->start);
+	nrm_vector_length(timeserie->events, &ret->n_events);
+	nrm_log_debug("vector contains %zu\n", ret->n_events);
+	ret->events = calloc(ret->n_events, sizeof(nrm_msg_event_t *));
+	assert(ret->events);
+	for (size_t i = 0; i < ret->n_events; i++) {
+		nrm_event_t *e;
+		nrm_vector_get_withtype(nrm_event_t, timeserie->events, i, e);
+		ret->events[i] = nrm_msg_event_new(e);
+	}
+	return ret;	
+}
+
+nrm_msg_timeserielist_t *nrm_msg_timeserielist_new(nrm_vector_t *timeseries)
+{
+	nrm_msg_timeserielist_t *ret = calloc(1, sizeof(nrm_msg_timeserielist_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_timeserielist_init(ret);
+	if (timeseries == NULL) {
+		ret->n_timeseries = 0;
+		return ret;
+	}
+	nrm_vector_length(timeseries, &ret->n_timeseries);
+	nrm_log_debug("vector contains %zu\n", ret->n_timeseries);
+	ret->timeseries = calloc(ret->n_timeseries, sizeof(nrm_msg_timeserie_t *));
+	assert(ret->timeseries);
+	for (size_t i = 0; i < ret->n_timeseries; i++) {
+		nrm_timeserie_t *s;
+		nrm_vector_get_withtype(nrm_timeserie_t, timeseries, i, s);
+		ret->series[i] = nrm_msg_timeserie_new(s);
+	}
+	return ret;
+
+}
+
+int nrm_msg_set_events(nrm_msg_t *msg,
+		       nrm_vector_t *timeseries)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
-	msg->event = nrm_msg_event_new(sensor_uuid);
-	assert(msg->event);
-	msg->data_case = NRM__MESSAGE__DATA_EVENT;
-	msg->event->time = nrm_time_tons(&time);
-	msg->event->value = value;
-	msg->event->scope = nrm_msg_scope_new(scope);
-	assert(msg->event->scope);
+	msg->events = nrm_msg_timeserieslist_new(timeseries);
+	assert(msg->events);
+	msg->data_case = NRM__MESSAGE__DATA_EVENTS;
 	return 0;
 }
 
@@ -269,6 +305,19 @@ int nrm_msg_set_add_slice(nrm_msg_t *msg, nrm_slice_t *slice)
 	msg->data_case = NRM__MESSAGE__DATA_ADD;
 	msg->add->data_case = NRM__ADD__DATA_SLICE;
 	msg->add->slice = nrm_msg_slice_new(slice->uuid);
+	return 0;
+}
+
+int nrm_msg_set_add_timeserie(nrm_msg_t *msg, nrm_vector_t *timeseries)
+{
+	if (msg == NULL)
+		return -NRM_EINVAL;
+
+	msg->add = nrm_msg_add_new(NRM_MSG_TARGET_TYPE_TIMESERIE);
+	assert(msg->add);
+	msg->data_case = NRM__MESSAGE__DATA_ADD;
+	msg->add->data_case = NRM__ADD__DATE_TIMESERIES;
+	msg->add->timeseries = nrm_msg_timeserielist_new(timeseries);
 	return 0;
 }
 

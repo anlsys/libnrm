@@ -27,6 +27,13 @@ struct nrm_eventbase_s {
 	struct nrm_sensor2scope_s *hash;
 };
 
+struct nrm_timeserie_s {
+	nrm_string_t sensor_uuid;
+	nrm_string_t scope_uuid;
+	nrm_vector_t *events;
+	nrm_time_t start;
+};
+
 /* the main structure, matches a scope to two ringbuffers, one for the current
  * window (one event per signal), one for past windows (one event per period).
  */
