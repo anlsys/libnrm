@@ -62,8 +62,11 @@ double nrm_actuator_value(nrm_actuator_t *actuator){
 
 int nrm_actuator_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
 {
+	if (actuator == NULL || choices == NULL)
+		return -NRM_EINVAL;
+
 	nrm_vector_t *ret;
-	err = nrm_vector_create(&ret, sizeof(double));
+	int err = nrm_vector_create(&ret, sizeof(double));
 	if (err)
 		return err;
 	nrm_vector_foreach(actuator->choices, iterator)
