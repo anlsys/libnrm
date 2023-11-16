@@ -60,8 +60,19 @@ double nrm_actuator_value(nrm_actuator_t *actuator){
 	return actuator->value;
 }
 
-nrm_vector_t *nrm_actuator_choices(nrm_actuator_t *actuator){
-	return actuator->choices;
+int nrm_actuator_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
+{
+	nrm_vector_t *ret;
+	err = nrm_vector_create(&ret, sizeof(double));
+	if (err)
+		return err;
+	nrm_vector_foreach(actuator->choices, iterator)
+	{
+		double *d = nrm_vector_iterator_get(iterator);
+		nrm_vector_push_back(ret, &d);
+	}
+	*choices = ret;
+	return 0;
 }
 
 int nrm_actuator_closest_choice(nrm_actuator_t *actuator, double *value)

@@ -17,6 +17,7 @@ nrm_uint = ct.c_uint
 nrm_long = ct.c_longlong
 nrm_str = ct.c_char_p
 nrm_float = ct.c_float
+nrm_double = ct.c_double
 nrm_client = ct.c_void_p
 nrm_actuator = ct.c_void_p
 nrm_sensor = ct.c_void_p

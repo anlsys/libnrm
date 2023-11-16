@@ -15,6 +15,7 @@ from .base import (
     nrm_client,
     nrm_str,
     nrm_uuid,
+    nrm_double,
     nrm_float,
     nrm_int,
     nrm_uint,
@@ -121,8 +122,8 @@ nrm_actuator_value = _nrm_get_function(
     "nrm_actuator_value", [nrm_actuator], c_double, None
 )
 
-nrm_actuator_choices = _nrm_get_function(
-    "nrm_actuator_choices", [nrm_actuator], nrm_vector, Error.checkptr
+nrm_actuator_list_choices = _nrm_get_function(
+    "nrm_actuator_list_choices", [nrm_actuator, POINTER(nrm_vector)]
 )
 
 
@@ -216,8 +217,9 @@ class Actuator(_NRMComponent):
         return nrm_actuator_value(self.ptr)
 
     def list_choices(self):
-        vector = nrm_vector(nrm_actuator_choices(self.ptr))
-        cval_list = _nrm_vector_to_list_by_type(vector, nrm_float)
+        vector = nrm_vector(0)
+        nrm_actuator_list_choices(self.ptr, byref(vector))
+        cval_list = _nrm_vector_to_list_by_type(vector, nrm_double)
         return [i.value for i in cval_list]
 
     def __del__(self):

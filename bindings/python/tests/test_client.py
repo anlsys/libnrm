@@ -58,16 +58,15 @@ class TestClient(unittest.TestCase):
             assert slices[0].get_uuid() == "test_slice"
 
     def test_actuator_values_from_extra(self):
-        with Setup("nrmd", options=options):
-            with Setup("nrm-dummy-extra", options=options):
-                client = Client()
-                attempt = 0
-                actuators = client.list_actuators()
-                assert len(actuators)
-                dummy_act = actuators[0]
-                assert dummy_act.get_uuid() == "nrm-dummy-extra-actuator"
-                assert dummy_act.get_value() == 0.0
-                assert dummy_act.list_choices() == [0.0, 1.0]
+        with Setup("nrmd", options=options), Setup("nrm-dummy-extra", options=options):
+            client = Client()
+            attempt = 0
+            actuators = client.list_actuators()
+            assert len(actuators)
+            dummy_act = actuators[0]
+            assert dummy_act.get_uuid() == "nrm-dummy-extra-actuator"
+            assert dummy_act.get_value() == 0.0
+            assert dummy_act.list_choices() == [0.0, 1.0]
 
 if __name__ == "__main__":
     unittest.main()
