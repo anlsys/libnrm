@@ -7,6 +7,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import os
+import sys
 import signal
 import subprocess
 
@@ -60,12 +61,24 @@ def nrmd_waitready(options):
     nrmc_cmd = [(options["prefix"] / "nrmc").absolute(), "-q", "connect"]
     subprocess.run(nrmc_cmd, check=True)
 
-def dummy_timebuffer(options):
-    import time
-    time.sleep(1)
+def run_listsensors(options):
+    res = subprocess.run([(options["prefix"] / "nrmc").absolute(), "list-sensors"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    return res.stdout.decode("utf-8")
+
+def dummy_waitready(options):
+    retries = 0
+    result = run_listsensors(options)
+    expected_result = """[{"uuid": "nrm-dummy-extra-sensor"}]"""
+    while result != expected_result:
+        time.sleep(1)
+        result = run_listsensors(options)
+        retries += 1
+        if retries == 5:
+            sys.exit(1)
+
 
 class Setup:
-    binaries = {"nrmd": NRMBinary("nrmd", False, nrmd_waitready), "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_timebuffer)}
+    binaries = {"nrmd": NRMBinary("nrmd", False, nrmd_waitready), "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", True, dummy_waitready)}
 
     def __init__(self, name, args=[], options={}):
         assert name in self.binaries
