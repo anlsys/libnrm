@@ -114,8 +114,12 @@ nrm_actuator_uuid = _nrm_get_function(
     "nrm_actuator_uuid", [nrm_actuator], nrm_str, Error.checkptr
 )
 
+nrm_uuid_to_string = _nrm_get_function(
+    "nrm_uuid_to_string", [POINTER(nrm_uuid)], nrm_str, Error.checkptr
+)
+
 nrm_actuator_clientid = _nrm_get_function(
-    "nrm_actuator_clientid", [nrm_actuator], nrm_uuid, Error.checkptr
+    "nrm_actuator_clientid", [nrm_actuator], POINTER(nrm_uuid), Error.checkptr
 )
 
 nrm_actuator_value = _nrm_get_function(
@@ -211,7 +215,7 @@ class Actuator(_NRMComponent):
         return nrm_actuator_uuid(self.ptr).decode()
 
     def get_clientid(self):
-        return nrm_actuator_clientid(self.ptr).decode()
+        return nrm_uuid_to_string(nrm_actuator_clientid(self.ptr)).decode()
 
     def get_value(self):
         return nrm_actuator_value(self.ptr)
