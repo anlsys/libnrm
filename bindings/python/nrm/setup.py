@@ -79,7 +79,7 @@ def dummy_waitready(options):
 
 
 class Setup:
-    binaries = {"nrmd": NRMBinary("nrmd", False, nrmd_waitready), "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", True, dummy_waitready)}
+    binaries = {"nrmd": NRMBinary("nrmd", False, nrmd_waitready), "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_waitready)}
 
     def __init__(self, name, args=[], options={}):
         assert name in self.binaries

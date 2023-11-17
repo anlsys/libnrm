@@ -12,6 +12,7 @@
 
 #include "nrm.h"
 #include <sched.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -66,14 +67,21 @@ int nrm_actuator_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
 		return -NRM_EINVAL;
 
 	nrm_vector_t *ret;
+	size_t i, length=0;
 	int err = nrm_vector_create(&ret, sizeof(double));
 	if (err)
 		return err;
-	nrm_vector_foreach(actuator->choices, iterator)
-	{
-		double *d = nrm_vector_iterator_get(iterator);
-		nrm_vector_push_back(ret, &d);
+
+	nrm_vector_length(actuator->choices, &length);
+	if (length == 0)
+		return -NRM_EINVAL;
+
+	for (i = 0; i < length; i++){
+		void *p;
+		nrm_vector_get(actuator->choices, i, &p);
+		nrm_vector_push_back(ret, p);
 	}
+
 	*choices = ret;
 	return 0;
 }
