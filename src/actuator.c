@@ -49,15 +49,18 @@ int nrm_actuator_set_choices(nrm_actuator_t *actuator,
 	return 0;
 }
 
-nrm_string_t nrm_actuator_uuid(nrm_actuator_t *actuator){
+nrm_string_t nrm_actuator_uuid(nrm_actuator_t *actuator)
+{
 	return actuator->uuid;
 }
 
-nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *actuator){
+nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *actuator)
+{
 	return actuator->clientid;
 }
 
-double nrm_actuator_value(nrm_actuator_t *actuator){
+double nrm_actuator_value(nrm_actuator_t *actuator)
+{
 	return actuator->value;
 }
 
@@ -67,7 +70,7 @@ int nrm_actuator_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
 		return -NRM_EINVAL;
 
 	nrm_vector_t *ret;
-	size_t i, length=0;
+	size_t i, length = 0;
 	int err = nrm_vector_create(&ret, sizeof(double));
 	if (err)
 		return err;
@@ -76,7 +79,7 @@ int nrm_actuator_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
 	if (length == 0)
 		return -NRM_EINVAL;
 
-	for (i = 0; i < length; i++){
+	for (i = 0; i < length; i++) {
 		void *p;
 		nrm_vector_get(actuator->choices, i, &p);
 		nrm_vector_push_back(ret, p);

@@ -21,12 +21,8 @@ class NRMBinary:
 
     def launch(self, options, args):
         self.abspath = (options["prefix"] / self.name).absolute()
-        self.stdout = open(
-            options["output"] / (self.name + "-stdout.log"), "w+"
-        )
-        self.stderr = open(
-            options["output"] / (self.name + "-stderr.log"), "w+"
-        )
+        self.stdout = open(options["output"] / (self.name + "-stdout.log"), "w+")
+        self.stderr = open(options["output"] / (self.name + "-stderr.log"), "w+")
         assert self.stdout is not None
         assert self.stderr is not None
         popencmd = []
@@ -62,9 +58,16 @@ def nrmd_waitready(options):
     nrmc_cmd = [(options["prefix"] / "nrmc").absolute(), "-q", "connect"]
     subprocess.run(nrmc_cmd, check=True)
 
+
 def run_listsensors(options):
-    res = subprocess.run([(options["prefix"] / "nrmc").absolute(), "list-sensors"], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    res = subprocess.run(
+        [(options["prefix"] / "nrmc").absolute(), "list-sensors"],
+        check=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
     return res.stdout.decode("utf-8")
+
 
 def dummy_waitready(options):
     retries = 0
@@ -79,7 +82,10 @@ def dummy_waitready(options):
 
 
 class Setup:
-    binaries = {"nrmd": NRMBinary("nrmd", False, nrmd_waitready), "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_waitready)}
+    binaries = {
+        "nrmd": NRMBinary("nrmd", False, nrmd_waitready),
+        "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_waitready),
+    }
 
     def __init__(self, name, args=[], options={}):
         assert name in self.binaries

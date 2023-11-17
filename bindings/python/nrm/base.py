@@ -64,9 +64,7 @@ class Error(Exception):
 # Utils
 
 
-def _nrm_get_function(
-    method, argtypes=[], restype=nrm_int, errcheck=Error.check
-):
+def _nrm_get_function(method, argtypes=[], restype=nrm_int, errcheck=Error.check):
     res = getattr(libnrm, method)
     res.restype = restype
     res.argtypes = argtypes
@@ -75,9 +73,7 @@ def _nrm_get_function(
     return res
 
 
-nrm_init = _nrm_get_function(
-    "nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)]
-)
+nrm_init = _nrm_get_function("nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)])
 nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
 
 nrm_vector_create = _nrm_get_function(
@@ -100,9 +96,7 @@ nrm_vector_push_back = _nrm_get_function(
 )
 
 
-def _nrm_vector_to_list_by_type(
-    vector_p: nrm_vector, nrm_type: ct.c_void_p
-) -> list:
+def _nrm_vector_to_list_by_type(vector_p: nrm_vector, nrm_type: ct.c_void_p) -> list:
     length = ct.c_size_t(0)
     nrm_vector_length(vector_p, ct.byref(length))
     pylist = []
@@ -111,7 +105,9 @@ def _nrm_vector_to_list_by_type(
         nrm_vector_get(vector_p, i, ct.byref(out))
         # out is a pointer to the slot in vector_p where the nrm_type is stored
         # we thus convert it to a pointer of the right type
-        restype = ct.POINTER(nrm_type)  # can't define a non-ctype pointer. but can easily cast later
+        restype = ct.POINTER(
+            nrm_type
+        )  # can't define a non-ctype pointer. but can easily cast later
         elem_p = ct.cast(out, restype)
         # elem_p gets invalidated by ctypes as soon as vector_destroy is called
         # so we create a new element from the pointer right away

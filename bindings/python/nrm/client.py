@@ -157,9 +157,7 @@ class Client:
         if isinstance(self.uri, str):
             self.uri = bytes(self.uri, "utf-8")
 
-        nrm_client_create(
-            byref(self.client), self.uri, self.pub_port, self.rpc_port
-        )
+        nrm_client_create(byref(self.client), self.uri, self.pub_port, self.rpc_port)
 
     def list_sensors(self) -> list:
         vector = nrm_vector(0)

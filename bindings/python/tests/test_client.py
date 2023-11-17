@@ -69,5 +69,6 @@ class TestClient(unittest.TestCase):
             assert dummy_act.list_choices() == [0.0, 1.0]
             assert len(dummy_act.get_clientid())
 
+
 if __name__ == "__main__":
     unittest.main()
