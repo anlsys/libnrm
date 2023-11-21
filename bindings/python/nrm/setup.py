@@ -88,7 +88,9 @@ def dummy_waitready(options):
 class Setup:
     binaries = {
         "nrmd": NRMBinary("nrmd", False, nrmd_waitready),
-        "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_waitready),
+        "nrm-dummy-extra": NRMBinary(
+            "nrm-dummy-extra", False, dummy_waitready
+        ),
     }
 
     def __init__(self, name, args=[], options={}):
