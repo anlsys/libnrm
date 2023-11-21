@@ -9,7 +9,6 @@
 from nrm import Client, Setup, Actuator, Sensor, Scope, Slice
 import unittest
 import os
-import time
 
 options = {"prefix": os.environ.get("ABS_TOP_BUILDDIR")}
 
@@ -58,9 +57,10 @@ class TestClient(unittest.TestCase):
             assert slices[0].get_uuid() == "test_slice"
 
     def test_actuator_values_from_extra(self):
-        with Setup("nrmd", options=options), Setup("nrm-dummy-extra", options=options):
+        with Setup("nrmd", options=options), Setup(
+            "nrm-dummy-extra", options=options
+        ):
             client = Client()
-            attempt = 0
             actuators = client.list_actuators()
             assert len(actuators)
             dummy_act = actuators[0]

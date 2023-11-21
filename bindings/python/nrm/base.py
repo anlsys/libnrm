@@ -64,7 +64,9 @@ class Error(Exception):
 # Utils
 
 
-def _nrm_get_function(method, argtypes=[], restype=nrm_int, errcheck=Error.check):
+def _nrm_get_function(
+    method, argtypes=[], restype=nrm_int, errcheck=Error.check
+):
     res = getattr(libnrm, method)
     res.restype = restype
     res.argtypes = argtypes
@@ -73,7 +75,9 @@ def _nrm_get_function(method, argtypes=[], restype=nrm_int, errcheck=Error.check
     return res
 
 
-nrm_init = _nrm_get_function("nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)])
+nrm_init = _nrm_get_function(
+    "nrm_init", [ct.POINTER(nrm_int), ct.POINTER(nrm_str)]
+)
 nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
 
 nrm_vector_create = _nrm_get_function(
@@ -96,7 +100,9 @@ nrm_vector_push_back = _nrm_get_function(
 )
 
 
-def _nrm_vector_to_list_by_type(vector_p: nrm_vector, nrm_type: ct.c_void_p) -> list:
+def _nrm_vector_to_list_by_type(
+    vector_p: nrm_vector, nrm_type: ct.c_void_p
+) -> list:
     length = ct.c_size_t(0)
     nrm_vector_length(vector_p, ct.byref(length))
     pylist = []

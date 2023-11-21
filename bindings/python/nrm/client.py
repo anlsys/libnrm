@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from ctypes import byref, POINTER, sizeof, c_void_p, c_double, cast
+from ctypes import byref, POINTER, c_void_p, c_double
 from dataclasses import dataclass
 from .base import (
     Error,
@@ -16,8 +16,6 @@ from .base import (
     nrm_str,
     nrm_uuid,
     nrm_double,
-    nrm_float,
-    nrm_int,
     nrm_uint,
     nrm_vector,
     nrm_sensor,
@@ -157,7 +155,9 @@ class Client:
         if isinstance(self.uri, str):
             self.uri = bytes(self.uri, "utf-8")
 
-        nrm_client_create(byref(self.client), self.uri, self.pub_port, self.rpc_port)
+        nrm_client_create(
+            byref(self.client), self.uri, self.pub_port, self.rpc_port
+        )
 
     def list_sensors(self) -> list:
         vector = nrm_vector(0)
