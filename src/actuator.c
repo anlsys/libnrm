@@ -12,6 +12,7 @@
 
 #include "nrm.h"
 #include <sched.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,6 +46,46 @@ int nrm_actuator_set_choices(nrm_actuator_t *actuator,
 	for (size_t i = 0; i < nchoices; i++)
 		nrm_vector_push_back(actuator->choices, &choices[i]);
 	nrm_vector_sort(actuator->choices, nrm_vector_sort_double_cmp);
+	return 0;
+}
+
+nrm_string_t nrm_actuator_uuid(nrm_actuator_t *actuator)
+{
+	return actuator->uuid;
+}
+
+nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *actuator)
+{
+	return actuator->clientid;
+}
+
+double nrm_actuator_value(nrm_actuator_t *actuator)
+{
+	return actuator->value;
+}
+
+int nrm_actuator_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
+{
+	if (actuator == NULL || choices == NULL)
+		return -NRM_EINVAL;
+
+	nrm_vector_t *ret;
+	size_t i, length = 0;
+	int err = nrm_vector_create(&ret, sizeof(double));
+	if (err)
+		return err;
+
+	nrm_vector_length(actuator->choices, &length);
+	if (length == 0)
+		return -NRM_EINVAL;
+
+	for (i = 0; i < length; i++) {
+		void *p;
+		nrm_vector_get(actuator->choices, i, &p);
+		nrm_vector_push_back(ret, p);
+	}
+
+	*choices = ret;
 	return 0;
 }
 

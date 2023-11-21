@@ -82,3 +82,6 @@ libnrm.pc
 
 # protobuf generated files
 *.pb-c.*
+
+# python
+__pycache__

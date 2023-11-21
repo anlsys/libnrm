@@ -1,0 +1,5 @@
+[flake8]
+exclude = .git, examples, build, src
+per-file-ignores = 
+    # imported but not used
+    bindings/python/nrm/__init__.py: F401

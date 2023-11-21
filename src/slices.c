@@ -10,12 +10,11 @@
 
 #include "config.h"
 
+#include "nrm.h"
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "nrm.h"
 
 #include "internal/nrmi.h"
 
@@ -24,6 +23,11 @@ nrm_slice_t *nrm_slice_create(const char *name)
 	nrm_slice_t *ret = calloc(1, sizeof(nrm_slice_t));
 	ret->uuid = nrm_string_fromchar(name);
 	return ret;
+}
+
+nrm_string_t nrm_slice_uuid(nrm_slice_t *slice)
+{
+	return slice->uuid;
 }
 
 json_t *nrm_slice_to_json(nrm_slice_t *slice)

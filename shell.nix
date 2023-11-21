@@ -22,6 +22,9 @@ mkShell {
     python3Packages.sphinx-design
     jq
     bats
+    # python bindings
+    python3Packages.flake8
+    python3Packages.black
   ];
   GEOPM_CFLAGS = "-I${geopmd}/include";
   GEOPM_LIBS = "-L${geopmd}/lib -lgeopmd";
