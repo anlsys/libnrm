@@ -187,6 +187,16 @@ int nrm_vector_create(nrm_vector_t **vector, const size_t element_size);
 void nrm_vector_destroy(nrm_vector_t **vector);
 
 /**
+ * Copy a vector into another
+ *
+ * @param[out] dst: a pointer to an uninitialized vector.
+ * @param[in] src: a pointer to the source vector.
+ * @return -NRM_ENOMEM if allocation failed
+ * @return -NRM_EINVAL if parameters are NULL
+ **/
+int nrm_vector_copy(nrm_vector_t **dst, nrm_vector_t *src);
+
+/**
  * Get an element from a vector.
  *
  * @param[in] type: the object type.

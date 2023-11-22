@@ -56,6 +56,24 @@ void nrm_vector_destroy(nrm_vector_t **vector)
 	*vector = NULL;
 }
 
+int nrm_vector_copy(nrm_vector_t **dst, nrm_vector_t *src)
+{
+	if (dst == NULL || src == NULL)
+		return -NRM_EINVAL;
+
+	nrm_vector_t *v = NULL;
+	int ret = nrm_vector_create(&v, src->icd.sz);
+	if (ret != NRM_SUCCESS)
+		return ret;
+
+	utarray_concat(v->array, src->array);
+	*dst = v;
+	return NRM_SUCCESS;
+utarray_error:
+	nrm_vector_destroy(&v);
+	return -NRM_ENOMEM;
+}
+
 int nrm_vector_resize(nrm_vector_t *vector, size_t newlen)
 {
 	if (vector == NULL)
