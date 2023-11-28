@@ -33,7 +33,7 @@ message Event {
 
 message TimeSerie {
 	string sensor_uuid = 1;
-	string scope_uuid = 2;
+	Scope scope = 2;
 	int64 start = 3;
 	repeated Event events = 4;
 }

@@ -202,12 +202,12 @@ nrm_msg_timeserie_t *nrm_msg_timeserie_new(nrm_timeserie_t *timeserie)
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_timeserie_init(ret);
-	ret->sensor_uuid = strdup(timeserie->sensor->uuid);
-	ret->scope_uuid = strdup(timeserie->scope->uuid);
-	ret->start = nrm_time_tons(timeserie->start);
+	ret->sensor_uuid = strdup(timeserie->sensor_uuid);
+	ret->scope = nrm_msg_scope_new(timeserie->scope);
+	ret->start = nrm_time_tons(&timeserie->start);
 	nrm_vector_length(timeserie->events, &ret->n_events);
 	nrm_log_debug("vector contains %zu\n", ret->n_events);
-	ret->events = calloc(ret->n_events, sizeof(nrm_msg_event_t *));
+	ret->events = calloc(ret->n_events, sizeof(nrm_msg_event_t));
 	assert(ret->events);
 	for (size_t i = 0; i < ret->n_events; i++) {
 		nrm_event_t *e;
@@ -217,6 +217,19 @@ nrm_msg_timeserie_t *nrm_msg_timeserie_new(nrm_timeserie_t *timeserie)
 	return ret;	
 }
 
+void nrm_msg_timeserie_destroy(nrm_msg_timeserie_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->sensor_uuid);
+	nrm_msg_scope_destroy(msg->scope);
+	for (size_t i = 0; i < msg->n_events; i++)
+		nrm_msg_event_destroy(msg->events[i]);
+	free(msg->events);
+	free(msg);
+}
+
 nrm_msg_timeserielist_t *nrm_msg_timeserielist_new(nrm_vector_t *timeseries)
 {
 	nrm_msg_timeserielist_t *ret = calloc(1, sizeof(nrm_msg_timeserielist_t));
@@ -224,20 +237,29 @@ nrm_msg_timeserielist_t *nrm_msg_timeserielist_new(nrm_vector_t *timeseries)
 		return NULL;
 	nrm_msg_timeserielist_init(ret);
 	if (timeseries == NULL) {
-		ret->n_timeseries = 0;
+		ret->n_series = 0;
 		return ret;
 	}
-	nrm_vector_length(timeseries, &ret->n_timeseries);
-	nrm_log_debug("vector contains %zu\n", ret->n_timeseries);
-	ret->timeseries = calloc(ret->n_timeseries, sizeof(nrm_msg_timeserie_t *));
-	assert(ret->timeseries);
-	for (size_t i = 0; i < ret->n_timeseries; i++) {
-		nrm_timeserie_t *s;
-		nrm_vector_get_withtype(nrm_timeserie_t, timeseries, i, s);
-		ret->series[i] = nrm_msg_timeserie_new(s);
+	nrm_vector_length(timeseries, &ret->n_series);
+	nrm_log_debug("vector contains %zu\n", ret->n_series);
+	ret->series = calloc(ret->n_series, sizeof(nrm_msg_timeserie_t *));
+	assert(ret->series);
+	for (size_t i = 0; i < ret->n_series; i++) {
+		nrm_timeserie_t **s;
+		nrm_vector_get_withtype(nrm_timeserie_t *, timeseries, i, s);
+		ret->series[i] = nrm_msg_timeserie_new(*s);
 	}
 	return ret;
 
+}
+
+void nrm_msg_timeserielist_destroy(nrm_msg_timeserielist_t *msg)
+{
+	if (msg == NULL)
+		return;
+
+	free(msg->series);
+	free(msg);
 }
 
 int nrm_msg_set_events(nrm_msg_t *msg,
@@ -245,7 +267,7 @@ int nrm_msg_set_events(nrm_msg_t *msg,
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
-	msg->events = nrm_msg_timeserieslist_new(timeseries);
+	msg->events = nrm_msg_timeserielist_new(timeseries);
 	assert(msg->events);
 	msg->data_case = NRM__MESSAGE__DATA_EVENTS;
 	return 0;
@@ -305,19 +327,6 @@ int nrm_msg_set_add_slice(nrm_msg_t *msg, nrm_slice_t *slice)
 	msg->data_case = NRM__MESSAGE__DATA_ADD;
 	msg->add->data_case = NRM__ADD__DATA_SLICE;
 	msg->add->slice = nrm_msg_slice_new(slice->uuid);
-	return 0;
-}
-
-int nrm_msg_set_add_timeserie(nrm_msg_t *msg, nrm_vector_t *timeseries)
-{
-	if (msg == NULL)
-		return -NRM_EINVAL;
-
-	msg->add = nrm_msg_add_new(NRM_MSG_TARGET_TYPE_TIMESERIE);
-	assert(msg->add);
-	msg->data_case = NRM__MESSAGE__DATA_ADD;
-	msg->add->data_case = NRM__ADD__DATE_TIMESERIES;
-	msg->add->timeseries = nrm_msg_timeserielist_new(timeseries);
 	return 0;
 }
 
@@ -607,8 +616,8 @@ void nrm_msg_destroy_created(nrm_msg_t **msg)
 	case NRM_MSG_TYPE_LIST:
 		nrm_msg_list_destroy(sub->list);
 		break;
-	case NRM_MSG_TYPE_EVENT:
-		nrm_msg_event_destroy(sub->event);
+	case NRM_MSG_TYPE_EVENTS:
+		nrm_msg_timeserielist_destroy(sub->events);
 		break;
 	case NRM_MSG_TYPE_REMOVE:
 		nrm_msg_remove_destroy(sub->remove);
@@ -871,7 +880,7 @@ static const nrm_msg_type_table_t nrm_msg_type_table[] = {
         {NRM_MSG_TYPE_LIST, "LIST"},
         {NRM_MSG_TYPE_ADD, "ADD"},
         {NRM_MSG_TYPE_REMOVE, "REMOVE"},
-        {NRM_MSG_TYPE_EVENT, "EVENT"},
+        {NRM_MSG_TYPE_EVENTS, "EVENTS"},
         {NRM_MSG_TYPE_ACTUATE, "ACTUATE"},
         {NRM_MSG_TYPE_EXIT, "EXIT"},
 	{NRM_MSG_TYPE_TICK, "TICK"},
@@ -996,6 +1005,41 @@ json_t *nrm_msg_slicelist_to_json(nrm_msg_slicelist_t *msg)
 	return ret;
 }
 
+json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:I, s:f}", "time", msg->time, "value", msg->value);
+	return ret;
+}
+
+json_t *nrm_msg_timeserie_to_json(nrm_msg_timeserie_t *msg)
+{
+	json_t *ret;
+	json_t *scope;
+	json_t *events;
+	events = json_array();
+	for (size_t i = 0; i < msg->n_events; i++) {
+		json_array_append_new(events,
+				      nrm_msg_event_to_json(msg->events[i]));
+	}
+	scope = nrm_msg_scope_to_json(msg->scope);
+	ret = json_pack("{s:s, s:o, s:I, s:o}", "sensor_uuid", msg->sensor_uuid,
+			"scope_uuid", scope, "start", msg->start,
+			"events", events);
+	return ret;
+}
+
+json_t *nrm_msg_timeserielist_to_json(nrm_msg_timeserielist_t *msg)
+{
+	json_t *ret;
+	ret = json_array();
+	for (size_t i = 0; i < msg->n_series; i++) {
+		json_array_append_new(ret,
+				      nrm_msg_timeserie_to_json(msg->series[i]));
+	}
+	return ret;
+}
+
 json_t *nrm_msg_add_to_json(nrm_msg_add_t *msg)
 {
 	json_t *ret;
@@ -1059,16 +1103,6 @@ json_t *nrm_msg_remove_to_json(nrm_msg_remove_t *msg)
 	return ret;
 }
 
-json_t *nrm_msg_event_to_json(nrm_msg_event_t *msg)
-{
-	json_t *ret;
-	json_t *sub;
-	sub = nrm_msg_scope_to_json(msg->scope);
-	ret = json_pack("{s:s, s:I, s:o?, s:f}", "uuid", msg->uuid, "time",
-	                msg->time, "scope", sub, "value", msg->value);
-	return ret;
-}
-
 json_t *nrm_msg_actuate_to_json(nrm_msg_actuate_t *msg)
 {
 	json_t *ret;
@@ -1090,8 +1124,8 @@ json_t *nrm_msg_to_json(nrm_msg_t *msg)
 	case NRM_MSG_TYPE_LIST:
 		sub = nrm_msg_list_to_json(msg->list);
 		break;
-	case NRM_MSG_TYPE_EVENT:
-		sub = nrm_msg_event_to_json(msg->event);
+	case NRM_MSG_TYPE_EVENTS:
+		sub = nrm_msg_timeserielist_to_json(msg->events);
 		break;
 	case NRM_MSG_TYPE_REMOVE:
 		sub = nrm_msg_remove_to_json(msg->remove);

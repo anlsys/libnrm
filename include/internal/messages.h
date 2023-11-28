@@ -102,6 +102,7 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg);
 nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg);
 nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg);
 nrm_sensor_t *nrm_sensor_create_frommsg(nrm_msg_sensor_t *msg);
+nrm_timeserie_t *nrm_timeserie_create_frommsg(nrm_msg_timeserie_t *msg);
 
 int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
                                 nrm_msg_actuator_t *msg);
