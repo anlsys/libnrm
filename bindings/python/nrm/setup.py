@@ -11,6 +11,7 @@ import sys
 import time
 import signal
 import subprocess
+from nrm import Client
 
 
 class NRMBinary:
@@ -58,39 +59,33 @@ class NRMBinary:
         self.stderr.close()
 
 
+def waitretry(func, retries=5):
+    def decorator(*args, **kwargs):
+        for i in range(retries):
+            if func(*args, **kwargs):
+                break
+            time.sleep(1)
+        else:
+            raise TimeoutError
+
+    return decorator
+
+
 def nrmd_waitready(options):
     nrmc_cmd = [(options["prefix"] / "nrmc").absolute(), "-q", "connect"]
     subprocess.run(nrmc_cmd, check=True)
 
 
-def run_listsensors(options):
-    res = subprocess.run(
-        [(options["prefix"] / "nrmc").absolute(), "list-sensors"],
-        check=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-    return res.stdout.decode("utf-8")
-
-
-def dummy_waitready(options):
-    retries = 0
-    result = run_listsensors(options)
-    expected_result = """[{"uuid": "nrm-dummy-extra-sensor"}]"""
-    while result != expected_result:
-        time.sleep(1)
-        result = run_listsensors(options)
-        retries += 1
-        if retries == 5:
-            sys.exit(1)
+@waitretry
+def dummy_connect(options):
+    actuators = Client().list_actuators()
+    return "nrm-dummy-extra-actuator" in [act.get_uuid() for act in actuators]
 
 
 class Setup:
     binaries = {
         "nrmd": NRMBinary("nrmd", False, nrmd_waitready),
-        "nrm-dummy-extra": NRMBinary(
-            "nrm-dummy-extra", False, dummy_waitready
-        ),
+        "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_connect),
     }
 
     def __init__(self, name, args=[], options={}):
