@@ -7,7 +7,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import os
-import sys
 import time
 import signal
 import subprocess
@@ -66,7 +65,7 @@ def waitretry(func, retries=5):
                 break
             time.sleep(1)
         else:
-            raise TimeoutError
+            raise TimeoutError(f"Unable to verify start of NRM binary after {retries} seconds.")
 
     return decorator
 
