@@ -65,7 +65,9 @@ def waitretry(func, retries=5):
                 break
             time.sleep(1)
         else:
-            raise TimeoutError(f"Unable to verify start of NRM binary after {retries} seconds.")
+            raise TimeoutError(
+                f"Unable to verify start of NRM binary after {retries} seconds."
+            )
 
     return decorator
 
