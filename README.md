@@ -1,24 +1,28 @@
-# NRM Communication library
+# NRM
 
-This library aims to provide a consistent API to communicate with the Argo Node
-Resource Manager.
+The Argo Node Resource Manager (NRM) is a sub-node compute-resource manager,
+capable of:
+- Measuring application progress and performance
+- Provisioning hardware threads, memory, GPUs, and power.
 
-At the moment, only the downstream client side is provided (allowing
-applications to report progress back to the NRM). This library will grow with
-time.
+NRM is shipped as `libnrm`, and includes:
 
-Current API is available for C/C++ programs.
+- The `nrmd` daemon
+- The `nrmc` command-line client
+- The `libnrm` API for  C/C++ application and utility instrumentation
 
-The power policies in NRM need contextual information from the application
-(e.g. time spent doing computation and in the barrier during a phase) for
-decision. This information from the application can be provided to NRM using
-the C downstream API.
+Client Python bindings are under active development.
 
-## Requirements
+## Installation
 
-The C downstream API uses ZeroMQ (http://www.zeromq.org) to transmit messages
-to NRM. So it needs to be installed.
+Use [Spack](https://spack.io/) to install `libnrm`:
+
+```
+$ spack install libnrm
+```
 
 ## Additional Info
+
+See [Read the Docs](https://nrm.readthedocs.io/en/latest/) for documentation.
 
 Use the GitHub issues to report bugs or ask for help using this library.
