@@ -58,12 +58,12 @@ class NRMBinary:
         self.stderr.close()
 
 
-def waitretry(func, retries=5):
+def waitretry(func, retries=5, sleeptime=1):
     def decorator(*args, **kwargs):
         for i in range(retries):
             if func(*args, **kwargs):
                 break
-            time.sleep(1)
+            time.sleep(sleeptime)
         else:
             raise TimeoutError(
                 f"Unable to verify start of NRM binary after {retries} seconds"
