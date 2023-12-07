@@ -69,6 +69,10 @@ class TestClient(unittest.TestCase):
             assert dummy_act.list_choices() == [0.0, 1.0]
             assert len(dummy_act.get_clientid())
 
+    def test_client_run(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            client.run("ls")
 
 if __name__ == "__main__":
     unittest.main()

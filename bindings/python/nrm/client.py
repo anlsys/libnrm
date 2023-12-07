@@ -10,7 +10,7 @@ import os
 import logging
 import subprocess
 from pathlib import Path
-from typing import List, Union
+from typing import List, Union, Optional
 from dataclasses import dataclass
 from ctypes import byref, POINTER, c_void_p, c_double
 
@@ -136,6 +136,20 @@ nrm_actuator_list_choices = _nrm_get_function(
 
 _logger = logging.getLogger("nrm")
 
+@dataclass
+class _ClientExec:
+    cmd: list
+    stdout: Path
+    stderr: Path
+    process: subprocess.Popen = None
+    errcode: int = -1
+    preloads: str = ""
+
+    def _setup_preloads(self, preloads):
+        preloads = ":".join([str(Path(path).absolute()) for path in preloads])
+        if len(preloads):
+            os.environ["LD_PRELOAD"] = preloads
+            self.preloads = preloads
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -159,6 +173,7 @@ class Client:
         self.pub_port = pub_port if pub_port else upstream_pub_port
         self.rpc_port = rpc_port if rpc_port else upstream_rpc_port
         self.client = nrm_client(0)
+        self.runs = []
 
         if isinstance(self.uri, str):
             self.uri = bytes(self.uri, "utf-8")
@@ -167,19 +182,15 @@ class Client:
             byref(self.client), self.uri, self.pub_port, self.rpc_port
         )
 
-    @classmethod
-    def _setup_preloads(preloads):
-        preloads = ":".join([str(Path(path).absolute()) for path in preloads])
-        if len(preloads):
-            os.environ["LD_PRELOAD"] = preloads 
-
     def run(self, cmd: Union[str, List[str]], preloads: List[Union[str, Path]] = []):
         cmd = [cmd] if isinstance(cmd, str) else cmd
-        Client._setup_preloads(preloads)
+        execcmd = _ClientExec(cmd=cmd, stdout=cmd[0]+".out", stderr=cmd[0]+".err")
+        execcmd._setup_preloads(preloads)
         try:
-            with open(cmd[0]+".out", "w") as stdout, open(cmd[0]+".err", "w") as stderr:
+            with open(execcmd.stdout, "w") as stdout, open(execcmd.stderr, "w") as stderr:
                 _logger.debug("Launching " + str(cmd))
-                self.process = subprocess.Popen(cmd, stdout=stdout, stderr=stderr)
+                execcmd.process = subprocess.Popen(cmd, stdout=stdout, stderr=stderr)
+                self.runs.append(execcmd)
         except Exception as e:
             _logger.error("Error on launch: ", e.__class__, e.args)
             raise e
