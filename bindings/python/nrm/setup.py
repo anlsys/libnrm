@@ -83,11 +83,6 @@ def dummy_connect(*args):
     return "nrm-dummy-extra-actuator" in [act.get_uuid() for act in actuators]
 
 @waitretry
-def papi_connect(*args):
-    sensors = Client().list_sensors()
-    return any([sensor.get_uuid().startswith("nrm.extra.perf.") for sensor in sensors])
-
-@waitretry
 def geopm_connect(*args):
     actuators = Client().list_actuators()
     return "nrm.geopm.cpu.power" in [act.get_uuid() for act in actuators]
@@ -96,7 +91,6 @@ class Setup:
     binaries = {
         "nrmd": NRMBinary("nrmd", False, nrmd_waitready),
         "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_connect),
-        "nrm-papiwrapper": NRMBinary("nrm-papiwrapper", False, papi_connect),
         "nrm-geopm": NRMBinary("nrm-geopm", False, geopm_connect),
     }
 

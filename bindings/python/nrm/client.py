@@ -6,8 +6,14 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from ctypes import byref, POINTER, c_void_p, c_double
+import os
+import logging
+import subprocess
+from pathlib import Path
+from typing import List, Union
 from dataclasses import dataclass
+from ctypes import byref, POINTER, c_void_p, c_double
+
 from .base import (
     Error,
     _nrm_get_function,
@@ -128,6 +134,8 @@ nrm_actuator_list_choices = _nrm_get_function(
     "nrm_actuator_list_choices", [nrm_actuator, POINTER(nrm_vector)]
 )
 
+_logger = logging.getLogger("nrm")
+
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -158,6 +166,28 @@ class Client:
         nrm_client_create(
             byref(self.client), self.uri, self.pub_port, self.rpc_port
         )
+
+    @classmethod
+    def _setup_preloads(preloads):
+        preloads = ":".join([str(Path(path).absolute()) for path in preloads])
+        if len(preloads):
+            os.environ["LD_PRELOAD"] = preloads 
+
+    def run(self, cmd: Union[str, List[str]], preloads: List[Union[str, Path]] = []):
+        cmd = [cmd] if isinstance(cmd, str) else cmd
+        Client._setup_preloads(preloads)
+        try:
+            with open(cmd[0]+".out", "w") as stdout, open(cmd[0]+".err", "w") as stderr:
+                _logger.debug("Launching " + str(cmd))
+                self.process = subprocess.Popen(cmd, stdout=stdout, stderr=stderr)
+        except Exception as e:
+            _logger.error("Error on launch: ", e.__class__, e.args)
+            raise e
+
+    def papi_run(self, cmd: Union[str, List[str]], events: List[str] = ["PAPI_TOT_INS"], freq: float = 1.0):
+        cmd = [cmd] if isinstance(cmd, str) else cmd
+        Client._setup_preloads(preloads)
+        pass
 
     def list_sensors(self) -> list:
         vector = nrm_vector(0)
