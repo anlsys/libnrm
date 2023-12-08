@@ -137,7 +137,7 @@ nrm_actuator_list_choices = _nrm_get_function(
 _logger = logging.getLogger("nrm")
 
 @dataclass
-class _ClientExec:
+class ClientExec:
     cmd: list
     stdout: Path
     stderr: Path
@@ -150,6 +150,13 @@ class _ClientExec:
         if len(preloads):
             os.environ["LD_PRELOAD"] = preloads
             self.preloads = preloads
+
+    def wait(self, timeout=None):
+        return self.process.wait(timeout=timeout)
+
+    def poll(self):
+        self.errcode = seslf.process.poll()
+        return self.errcode
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -184,13 +191,14 @@ class Client:
 
     def run(self, cmd: Union[str, List[str]], preloads: List[Union[str, Path]] = []):
         cmd = [cmd] if isinstance(cmd, str) else cmd
-        execcmd = _ClientExec(cmd=cmd, stdout=cmd[0]+".out", stderr=cmd[0]+".err")
+        execcmd = ClientExec(cmd=cmd, stdout=cmd[0]+"-stdout.log", stderr=cmd[0]+"-stderr.log")
         execcmd._setup_preloads(preloads)
         try:
             with open(execcmd.stdout, "w") as stdout, open(execcmd.stderr, "w") as stderr:
                 _logger.debug("Launching " + str(cmd))
                 execcmd.process = subprocess.Popen(cmd, stdout=stdout, stderr=stderr)
                 self.runs.append(execcmd)
+                return execcmd
         except Exception as e:
             _logger.error("Error on launch: ", e.__class__, e.args)
             raise e

@@ -72,7 +72,8 @@ class TestClient(unittest.TestCase):
     def test_client_run(self):
         with Setup("nrmd", options=options):
             client = Client()
-            client.run("ls")
+            cmd = client.run("ls")
+            cmd.wait(timeout=1)
 
 if __name__ == "__main__":
     unittest.main()

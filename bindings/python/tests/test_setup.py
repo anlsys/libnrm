@@ -19,12 +19,8 @@ class TestSetup(unittest.TestCase):
             pass
 
     def test_dummy_extra_init(self):
-        with Setup("nrm-dummy-extra", options=options):
+        with Setup("nrmd", options=options), Setup("nrm-dummy-extra", options=options):
             pass  # client capabilities tested in test_client.py - just check we don't crash here
-
-    def test_papiwrapper_init(self):
-        with Setup("nrm-papiwrapper", options=options):
-            pass
 
     def test_geopm_init(self):
         with Setup("nrm-geopm", options=options):
