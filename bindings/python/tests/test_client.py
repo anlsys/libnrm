@@ -74,6 +74,24 @@ class TestClient(unittest.TestCase):
             client = Client()
             cmd = client.run("ls")
             cmd.wait(timeout=1)
+            assert all(f in os.listdir(".") for f in ["ls-stdout.log", "ls-stderr.log"])
+            with open("ls-stdout.log", "r") as f:
+                assert len(f.readlines())
+
+    def test_client_run_preload(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            cmd = client.run("who", preloads=[os.environ.get("LIBNRM_SO_")])
+            cmd.wait(timeout=1)
+
+    def test_client_papi_run(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            cmd = client.papi_run("ls", events=["PAPI_TOT_INS"])
+            cmd.wait(timeout=1)
+            assert all(f in os.listdir(".") for f in ["ls-stdout.log", "ls-stderr.log"])
+            with open("ls-stdout.log", "r") as f:
+                assert len(f.readlines())
 
 if __name__ == "__main__":
     unittest.main()

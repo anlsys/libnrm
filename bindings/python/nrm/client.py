@@ -7,6 +7,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 import os
+import shutil
 import logging
 import subprocess
 from pathlib import Path
@@ -203,10 +204,12 @@ class Client:
             _logger.error("Error on launch: ", e.__class__, e.args)
             raise e
 
-    def papi_run(self, cmd: Union[str, List[str]], events: List[str] = ["PAPI_TOT_INS"], freq: float = 1.0):
+    def papi_run(self, cmd: Union[str, List[str]], events: List[str] = ["PAPI_TOT_INS"], freq: float = 1.0, preloads: List[Union[str, Path]] = []):
+        papiwrapper = shutil.which("nrm-papiwrapper")
         cmd = [cmd] if isinstance(cmd, str) else cmd
-        Client._setup_preloads(preloads)
-        pass
+        eevents = ["-e "+ event for event in events]
+        cmd = [papiwrapper] + eevents + cmd  # should resemble /usr/bin/nrm-papiwrapper -e PAPI_TOT_INS ./app
+        return self.run(cmd, preloads)
 
     def list_sensors(self) -> list:
         vector = nrm_vector(0)

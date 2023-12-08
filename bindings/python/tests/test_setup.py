@@ -23,7 +23,7 @@ class TestSetup(unittest.TestCase):
             pass  # client capabilities tested in test_client.py - just check we don't crash here
 
     def test_geopm_init(self):
-        with Setup("nrm-geopm", options=options):
+        with Setup("nrmd", options=options), Setup("nrm-geopm", options=options):
             pass
 
 if __name__ == "__main__":
