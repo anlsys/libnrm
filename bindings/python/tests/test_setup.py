@@ -22,7 +22,7 @@ class TestSetup(unittest.TestCase):
         with Setup("nrmd", options=options), Setup(
             "nrm-dummy-extra", options=options
         ):
-            pass  # client capabilities tested in test_client.py - just check we don't crash here
+            pass  # client tested in test_client.py - just check no crash
 
     def test_geopm_init(self):
         with Setup("nrmd", options=options), Setup(

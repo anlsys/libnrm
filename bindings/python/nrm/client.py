@@ -11,7 +11,7 @@ import shutil
 import logging
 import subprocess
 from pathlib import Path
-from typing import List, Union, Optional
+from typing import List, Union
 from dataclasses import dataclass
 from ctypes import byref, POINTER, c_void_p, c_double
 
@@ -230,7 +230,7 @@ class Client:
         eevents = ["-e " + event for event in events]
         cmd = (
             [papiwrapper] + ["-f", str(freq)] + eevents + cmd
-        )  # should resemble /usr/bin/nrm-papiwrapper -f 1 -e PAPI_TOT_INS ./app
+        )  # should resemble /usr/bin/nrm-papiwrapper -f 1 -e PAPI_EVENT ./app
         return self.run(cmd, preloads)
 
     def list_sensors(self) -> list:
