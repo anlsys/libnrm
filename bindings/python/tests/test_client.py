@@ -78,6 +78,13 @@ class TestClient(unittest.TestCase):
             with open("ls-stdout.log", "r") as f:
                 assert len(f.readlines())
 
+    def test_client_run_poll(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            cmd = client.run(["sleep", "2"])
+            assert cmd.poll()
+            cmd.wait()
+
     def test_client_run_preload(self):
         with Setup("nrmd", options=options):
             client = Client()

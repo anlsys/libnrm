@@ -156,7 +156,7 @@ class ClientExec:
         return self.process.wait(timeout=timeout)
 
     def poll(self):
-        self.errcode = seslf.process.poll()
+        self.errcode = self.process.poll()
         return self.errcode
 
 class Client:
@@ -206,9 +206,11 @@ class Client:
 
     def papi_run(self, cmd: Union[str, List[str]], events: List[str] = ["PAPI_TOT_INS"], freq: float = 1.0, preloads: List[Union[str, Path]] = []):
         papiwrapper = shutil.which("nrm-papiwrapper")
+        if not papiwrapper:
+            raise FileNotFoundError("Unable to find nrm-papiwrapper")
         cmd = [cmd] if isinstance(cmd, str) else cmd
         eevents = ["-e "+ event for event in events]
-        cmd = [papiwrapper] + eevents + cmd  # should resemble /usr/bin/nrm-papiwrapper -e PAPI_TOT_INS ./app
+        cmd = [papiwrapper] + ["-f", str(freq)] + eevents + cmd  # should resemble /usr/bin/nrm-papiwrapper -f 1 -e PAPI_TOT_INS ./app
         return self.run(cmd, preloads)
 
     def list_sensors(self) -> list:
