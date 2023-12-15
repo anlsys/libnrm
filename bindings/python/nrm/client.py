@@ -137,6 +137,7 @@ nrm_actuator_list_choices = _nrm_get_function(
 
 _logger = logging.getLogger("nrm")
 
+
 @dataclass
 class ClientExec:
     cmd: list
@@ -158,6 +159,7 @@ class ClientExec:
     def poll(self):
         self.errcode = self.process.poll()
         return self.errcode
+
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -190,27 +192,45 @@ class Client:
             byref(self.client), self.uri, self.pub_port, self.rpc_port
         )
 
-    def run(self, cmd: Union[str, List[str]], preloads: List[Union[str, Path]] = []):
+    def run(
+        self, cmd: Union[str, List[str]], preloads: List[Union[str, Path]] = []
+    ):
         cmd = [cmd] if isinstance(cmd, str) else cmd
-        execcmd = ClientExec(cmd=cmd, stdout=cmd[0]+"-stdout.log", stderr=cmd[0]+"-stderr.log")
+        execcmd = ClientExec(
+            cmd=cmd,
+            stdout=cmd[0] + "-stdout.log",
+            stderr=cmd[0] + "-stderr.log",
+        )
         execcmd._setup_preloads(preloads)
         try:
-            with open(execcmd.stdout, "w") as stdout, open(execcmd.stderr, "w") as stderr:
+            with open(execcmd.stdout, "w") as stdout, open(
+                execcmd.stderr, "w"
+            ) as stderr:
                 _logger.debug("Launching " + str(cmd))
-                execcmd.process = subprocess.Popen(cmd, stdout=stdout, stderr=stderr)
+                execcmd.process = subprocess.Popen(
+                    cmd, stdout=stdout, stderr=stderr
+                )
                 self.runs.append(execcmd)
                 return execcmd
         except Exception as e:
             _logger.error("Error on launch: ", e.__class__, e.args)
             raise e
 
-    def papi_run(self, cmd: Union[str, List[str]], events: List[str] = ["PAPI_TOT_INS"], freq: float = 1.0, preloads: List[Union[str, Path]] = []):
+    def papi_run(
+        self,
+        cmd: Union[str, List[str]],
+        events: List[str] = ["PAPI_TOT_INS"],
+        freq: float = 1.0,
+        preloads: List[Union[str, Path]] = [],
+    ):
         papiwrapper = shutil.which("nrm-papiwrapper")
         if not papiwrapper:
             raise FileNotFoundError("Unable to find nrm-papiwrapper")
         cmd = [cmd] if isinstance(cmd, str) else cmd
-        eevents = ["-e "+ event for event in events]
-        cmd = [papiwrapper] + ["-f", str(freq)] + eevents + cmd  # should resemble /usr/bin/nrm-papiwrapper -f 1 -e PAPI_TOT_INS ./app
+        eevents = ["-e " + event for event in events]
+        cmd = (
+            [papiwrapper] + ["-f", str(freq)] + eevents + cmd
+        )  # should resemble /usr/bin/nrm-papiwrapper -f 1 -e PAPI_TOT_INS ./app
         return self.run(cmd, preloads)
 
     def list_sensors(self) -> list:

@@ -82,10 +82,12 @@ def dummy_connect(*args):
     actuators = Client().list_actuators()
     return "nrm-dummy-extra-actuator" in [act.get_uuid() for act in actuators]
 
+
 @waitretry
 def geopm_connect(*args):
     actuators = Client().list_actuators()
     return "nrm.geopm.cpu.power" in [act.get_uuid() for act in actuators]
+
 
 class Setup:
     binaries = {

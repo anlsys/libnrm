@@ -74,7 +74,10 @@ class TestClient(unittest.TestCase):
             client = Client()
             cmd = client.run("ls")
             cmd.wait(timeout=1)
-            assert all(f in os.listdir(".") for f in ["ls-stdout.log", "ls-stderr.log"])
+            assert all(
+                f in os.listdir(".")
+                for f in ["ls-stdout.log", "ls-stderr.log"]
+            )
             with open("ls-stdout.log", "r") as f:
                 assert len(f.readlines())
 
@@ -96,9 +99,13 @@ class TestClient(unittest.TestCase):
             client = Client()
             cmd = client.papi_run("ls", events=["PAPI_TOT_INS"])
             cmd.wait(timeout=1)
-            assert all(f in os.listdir(".") for f in ["ls-stdout.log", "ls-stderr.log"])
+            assert all(
+                f in os.listdir(".")
+                for f in ["ls-stdout.log", "ls-stderr.log"]
+            )
             with open("ls-stdout.log", "r") as f:
                 assert len(f.readlines())
+
 
 if __name__ == "__main__":
     unittest.main()
