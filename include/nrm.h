@@ -253,7 +253,7 @@ int nrm_state_remove_slice(nrm_state_t *, const char *uuid);
 void nrm_state_destroy(nrm_state_t **);
 
 /*******************************************************************************
- * EventBase: a timeseries in-memory database
+ * Timeserie: a timeserie labeled by a scope and a sensor.
  ******************************************************************************/
 
 struct nrm_event_s {
@@ -264,6 +264,14 @@ typedef struct nrm_event_s nrm_event_t;
 
 struct nrm_timeserie_s;
 typedef struct nrm_timeserie_s nrm_timeserie_t;
+
+int nrm_timeserie_create(nrm_timeserie_t **, nrm_string_t, nrm_scope_t *);
+int nrm_timeserie_add_event(nrm_timeserie_t *, nrm_time_t, double);
+void nrm_timeserie_destroy(nrm_timeserie_t **);
+
+/*******************************************************************************
+ * EventBase: a timeseries in-memory database
+ ******************************************************************************/
 
 struct nrm_eventbase_s;
 typedef struct nrm_eventbase_s nrm_eventbase_t;

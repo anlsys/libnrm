@@ -21,32 +21,179 @@
 #include "internal/uthash.h"
 #include "internal/utlist.h"
 
+#define TIMESLICE_PERIOD 1000
+
+/* a slice of events, indexed by the start of the slice (a multiple of
+ * TIMESLICE_PERIOD nanoseconds
+ */
+struct nrm_eb_timeslice_s {
+	int64_t key;
+	nrm_vector_t *events;
+	UT_hash_handle hh;
+};
+typedef struct nrm_eb_timeslice_s nrm_eb_timeslice_t;
+
+/* all the slices for a given scope */
+/* TODO maybe we could store them in a ringbuffer and just use the hash for
+ * TODO indexing faster? or just index faster into the ringbuffer.
+ */
+struct nrm_eb_scopebase_s {
+	nrm_scope_t *scope;
+	nrm_eb_timeslice_t *slices;
+};
+typedef struct nrm_eb_scopebase_s nrm_eb_scopebase_t;
+
+struct nrm_eb_sensorbase_s {
+	nrm_string_t sensor_uuid;
+	nrm_hash_t *scopes;
+};
+typedef struct nrm_eb_sensorbase_s nrm_eb_sensorbase_t;
+
 /* the typedef is already in nrm.h */
 struct nrm_eventbase_s {
 	size_t maxperiods;
-	struct nrm_sensor2scope_s *hash;
+	nrm_hash_t *sensors;
 };
 
-/* the main structure, matches a scope to two ringbuffers, one for the current
- * window (one event per signal), one for past windows (one event per period).
- */
-struct nrm_scope2ring_s {
-	nrm_scope_t *scope;
-	nrm_ringbuffer_t *past;
-	nrm_vector_t *events;
-	/* needed to link them together */
-	struct nrm_scope2ring_s *prev;
-	struct nrm_scope2ring_s *next;
-};
-typedef struct nrm_scope2ring_s nrm_scope2ring_t;
+/*******************************************************************************
+ * Basic Functions
+ ******************************************************************************/
 
-/* a way to hash a sensor uuid to a list of scope2ring struct. */
-struct nrm_sensor2scope_s {
-	nrm_string_t uuid;
-	struct nrm_scope2ring_s *list;
-	UT_hash_handle hh;
-};
-typedef struct nrm_sensor2scope_s nrm_sensor2scope_t;
+
+nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods)
+{
+	nrm_eventbase_t *ret = calloc(1, sizeof(nrm_state_t));
+	if (ret == NULL)
+		return NULL;
+	ret->maxperiods = maxperiods;
+	ret->hash = NULL;
+	return ret;
+}
+
+size_t nrm_eventbase_get_maxperiods(nrm_eventbase_t *eb)
+{
+	return eb->maxperiods;
+}
+
+void nrm_eventbase_destroy(nrm_eventbase_t **eventbase)
+{
+	if (eventbase == NULL || *eventbase == NULL)
+		return;
+	nrm_eventbase_t *eb = *eventbase;
+
+	nrm_hash_foreach(eb->hash, isb)
+	{
+		nrm_eb_sensorbase_t *sb = nrm_hash_iterator_get(isb);
+		nrm_hash_foreach(sb->scopes, isc)
+		{
+			nrm_eb_scopebase_t *sc = nrm_hash_iterator_get(isc);
+			HASH_ITER(hh, sc->slices, ts, tstmp)
+			{
+				nrm_vector_destroy(&ts->events);
+				HASH_DEL(sc->slices, ts);
+				free(ts);
+			}
+			HASH_CLEAR(hh, sc->slices);
+			free(sc);
+		}
+		nrm_hash_destroy(&sb->scopes);
+		free(sb);
+	}
+	nrm_hash_destroy(&eb->hash);
+	free(eb);
+	*eventbase = NULL;
+}
+
+/*******************************************************************************
+ * Pushing events: we push individual events, or entire timeseries.
+ ******************************************************************************/
+
+int nrm_eventbase_add_event(nrm_eb_timeslice_t *ts, nrm_time_t time, double val)
+{
+	nrm_event_t e;
+	e.time = time;
+	e.value = val;
+	nrm_vector_push_back(ts->events, &e);
+	return 0;
+}
+
+nrm_eb_timeslice_t *nrm_eventbase_add_timeslice(nrm_eb_scopebase_t *sc,
+						int64_t key)
+{
+	nrm_eb_timeslice_t *ret;
+	ret = calloc(1, sizeof(nrm_eb_timeslice_t));
+	if (ret == NULL)
+		return NULL;
+
+	ret->key = key;
+	nrm_vector_create(ret->events, sizeof(nrm_event_t));
+	HASH_ADD(hh, sc->slices, key, sizeof(int64_t), ret);
+	return ret;
+}
+
+nrm_eb_scopebase_t *nrm_eventbase_add_scope(nrm_eventbase_t *eb,
+					    nrm_eb_sensorbase_t *sb,
+					    nrm_scope_t *scope)
+{
+	struct nrm_eb_scopebase_t *ret;
+	ret = calloc(1, sizeof(struct nrm_eb_scopebase_t));
+	if (ret == NULL)
+		return NULL;
+
+	ret->scope = nrm_scope_dup(scope);
+	nrm_hash_add(sb->scopes, scope->uuid, ret);
+	return ret;
+}
+
+nrm_eb_sensorbase_t *nrm_eventbase_add_sensor(nrm_eventbase_t *eb,
+                                                    nrm_string_t sensor_uuid)
+{
+	struct nrm_eb_sensorbase_t *ret;
+	ret = calloc(1, sizeof(struct nrm_eb_sensorbase_t));
+	if (ret == NULL)
+		return NULL;
+	
+	ret->uuid = sensor_uuid;
+	nrm_string_incref(sensor_uuid);
+	nrm_hash_add(eb->hash, ret->uuid, ret);
+	return ret;
+}
+
+int nrm_eventbase_push_event(nrm_eventbase_t *eb,
+                             nrm_string_t sensor_uuid,
+                             nrm_scope_t *scope,
+                             nrm_time_t time,
+                             double value)
+{
+	if (eb == NULL || scope == NULL)
+		return -NRM_EINVAL;
+
+	nrm_eb_sensorbase_t *sb;
+	nrm_hash_find(eb->hash, sensor_uuid, &sb);
+	if (sb == NULL)
+		sb = nrm_eventbase_add_sensor(eb, sensor_uuid);
+	
+	nrm_eb_scopebase_t *sc;
+	nrm_hash_find(sb->scopes, scope->uuid, &sc);
+	if (sc == NULL)
+		sc = nrm_eventbase_add_scope(eb, sb, scope);
+
+	/* convert time to key */
+	int64_t key = nrm_time_tons(&time);
+	key = key - (key % TIMESLICE_PERIOD);
+
+	nrm_eb_timeslice_t *ts;
+	HASH_FIND(hh, sc->slices, &key, sizeof(key), &ts);
+	if (ts == NULL)
+		ts = nrm_eventbase_add_timeslice(eb, sb, sc, key);
+
+	nrm_eventbase_add_event(ts, time, value);
+	return 0;
+}
+
+/*******************************************************************************
+ * Pulling events: we pull entire timeseries
+ ******************************************************************************/
 
 int nrm_eventbase_new_period(struct nrm_scope2ring_s *s, nrm_time_t time)
 {
@@ -80,44 +227,9 @@ int nrm_eventbase_tick(nrm_eventbase_t *eb, nrm_time_t time)
 	return 0;
 }
 
-int nrm_eventbase_add_event(struct nrm_scope2ring_s *s,
-                            nrm_time_t time,
-                            double val)
-{
-	nrm_event_t e;
-	e.time = time;
-	e.value = val;
-	nrm_vector_push_back(s->events, &e);
-	return 0;
-}
-
-struct nrm_scope2ring_s *nrm_eventbase_add_scope(nrm_eventbase_t *eb,
-                                                 nrm_scope_t *scope)
-{
-	struct nrm_scope2ring_s *ret;
-	ret = calloc(1, sizeof(struct nrm_scope2ring_s));
-	if (ret == NULL)
-		return NULL;
-	ret->scope = nrm_scope_dup(scope);
-	nrm_ringbuffer_create(&ret->past, eb->maxperiods, sizeof(nrm_event_t));
-	nrm_vector_create(&ret->events, sizeof(nrm_event_t));
-	return ret;
-}
-
-struct nrm_sensor2scope_s *nrm_eventbase_add_sensor(nrm_eventbase_t *eb,
-                                                    nrm_string_t sensor_uuid)
-{
-	/* add a sensor2scope to the hash table */
-	struct nrm_sensor2scope_s *s;
-	s = calloc(1, sizeof(struct nrm_sensor2scope_s));
-	if (s == NULL)
-		return NULL;
-	s->uuid = sensor_uuid;
-	nrm_string_incref(sensor_uuid);
-	s->list = NULL;
-	HASH_ADD_KEYPTR(hh, eb->hash, s->uuid, nrm_string_strlen(s->uuid), s);
-	return s;
-}
+/*******************************************************************************
+ * State management
+ ******************************************************************************/
 
 int nrm_eventbase_remove_sensor(nrm_eventbase_t *eb, nrm_string_t sensor_uuid)
 {

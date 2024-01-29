@@ -691,18 +691,12 @@ int nrm_client_send_event(nrm_client_t *client,
 		return -NRM_EINVAL;
 
 	nrm_log_debug("crafting message\n");
-	nrm_timeserie_t *timeserie = calloc(1, sizeof(nrm_timeserie_t));
+	nrm_timeserie_t *timeserie;
+	nrm_timeserie_create(&timeserie, sensor->uuid, scope);
 	assert(timeserie != NULL);
 
-	timeserie->sensor_uuid = sensor->uuid;
-	timeserie->scope = scope;
-	timeserie->start = time;
-	nrm_vector_create(&timeserie->events, sizeof(nrm_event_t));
-	assert(timeserie->events != NULL);
-	nrm_event_t e;
-	e.value = value;
-	e.time = time;
-	nrm_vector_push_back(timeserie->events, &e);
+	nrm_timeserie_add_event(timeserie, time, value);
+	
 	nrm_vector_t *timeseries;
 	nrm_vector_create(&timeseries, sizeof(nrm_timeserie_t *));
 	nrm_vector_push_back(timeseries, &timeserie);
@@ -717,8 +711,7 @@ int nrm_client_send_event(nrm_client_t *client,
 	pthread_mutex_unlock(&(client->lock));
 
 	nrm_vector_destroy(&timeseries);
-	nrm_vector_destroy(&timeserie->events);
-	free(timeserie);
+	nrm_timeserie_destroy(&timeserie);
 	return 0;
 }
 

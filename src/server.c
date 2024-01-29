@@ -461,18 +461,11 @@ int nrm_server_publish(nrm_server_t *server,
 	    scope == NULL)
 		return -NRM_EINVAL;
 
-	nrm_timeserie_t *timeserie = calloc(1, sizeof(nrm_timeserie_t));
+	nrm_timeserie_t *timeserie;
+	nrm_timeserie_create(&timeserie, sensor_uuid, scope);
 	assert(timeserie != NULL);
-
-	timeserie->sensor_uuid = sensor_uuid;
-	timeserie->scope = scope;
-	timeserie->start = now;
-	nrm_vector_create(&timeserie->events, sizeof(nrm_event_t));
-	assert(timeserie->events != NULL);
-	nrm_event_t e;
-	e.value = value;
-	e.time = now;
-	nrm_vector_push_back(timeserie->events, &e);
+	
+	nrm_timeserie_add_event(timeserie, now, value);
 	nrm_vector_t *timeseries;
 	nrm_vector_create(&timeseries, sizeof(nrm_timeserie_t *));
 	nrm_vector_push_back(timeseries, &timeserie);
@@ -483,8 +476,7 @@ int nrm_server_publish(nrm_server_t *server,
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 
 	nrm_vector_destroy(&timeseries);
-	nrm_vector_destroy(&timeserie->events);
-	free(timeserie);
+	nrm_timeserie_destroy(&timeserie);
 	return nrm_role_pub(server->role, topic, msg);
 }
 
