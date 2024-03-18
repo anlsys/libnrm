@@ -22,6 +22,7 @@ typedef struct europar21_data {
 	double pcap_max;
 	double pcap_min_L, pcap_max_L;
 	double prev_e;
+	nrm_time_t lastaction;
 	nrm_vector_t *inputs;
 	nrm_vector_t *outputs;
 } nrm_control_europar21_data_t;
@@ -82,6 +83,10 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 	size_t idx;
 	json_t *value;
 
+	nrm_time_t creationtime;
+	nrm_time_gettime(&creationtime);
+	data->lastaction = creationtime;
+
 	nrm_vector_create(&data->inputs, sizeof(nrm_control_input_t));
 	json_array_foreach(object, idx, value)
 	{
@@ -94,7 +99,8 @@ int nrm_control_europar21_create(nrm_control_t **control, json_t *config)
 		assert(!err);
 		in.sensor_uuid = nrm_string_fromchar(sensor);
 		in.scope_uuid = nrm_string_fromchar(scope);
-		in.events = NULL;
+		in.since = creationtime;
+		in.timeserie = NULL;
 		nrm_vector_push_back(data->inputs, &in);
 	}
 
@@ -144,6 +150,11 @@ int nrm_control_europar21_getargs(nrm_control_t *control,
 {
 	nrm_control_europar21_data_t *data =
 	        (nrm_control_europar21_data_t *)control->data;
+	nrm_vector_foreach(data->inputs, iter)
+	{
+		nrm_control_input_t *in = nrm_vector_iterator_get(iter);
+		in->since = data->lastaction;
+	}
 	*inputs = data->inputs;
 	*outputs = data->outputs;
 	return 0;
@@ -197,11 +208,12 @@ int nrm_control_europar21_action(nrm_control_t *control,
 		return -NRM_EINVAL;
 
 	size_t numevents;
-	nrm_vector_length(in->events, &numevents);
-	if (in->events == NULL || numevents <= 1)
+	nrm_vector_t *events = nrm_timeserie_get_events(in->timeserie);
+	nrm_vector_length(events, &numevents);
+	if (events == NULL || numevents <= 1)
 		return 0;
 
-	prog = nrm_control_europar21_events2progress(in->events);
+	prog = nrm_control_europar21_events2progress(events);
 	nrm_vector_get_withtype(nrm_control_output_t, outputs, 0, out);
 	if (out == NULL)
 		return -NRM_EINVAL;
@@ -233,6 +245,9 @@ int nrm_control_europar21_action(nrm_control_t *control,
 			              act, threshold, actL);
 		}
 	}
+	nrm_time_t now;
+	nrm_time_gettime(&now);
+	data->lastaction = now;
 	nrm_log_debug("new pcap: %f\n", out->value);
 	return 0;
 }

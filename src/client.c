@@ -696,11 +696,11 @@ int nrm_client_send_event(nrm_client_t *client,
 	assert(timeserie != NULL);
 
 	nrm_timeserie_add_event(timeserie, time, value);
-	
+
 	nrm_vector_t *timeseries;
 	nrm_vector_create(&timeseries, sizeof(nrm_timeserie_t *));
 	nrm_vector_push_back(timeseries, &timeserie);
-	
+
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENTS);
 	nrm_msg_set_events(msg, timeseries);

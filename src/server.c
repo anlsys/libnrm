@@ -61,11 +61,11 @@ int nrm_server_actuate_callback(nrm_server_t *self,
 }
 
 int nrm_server_events_callback(nrm_server_t *self,
-                              nrm_uuid_t *clientid,
-                              nrm_msg_timeserielist_t *msg)
+                               nrm_uuid_t *clientid,
+                               nrm_msg_timeserielist_t *msg)
 {
 	(void)clientid;
-	
+
 	/* unroll the entire timeseries */
 	for (size_t i = 0; i < msg->n_series; i++) {
 		nrm_msg_timeserie_t *ts = msg->series[i];
@@ -75,7 +75,8 @@ int nrm_server_events_callback(nrm_server_t *self,
 		for (size_t j = 0; j < ts->n_events; j++) {
 			nrm_msg_event_t *e = ts->events[j];
 			nrm_time_t time = nrm_time_fromns(e->time);
-			self->callbacks.event(self, uuid, scope, time, e->value);
+			self->callbacks.event(self, uuid, scope, time,
+			                      e->value);
 		}
 	}
 	return 0;
@@ -464,12 +465,12 @@ int nrm_server_publish(nrm_server_t *server,
 	nrm_timeserie_t *timeserie;
 	nrm_timeserie_create(&timeserie, sensor_uuid, scope);
 	assert(timeserie != NULL);
-	
+
 	nrm_timeserie_add_event(timeserie, now, value);
 	nrm_vector_t *timeseries;
 	nrm_vector_create(&timeseries, sizeof(nrm_timeserie_t *));
 	nrm_vector_push_back(timeseries, &timeserie);
-	
+
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENTS);
 	nrm_msg_set_events(msg, timeseries);

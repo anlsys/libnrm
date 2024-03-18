@@ -265,8 +265,10 @@ typedef struct nrm_event_s nrm_event_t;
 struct nrm_timeserie_s;
 typedef struct nrm_timeserie_s nrm_timeserie_t;
 
-int nrm_timeserie_create(nrm_timeserie_t **, nrm_string_t, nrm_scope_t *);
+int nrm_timeserie_create(nrm_timeserie_t **, nrm_string_t, nrm_scope_t *t);
 int nrm_timeserie_add_event(nrm_timeserie_t *, nrm_time_t, double);
+int nrm_timeserie_add_events(nrm_timeserie_t *, nrm_vector_t *);
+nrm_vector_t *nrm_timeserie_get_events(nrm_timeserie_t *);
 void nrm_timeserie_destroy(nrm_timeserie_t **);
 
 /*******************************************************************************
@@ -285,15 +287,11 @@ int nrm_eventbase_push_event(
 
 int nrm_eventbase_tick(nrm_eventbase_t *, nrm_time_t);
 
-int nrm_eventbase_last_value(nrm_eventbase_t *,
-                             nrm_string_t,
-                             nrm_string_t,
-                             double *);
-
-int nrm_eventbase_current_events(nrm_eventbase_t *,
+int nrm_eventbase_pull_timeserie(nrm_eventbase_t *,
                                  nrm_string_t,
-                                 nrm_string_t,
-                                 nrm_vector_t **);
+                                 nrm_scope_t *,
+                                 nrm_time_t since,
+                                 nrm_timeserie_t **ts);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 

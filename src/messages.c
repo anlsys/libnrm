@@ -214,7 +214,7 @@ nrm_msg_timeserie_t *nrm_msg_timeserie_new(nrm_timeserie_t *timeserie)
 		nrm_vector_get_withtype(nrm_event_t, timeserie->events, i, e);
 		ret->events[i] = nrm_msg_event_new(e);
 	}
-	return ret;	
+	return ret;
 }
 
 void nrm_msg_timeserie_destroy(nrm_msg_timeserie_t *msg)
@@ -232,7 +232,8 @@ void nrm_msg_timeserie_destroy(nrm_msg_timeserie_t *msg)
 
 nrm_msg_timeserielist_t *nrm_msg_timeserielist_new(nrm_vector_t *timeseries)
 {
-	nrm_msg_timeserielist_t *ret = calloc(1, sizeof(nrm_msg_timeserielist_t));
+	nrm_msg_timeserielist_t *ret =
+	        calloc(1, sizeof(nrm_msg_timeserielist_t));
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_timeserielist_init(ret);
@@ -250,7 +251,6 @@ nrm_msg_timeserielist_t *nrm_msg_timeserielist_new(nrm_vector_t *timeseries)
 		ret->series[i] = nrm_msg_timeserie_new(*s);
 	}
 	return ret;
-
 }
 
 void nrm_msg_timeserielist_destroy(nrm_msg_timeserielist_t *msg)
@@ -262,8 +262,7 @@ void nrm_msg_timeserielist_destroy(nrm_msg_timeserielist_t *msg)
 	free(msg);
 }
 
-int nrm_msg_set_events(nrm_msg_t *msg,
-		       nrm_vector_t *timeseries)
+int nrm_msg_set_events(nrm_msg_t *msg, nrm_vector_t *timeseries)
 {
 	if (msg == NULL)
 		return -NRM_EINVAL;
@@ -1020,12 +1019,12 @@ json_t *nrm_msg_timeserie_to_json(nrm_msg_timeserie_t *msg)
 	events = json_array();
 	for (size_t i = 0; i < msg->n_events; i++) {
 		json_array_append_new(events,
-				      nrm_msg_event_to_json(msg->events[i]));
+		                      nrm_msg_event_to_json(msg->events[i]));
 	}
 	scope = nrm_msg_scope_to_json(msg->scope);
 	ret = json_pack("{s:s, s:o, s:I, s:o}", "sensor_uuid", msg->sensor_uuid,
-			"scope_uuid", scope, "start", msg->start,
-			"events", events);
+	                "scope_uuid", scope, "start", msg->start, "events",
+	                events);
 	return ret;
 }
 
@@ -1034,8 +1033,8 @@ json_t *nrm_msg_timeserielist_to_json(nrm_msg_timeserielist_t *msg)
 	json_t *ret;
 	ret = json_array();
 	for (size_t i = 0; i < msg->n_series; i++) {
-		json_array_append_new(ret,
-				      nrm_msg_timeserie_to_json(msg->series[i]));
+		json_array_append_new(
+		        ret, nrm_msg_timeserie_to_json(msg->series[i]));
 	}
 	return ret;
 }
