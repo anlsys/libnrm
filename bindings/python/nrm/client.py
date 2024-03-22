@@ -6,8 +6,15 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from ctypes import byref, POINTER, c_void_p, c_double
+import os
+import shutil
+import logging
+import subprocess
+from pathlib import Path
+from typing import List, Union
 from dataclasses import dataclass
+from ctypes import byref, POINTER, c_void_p, c_double
+
 from .base import (
     Error,
     _nrm_get_function,
@@ -128,6 +135,31 @@ nrm_actuator_list_choices = _nrm_get_function(
     "nrm_actuator_list_choices", [nrm_actuator, POINTER(nrm_vector)]
 )
 
+_logger = logging.getLogger("nrm")
+
+
+@dataclass
+class ClientExec:
+    cmd: list
+    stdout: Path
+    stderr: Path
+    process: subprocess.Popen = None
+    errcode: int = -1
+    preloads: str = ""
+
+    def _setup_preloads(self, preloads):
+        preloads = ":".join([str(Path(path).absolute()) for path in preloads])
+        if len(preloads):
+            os.environ["LD_PRELOAD"] = preloads
+            self.preloads = preloads
+
+    def wait(self, timeout=None):
+        return self.process.wait(timeout=timeout)
+
+    def poll(self):
+        self.errcode = self.process.poll()
+        return self.errcode
+
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -151,6 +183,7 @@ class Client:
         self.pub_port = pub_port if pub_port else upstream_pub_port
         self.rpc_port = rpc_port if rpc_port else upstream_rpc_port
         self.client = nrm_client(0)
+        self.runs = []
 
         if isinstance(self.uri, str):
             self.uri = bytes(self.uri, "utf-8")
@@ -158,6 +191,47 @@ class Client:
         nrm_client_create(
             byref(self.client), self.uri, self.pub_port, self.rpc_port
         )
+
+    def run(
+        self, cmd: Union[str, List[str]], preloads: List[Union[str, Path]] = []
+    ):
+        cmd = [cmd] if isinstance(cmd, str) else cmd
+        execcmd = ClientExec(
+            cmd=cmd,
+            stdout=cmd[0] + "-stdout.log",
+            stderr=cmd[0] + "-stderr.log",
+        )
+        execcmd._setup_preloads(preloads)
+        try:
+            with open(execcmd.stdout, "w") as stdout, open(
+                execcmd.stderr, "w"
+            ) as stderr:
+                _logger.debug("Launching " + str(cmd))
+                execcmd.process = subprocess.Popen(
+                    cmd, stdout=stdout, stderr=stderr
+                )
+                self.runs.append(execcmd)
+                return execcmd
+        except Exception as e:
+            _logger.error("Error on launch: ", e.__class__, e.args)
+            raise e
+
+    def papi_run(
+        self,
+        cmd: Union[str, List[str]],
+        events: List[str] = ["PAPI_TOT_INS"],
+        freq: float = 1.0,
+        preloads: List[Union[str, Path]] = [],
+    ):
+        papiwrapper = shutil.which("nrm-papiwrapper")
+        if not papiwrapper:
+            raise FileNotFoundError("Unable to find nrm-papiwrapper")
+        cmd = [cmd] if isinstance(cmd, str) else cmd
+        eevents = ["-e " + event for event in events]
+        cmd = (
+            [papiwrapper] + ["-f", str(freq)] + eevents + cmd
+        )  # should resemble /usr/bin/nrm-papiwrapper -f 1 -e PAPI_EVENT ./app
+        return self.run(cmd, preloads)
 
     def list_sensors(self) -> list:
         vector = nrm_vector(0)

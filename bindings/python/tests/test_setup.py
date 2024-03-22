@@ -18,6 +18,18 @@ class TestSetup(unittest.TestCase):
         with Setup("nrmd", options=options):
             pass
 
+    def test_dummy_extra_init(self):
+        with Setup("nrmd", options=options), Setup(
+            "nrm-dummy-extra", options=options
+        ):
+            pass  # client tested in test_client.py - just check no crash
+
+    def test_geopm_init(self):
+        with Setup("nrmd", options=options), Setup(
+            "nrm-geopm", options=options
+        ):
+            pass
+
 
 if __name__ == "__main__":
     unittest.main()

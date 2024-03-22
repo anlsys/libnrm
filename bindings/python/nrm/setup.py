@@ -78,15 +78,22 @@ def nrmd_waitready(options):
 
 
 @waitretry
-def dummy_connect(options):
+def dummy_connect(*args):
     actuators = Client().list_actuators()
     return "nrm-dummy-extra-actuator" in [act.get_uuid() for act in actuators]
+
+
+@waitretry
+def geopm_connect(*args):
+    actuators = Client().list_actuators()
+    return "nrm.geopm.cpu.power" in [act.get_uuid() for act in actuators]
 
 
 class Setup:
     binaries = {
         "nrmd": NRMBinary("nrmd", False, nrmd_waitready),
         "nrm-dummy-extra": NRMBinary("nrm-dummy-extra", False, dummy_connect),
+        "nrm-geopm": NRMBinary("nrm-geopm", False, geopm_connect),
     }
 
     def __init__(self, name, args=[], options={}):
