@@ -22,6 +22,7 @@ from .base import (
     nrm_actuator,
     nrm_scope,
     nrm_slice,
+    nrm_client_event_listener_fn,
     upstream_uri,
     upstream_pub_port,
     upstream_rpc_port,
@@ -64,6 +65,10 @@ nrm_client_add_scope = _nrm_get_function(
 
 nrm_client_add_slice = _nrm_get_function(
     "nrm_client_add_slice", [nrm_client, nrm_slice]
+)
+
+nrm_client_set_event_listener = _nrm_get_function(
+    "nrm_client_set_event_listener", [nrm_client, nrm_client_event_listener_fn]
 )
 
 nrm_sensor_create = _nrm_get_function(
@@ -198,6 +203,15 @@ class Client:
     def add_slice(self, name: str):
         nslice = nrm_slice_create(bytes(name, "utf-8"))  # "slice" is builtin
         nrm_client_add_slice(self.client, nslice)
+
+    def set_event_listener(self, cb):
+
+        # https://stackoverflow.com/questions/2469975/python-objects-as-userdata-in-ctypes-callback-functions
+        def _my_el_wrapper(sensor, time, scope, value):
+            return self.cb(sensor, time, scope, value)
+
+        self.nrmc_callback = nrm_client_event_listener_fn(_my_el_wrapper)
+        nrm_client_set_event_listener(self.client, self.nrmc_callback)
 
     def __del__(self):
         nrm_client_destroy(byref(self.client))

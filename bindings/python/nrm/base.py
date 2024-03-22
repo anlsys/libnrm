@@ -26,6 +26,18 @@ nrm_slice = ct.c_void_p
 nrm_vector = ct.c_void_p
 nrm_uuid = nrm_str
 
+# public struct types
+
+
+class nrm_time(ct.Structure):
+    _fields_ = [("tv_sec", ct.c_time_t),
+                ("tv_nsec", ct.c_long)]
+
+# function ptr types
+
+
+nrm_client_event_listener_fn = ct.CFUNCTYPE(ct.c_int, nrm_str, nrm_time,
+                                            nrm_scope, ct.c_double)
 
 # Error types
 
