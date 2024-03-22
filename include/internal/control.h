@@ -24,7 +24,8 @@ typedef struct nrm_control_s nrm_control_t;
 typedef struct {
 	nrm_string_t sensor_uuid;
 	nrm_string_t scope_uuid;
-	nrm_vector_t *events;
+	nrm_time_t since;
+	nrm_timeserie_t *timeserie;
 } nrm_control_input_t;
 
 typedef struct {

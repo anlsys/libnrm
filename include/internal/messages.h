@@ -32,7 +32,7 @@ typedef enum _Nrm__MSGTYPE nrm_msg_msgtype_e;
 #define NRM_MSG_TYPE_LIST (NRM__MSGTYPE__LIST)
 #define NRM_MSG_TYPE_ADD (NRM__MSGTYPE__ADD)
 #define NRM_MSG_TYPE_REMOVE (NRM__MSGTYPE__REMOVE)
-#define NRM_MSG_TYPE_EVENT (NRM__MSGTYPE__EVENT)
+#define NRM_MSG_TYPE_EVENTS (NRM__MSGTYPE__EVENTS)
 #define NRM_MSG_TYPE_ACTUATE (NRM__MSGTYPE__ACTUATE)
 #define NRM_MSG_TYPE_EXIT (NRM__MSGTYPE__EXIT)
 #define NRM_MSG_TYPE_TICK (NRM__MSGTYPE__TICK)
@@ -59,6 +59,8 @@ typedef Nrm__Sensor nrm_msg_sensor_t;
 typedef Nrm__SensorList nrm_msg_sensorlist_t;
 typedef Nrm__Slice nrm_msg_slice_t;
 typedef Nrm__SliceList nrm_msg_slicelist_t;
+typedef Nrm__TimeSerie nrm_msg_timeserie_t;
+typedef Nrm__TimeSerieList nrm_msg_timeserielist_t;
 
 #define nrm_msg_actuate_init(msg) nrm__actuate__init(msg)
 #define nrm_msg_actuator_init(msg) nrm__actuator__init(msg)
@@ -74,6 +76,8 @@ typedef Nrm__SliceList nrm_msg_slicelist_t;
 #define nrm_msg_sensorlist_init(msg) nrm__sensor_list__init(msg)
 #define nrm_msg_slice_init(msg) nrm__slice__init(msg)
 #define nrm_msg_slicelist_init(msg) nrm__slice_list__init(msg)
+#define nrm_msg_timeserie_init(msg) nrm__time_serie__init(msg)
+#define nrm_msg_timeserielist_init(msg) nrm__time_serie_list__init(msg)
 
 nrm_msg_t *nrm_msg_create(void);
 void nrm_msg_destroy_created(nrm_msg_t **msg);
@@ -81,11 +85,7 @@ void nrm_msg_destroy_received(nrm_msg_t **msg);
 void nrm_log_printmsg(int level, nrm_msg_t *msg);
 
 int nrm_msg_fill(nrm_msg_t *msg, int type);
-int nrm_msg_set_event(nrm_msg_t *msg,
-                      nrm_time_t time,
-                      nrm_string_t sensor_uuid,
-                      nrm_scope_t *scope,
-                      double value);
+int nrm_msg_set_events(nrm_msg_t *msg, nrm_vector_t *timeseries);
 int nrm_msg_set_actuate(nrm_msg_t *msg, nrm_string_t uuid, double value);
 int nrm_msg_set_add_actuator(nrm_msg_t *msg, nrm_actuator_t *actuator);
 int nrm_msg_set_add_scope(nrm_msg_t *msg, nrm_scope_t *scope);
@@ -102,6 +102,7 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg);
 nrm_scope_t *nrm_scope_create_frommsg(nrm_msg_scope_t *msg);
 nrm_slice_t *nrm_slice_create_frommsg(nrm_msg_slice_t *msg);
 nrm_sensor_t *nrm_sensor_create_frommsg(nrm_msg_sensor_t *msg);
+nrm_timeserie_t *nrm_timeserie_create_frommsg(nrm_msg_timeserie_t *msg);
 
 int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
                                 nrm_msg_actuator_t *msg);

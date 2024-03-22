@@ -121,6 +121,7 @@ libnrm_la_SOURCES = \
 		    src/server.c \
 		    src/slices.c \
 		    src/state.c \
+		    src/timeserie.c \
 		    src/tools.c \
 		    src/utils/bitmaps.c \
 		    src/utils/error.c \

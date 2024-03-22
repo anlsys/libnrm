@@ -42,6 +42,17 @@ int nrm_net_bind(zsock_t *socket, const char *uri);
 int nrm_net_bind_2(zsock_t *socket, const char *uri, int port);
 
 /*******************************************************************************
+ * Events functions
+ ******************************************************************************/
+
+struct nrm_timeserie_s {
+	nrm_string_t sensor_uuid;
+	nrm_scope_t *scope;
+	nrm_vector_t *events;
+	nrm_time_t start;
+};
+
+/*******************************************************************************
  * Utils functions
  ******************************************************************************/
 

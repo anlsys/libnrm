@@ -333,10 +333,19 @@ int nrm_client__sub_callback(nrm_msg_t *msg, void *arg)
 	nrm_client_t *self = (nrm_client_t *)arg;
 	if (self->user_fn == NULL)
 		return 0;
-	nrm_string_t uuid = nrm_string_fromchar(msg->event->uuid);
-	nrm_time_t time = nrm_time_fromns(msg->event->time);
-	nrm_scope_t *scope = nrm_scope_create_frommsg(msg->event->scope);
-	self->user_fn(uuid, time, scope, msg->event->value);
+
+	/* unroll the entire timeseries */
+	for (size_t i = 0; i < msg->events->n_series; i++) {
+		nrm_msg_timeserie_t *ts = msg->events->series[i];
+		nrm_string_t uuid = nrm_string_fromchar(ts->sensor_uuid);
+		nrm_scope_t *scope = nrm_scope_create_frommsg(ts->scope);
+		for (size_t j = 0; j < ts->n_events; j++) {
+			nrm_msg_event_t *e = ts->events[j];
+			nrm_time_t time = nrm_time_fromns(e->time);
+			self->user_fn(uuid, time, scope, e->value);
+		}
+	}
+
 	return 0;
 }
 
@@ -682,14 +691,27 @@ int nrm_client_send_event(nrm_client_t *client,
 		return -NRM_EINVAL;
 
 	nrm_log_debug("crafting message\n");
+	nrm_timeserie_t *timeserie;
+	nrm_timeserie_create(&timeserie, sensor->uuid, scope);
+	assert(timeserie != NULL);
+
+	nrm_timeserie_add_event(timeserie, time, value);
+
+	nrm_vector_t *timeseries;
+	nrm_vector_create(&timeseries, sizeof(nrm_timeserie_t *));
+	nrm_vector_push_back(timeseries, &timeserie);
+
 	nrm_msg_t *msg = nrm_msg_create();
-	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENT);
-	nrm_msg_set_event(msg, time, sensor->uuid, scope, value);
+	nrm_msg_fill(msg, NRM_MSG_TYPE_EVENTS);
+	nrm_msg_set_events(msg, timeseries);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	pthread_mutex_lock(&(client->lock));
 	nrm_role_send(client->role, msg, NULL);
 	pthread_mutex_unlock(&(client->lock));
+
+	nrm_vector_destroy(&timeseries);
+	nrm_timeserie_destroy(&timeserie);
 	return 0;
 }
 

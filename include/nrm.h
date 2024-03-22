@@ -253,7 +253,7 @@ int nrm_state_remove_slice(nrm_state_t *, const char *uuid);
 void nrm_state_destroy(nrm_state_t **);
 
 /*******************************************************************************
- * EventBase: a timeseries in-memory database
+ * Timeserie: a timeserie labeled by a scope and a sensor.
  ******************************************************************************/
 
 struct nrm_event_s {
@@ -262,8 +262,20 @@ struct nrm_event_s {
 };
 typedef struct nrm_event_s nrm_event_t;
 
-struct nrm_eventbase_s;
+struct nrm_timeserie_s;
+typedef struct nrm_timeserie_s nrm_timeserie_t;
 
+int nrm_timeserie_create(nrm_timeserie_t **, nrm_string_t, nrm_scope_t *t);
+int nrm_timeserie_add_event(nrm_timeserie_t *, nrm_time_t, double);
+int nrm_timeserie_add_events(nrm_timeserie_t *, nrm_vector_t *);
+nrm_vector_t *nrm_timeserie_get_events(nrm_timeserie_t *);
+void nrm_timeserie_destroy(nrm_timeserie_t **);
+
+/*******************************************************************************
+ * EventBase: a timeseries in-memory database
+ ******************************************************************************/
+
+struct nrm_eventbase_s;
 typedef struct nrm_eventbase_s nrm_eventbase_t;
 
 nrm_eventbase_t *nrm_eventbase_create(size_t maxperiods);
@@ -275,15 +287,11 @@ int nrm_eventbase_push_event(
 
 int nrm_eventbase_tick(nrm_eventbase_t *, nrm_time_t);
 
-int nrm_eventbase_last_value(nrm_eventbase_t *,
-                             nrm_string_t,
-                             nrm_string_t,
-                             double *);
-
-int nrm_eventbase_current_events(nrm_eventbase_t *,
+int nrm_eventbase_pull_timeserie(nrm_eventbase_t *,
                                  nrm_string_t,
-                                 nrm_string_t,
-                                 nrm_vector_t **);
+                                 nrm_scope_t *,
+                                 nrm_time_t since,
+                                 nrm_timeserie_t **ts);
 
 void nrm_eventbase_destroy(nrm_eventbase_t **);
 

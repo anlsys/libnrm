@@ -13,7 +13,7 @@ enum MSGTYPE {
 	LIST = 1;
 	ADD = 2;
 	REMOVE = 3;
-	EVENT = 4;
+	EVENTS = 4;
 	ACTUATE = 5;
 	EXIT = 6;
 	TICK = 7;
@@ -27,10 +27,15 @@ message Scope {
 }
 
 message Event {
-	string uuid = 1;
-	int64 time = 2;
-	Scope scope = 3;
-	double value = 4;
+	int64 time = 1;
+	double value = 2;
+}
+
+message TimeSerie {
+	string sensor_uuid = 1;
+	Scope scope = 2;
+	int64 start = 3;
+	repeated Event events = 4;
 }
 
 message Sensor {
@@ -62,6 +67,10 @@ message SliceList {
 
 message ActuatorList {
 	repeated Actuator actuators = 1;
+}
+
+message TimeSerieList {
+	repeated TimeSerie series = 1;
 }
 
 message Remove {
@@ -100,7 +109,7 @@ message Message {
 		List list = 2;
 		Add add = 3;
 		Remove remove = 4;
-		Event event = 5;
+		TimeSerieList events = 5;
 		Actuate actuate = 6;
 	}
 }

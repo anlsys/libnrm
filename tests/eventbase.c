@@ -52,50 +52,66 @@ START_TEST(test_push_tick_last_normal)
 {
 	int err;
 	double value = 1234, new_val = 1000;
-	double last_value;
 
-	nrm_string_t scope_uuid = nrm_scope_uuid(scope);
 	nrm_string_t sensor_uuid = nrm_sensor_uuid(sensor);
+
+	nrm_time_t future;
+	nrm_time_gettime(&future);
 
 	// testing push_event normal
 	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now,
 	                               value);
 	ck_assert_int_eq(err, 0);
 
-	// test last_value nothing
-	err = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid,
-	                               &last_value);
-	ck_assert_int_eq(err, -NRM_EDOM);
-	ck_assert_double_eq_tol(last_value, 0.0, 0.1);
+	// test pull nothing
+	nrm_timeserie_t *ts;
+	err = nrm_eventbase_pull_timeserie(eventbase, sensor_uuid, scope,
+	                                   future, &ts);
+	ck_assert_int_eq(err, 0);
+	nrm_vector_t *e = nrm_timeserie_get_events(ts);
+	size_t numevents;
+	nrm_vector_length(e, &numevents);
+	ck_assert_int_eq(numevents, 0);
+	nrm_timeserie_destroy(&ts);
 
 	// testing tick normal
 	err = nrm_eventbase_tick(eventbase, now);
 	ck_assert_int_eq(err, 0);
 
-	err = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid,
-	                               &last_value);
+	// testing pull normal
+	err = nrm_eventbase_pull_timeserie(eventbase, sensor_uuid, scope, now,
+	                                   &ts);
 	ck_assert_int_eq(err, 0);
-	ck_assert_double_eq_tol(last_value, 1234, 0.1);
+	e = nrm_timeserie_get_events(ts);
+	nrm_vector_length(e, &numevents);
+	ck_assert_int_eq(numevents, 1);
+
+	nrm_event_t *event;
+	nrm_vector_get_withtype(nrm_event_t, e, 0, event);
+	ck_assert_double_eq_tol(event->value, 1234, 0.1);
+	nrm_timeserie_destroy(&ts);
 
 	// normal push
-	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now,
+	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, future,
 	                               new_val);
 	ck_assert_int_eq(err, 0);
+
+	nrm_time_t further;
+	nrm_time_gettime(&further);
 
 	// second push
-	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now,
+	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, further,
 	                               new_val);
 	ck_assert_int_eq(err, 0);
 
-	// tick should accumulate
-	err = nrm_eventbase_tick(eventbase, now);
+	// test ts is growing
+	err = nrm_eventbase_pull_timeserie(eventbase, sensor_uuid, scope, now,
+	                                   &ts);
 	ck_assert_int_eq(err, 0);
-
-	// test last_value reflects accumulation
-	err = nrm_eventbase_last_value(eventbase, sensor_uuid, scope_uuid,
-	                               &last_value);
-	ck_assert_int_eq(err, 0);
-	ck_assert_double_eq_tol(last_value, 2000, 0.1);
+	e = nrm_timeserie_get_events(ts);
+	nrm_vector_length(e, &numevents);
+	ck_assert_int_eq(numevents, 3);
+	nrm_timeserie_destroy(&ts);
 }
 END_TEST
 
