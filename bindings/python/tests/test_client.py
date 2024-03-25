@@ -8,7 +8,9 @@
 
 from nrm import Client, Setup, Actuator, Sensor, Scope, Slice
 import unittest
+from unittest.mock import Mock
 import os
+import time
 
 options = {"prefix": os.environ.get("ABS_TOP_BUILDDIR")}
 
@@ -68,6 +70,18 @@ class TestClient(unittest.TestCase):
             assert dummy_act.get_value() == 0.0
             assert dummy_act.list_choices() == [0.0, 1.0]
             assert len(dummy_act.get_clientid())
+
+    def test_listen(self):
+        with Setup("nrmd", options=options), Setup(
+            "nrm-dummy-extra", options=options
+        ):
+            client = Client()
+
+            mock = Mock(return_value=None)
+            client.set_event_listener(mock)
+            client.start_event_listener("")
+            time.sleep(1)
+            mock.assert_called()
 
 
 if __name__ == "__main__":
