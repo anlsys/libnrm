@@ -25,6 +25,8 @@ mkShell {
     # python bindings
     python3Packages.flake8
     python3Packages.black
+    # extra binaries
+    python3Packages.prometheus-client
   ];
   GEOPM_CFLAGS = "-I${geopmd}/include";
   GEOPM_LIBS = "-L${geopmd}/lib -lgeopmd";

@@ -181,9 +181,13 @@ nrm_geopm_LDADD = libnrm.la
 bin_PROGRAMS += nrm-geopm
 endif
 
-bin_SCRIPTS = nrm-setup
+bin_SCRIPTS = nrm-setup nrm-prometheus
 
 nrm-setup: src/python/nrm-setup.py
+	cp $^ $@
+	chmod +x $@
+
+nrm-prometheus: src/python/nrm-prometheus.py
 	cp $^ $@
 	chmod +x $@
 
