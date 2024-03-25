@@ -28,16 +28,27 @@ nrm_uuid = nrm_str
 
 # public struct types
 
+# ctypes.c_time_t is in python 3.12
+if hasattr(ct, "c_time_t"):
+    _time_t = ct.c_c_time_t
+else:
+    # check for 64b system
+    if ct.sizeof(ct.c_void_p) == ct.sizeof(ct.c_int64):
+        _time_t = ct.c_int64
+    else:
+        _time_t = ct.c_int32
+
 
 class nrm_time(ct.Structure):
-    _fields_ = [("tv_sec", ct.c_time_t),
-                ("tv_nsec", ct.c_long)]
+    _fields_ = [("tv_sec", _time_t), ("tv_nsec", ct.c_long)]
+
 
 # function ptr types
 
 
-nrm_client_event_listener_fn = ct.CFUNCTYPE(ct.c_int, nrm_str, nrm_time,
-                                            nrm_scope, ct.c_double)
+nrm_client_event_listener_fn = ct.CFUNCTYPE(
+    ct.c_int, nrm_str, nrm_time, nrm_scope, ct.c_double
+)
 
 # Error types
 

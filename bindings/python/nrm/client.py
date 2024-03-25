@@ -71,6 +71,10 @@ nrm_client_set_event_listener = _nrm_get_function(
     "nrm_client_set_event_listener", [nrm_client, nrm_client_event_listener_fn]
 )
 
+nrm_client_start_event_listener = _nrm_get_function(
+    "nrm_client_start_event_listener", [nrm_client, nrm_str]
+)
+
 nrm_sensor_create = _nrm_get_function(
     "nrm_sensor_create", [nrm_str], nrm_sensor, Error.checkptr
 )
@@ -205,13 +209,18 @@ class Client:
         nrm_client_add_slice(self.client, nslice)
 
     def set_event_listener(self, cb):
-
-        # https://stackoverflow.com/questions/2469975/python-objects-as-userdata-in-ctypes-callback-functions
         def _my_el_wrapper(sensor, time, scope, value):
-            return self.cb(sensor, time, scope, value)
+            try:
+                cb(sensor, time, scope, value)
+                return 0
+            except:
+                return -1
 
         self.nrmc_callback = nrm_client_event_listener_fn(_my_el_wrapper)
         nrm_client_set_event_listener(self.client, self.nrmc_callback)
+
+    def start_event_listener(self, topic: str):
+        nrm_client_start_event_listener(self.client, bytes(topic, "utf-8"))
 
     def __del__(self):
         nrm_client_destroy(byref(self.client))
