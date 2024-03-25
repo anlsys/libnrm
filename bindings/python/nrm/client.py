@@ -213,7 +213,7 @@ class Client:
             try:
                 cb(sensor, time, scope, value)
                 return 0
-            except:
+            except Exception:
                 return -1
 
         self.nrmc_callback = nrm_client_event_listener_fn(_my_el_wrapper)
