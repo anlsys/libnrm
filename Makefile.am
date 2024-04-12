@@ -192,7 +192,8 @@ nrm-prometheus: src/python/nrm-prometheus.py
 	chmod +x $@
 
 CLEANFILES += $(bin_SCRIPTS)
-EXTRA_DIST += src/python/nrm-setup.py
+EXTRA_DIST += src/python/nrm-setup.py \
+	      src/python/nrm-prometheus.py
 
 bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 
