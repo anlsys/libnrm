@@ -103,6 +103,14 @@ nrm_init = _nrm_get_function(
 )
 nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
 
+nrm_time_tons = _nrm_get_function(
+    "nrm_time_tons", [nrm_time], ct.c_int64, None
+)
+
+nrm_time_fromns = _nrm_get_function(
+    "nrm_time_fromns", [ct.c_int64], nrm_time, None
+)
+
 nrm_vector_create = _nrm_get_function(
     "nrm_vector_create", [ct.POINTER(nrm_vector), ct.c_size_t]
 )

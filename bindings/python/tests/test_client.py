@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from nrm import Client, Setup, Actuator, Sensor, Scope, Slice
+from nrm import Client, Setup, Actuator, Sensor, Scope, Slice, nrm_time_fromns
 import unittest
 from unittest.mock import Mock
 import os
@@ -82,6 +82,15 @@ class TestClient(unittest.TestCase):
             client.start_event_listener("")
             time.sleep(1)
             mock.assert_called()
+
+    def test_send_event(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            sensor = client.add_sensor("test_sensor")
+            scope = client.add_scope("test_scope")
+            now = nrm_time_fromns(time.time_ns())
+            client.send_event(now, sensor, scope, 1.0)
+
 
 
 if __name__ == "__main__":

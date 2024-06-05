@@ -23,9 +23,12 @@ from .base import (
     nrm_scope,
     nrm_slice,
     nrm_client_event_listener_fn,
+    nrm_time,
     upstream_uri,
     upstream_pub_port,
     upstream_rpc_port,
+    nrm_time_fromns,
+    nrm_time_tons,
 )
 
 nrm_client_create = _nrm_get_function(
@@ -73,6 +76,11 @@ nrm_client_set_event_listener = _nrm_get_function(
 
 nrm_client_start_event_listener = _nrm_get_function(
     "nrm_client_start_event_listener", [nrm_client, nrm_str]
+)
+
+nrm_client_send_event = _nrm_get_function(
+    "nrm_client_send_event", [nrm_client, nrm_time, nrm_sensor, nrm_scope,
+                              nrm_double]
 )
 
 nrm_sensor_create = _nrm_get_function(
@@ -195,18 +203,25 @@ class Client:
     def add_sensor(self, name: str):
         sensor = nrm_sensor_create(bytes(name, "utf-8"))
         nrm_client_add_sensor(self.client, sensor)
+        return sensor
 
     def add_actuator(self, name: str):
         actuator = nrm_actuator_create(bytes(name, "utf-8"))
         nrm_client_add_actuator(self.client, actuator)
+        return actuator
 
     def add_scope(self, name: str):
         scope = nrm_scope_create(bytes(name, "utf-8"))
         nrm_client_add_scope(self.client, scope)
+        return scope
 
     def add_slice(self, name: str):
         nslice = nrm_slice_create(bytes(name, "utf-8"))  # "slice" is builtin
         nrm_client_add_slice(self.client, nslice)
+        return slice
+
+    def send_event(self, time, sensor, scope, value):
+        nrm_client_send_event(self.client, time, sensor, scope, value)
 
     def set_event_listener(self, cb):
         def _my_el_wrapper(sensor, time, scope, value):

@@ -27,6 +27,8 @@ from .base import (
     ratelimit,
     transmit,
     timeout,
+    nrm_time_fromns,
+    nrm_time_tons,
 )
 
 from .client import Client, Actuator, Sensor, Scope, Slice
