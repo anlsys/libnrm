@@ -69,6 +69,10 @@ setup_file() {
 	echo "$output" | jq
 }
 
+@test "send event with unknown scope" {
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc send-event nrm-dummy-extra-sensor unknown 42
+}
+
 @test "listen (no argument)" {
 	if [ -n "$LOG_COMPILER" ]; then
 		skip "disabling signal tests on valgrind"
