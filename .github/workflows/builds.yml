@@ -165,6 +165,12 @@ jobs:
           cd bats-core
           git checkout v1.9.0
           sudo ./install.sh /usr
+      - name: configure geopmd
+        run: |
+          systemctl start geopm
+          geopmaccess -a > /tmp/allaccess
+          sudo geopmaccess -w < /tmp/allaccess
+          systemctl restart geopm
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
