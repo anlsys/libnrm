@@ -49,6 +49,7 @@
 /*     program constitutes acceptance of these licensing restrictions.   */
 /*  5. Absolutely no warranty is expressed or implied.                   */
 /*-----------------------------------------------------------------------*/
+#include <assert.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -428,6 +429,7 @@ double mysecond()
 	int i;
 
 	i = gettimeofday(&tp, NULL);
+	assert(!i);
 	return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
