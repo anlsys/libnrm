@@ -186,7 +186,8 @@ int nrm_eventbase_push_event(nrm_eventbase_t *eb,
 		sb = nrm_eventbase_add_sensor(eb, sensor_uuid);
 	else {
 		err = nrm_hash_find(eb->sensors, sensor_uuid, (void *)&sb);
-		if (err)
+		assert(err == 0 || err == -NRM_ENOTFOUND);
+		if (err == -NRM_ENOTFOUND)
 			sb = nrm_eventbase_add_sensor(eb, sensor_uuid);
 	}
 
@@ -195,7 +196,8 @@ int nrm_eventbase_push_event(nrm_eventbase_t *eb,
 		sc = nrm_eventbase_add_scope(sb, scope);
 	else {
 		err = nrm_hash_find(sb->scopes, scope->uuid, (void *)&sc);
-		if (err)
+		assert(err == 0 || err == -NRM_ENOTFOUND);
+		if (err == -NRM_ENOTFOUND)
 			sc = nrm_eventbase_add_scope(sb, scope);
 	}
 
