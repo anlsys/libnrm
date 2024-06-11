@@ -716,7 +716,7 @@ int cmd_send_event(int argc, char **argv)
 	assert(len == 1);
 	nrm_sensor_t **s;
 	nrm_sensor_t *sensor;
-	nrm_vector_get_withtype(nrm_sensor_t*, results, 0, s);
+	nrm_vector_get_withtype(nrm_sensor_t *, results, 0, s);
 	sensor = *s;
 
 	nrm_log_info("sending event\n");
