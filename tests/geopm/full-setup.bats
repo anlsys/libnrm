@@ -13,20 +13,20 @@ setup_file() {
 }
 
 @test "initialize without signal" {
-	#  default should be CPU_ENERGY
 	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm
-	grep CPU_ENERGY $BATS_FILE_TMPDIR/nrmd-stderr.log
+	#  default should be CPU_FREQUENCY_STATUS
+	grep CPU_FREQUENCY_STATUS $BATS_FILE_TMPDIR/nrmd-stderr.log
 }
 
 @test "one signal" {
-	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm -e CPU_POWER
-	grep CPU_POWER $BATS_FILE_TMPDIR/nrmd-stderr.log
+	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm -e CPU_FREQUENCY_STATUS
+	grep CPU_FREQUENCY_STATUS $BATS_FILE_TMPDIR/nrmd-stderr.log
 }
 
 @test "two signals" {
-	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm -e CPU_POWER -e CPU_ENERGY
-	grep CPU_ENERGY $BATS_FILE_TMPDIR/nrmd-stderr.log
-	grep CPU_POWER $BATS_FILE_TMPDIR/nrmd-stderr.log
+	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm -e TIME -e CPU_FREQUENCY_STATUS
+	grep TIME $BATS_FILE_TMPDIR/nrmd-stderr.log
+	grep CPU_FREQUENCY_STATUS $BATS_FILE_TMPDIR/nrmd-stderr.log
 }
 
 teardown_file() {

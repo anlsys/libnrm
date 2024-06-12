@@ -264,9 +264,9 @@ int main(int argc, char **argv)
 
 	nrm_vector_length(args.events, &num_events);
 	if (num_events == 0) {
-		nrm_string_t s = nrm_string_fromchar("CPU_ENERGY");
+		nrm_string_t s = nrm_string_fromchar("CPU_FREQUENCY_STATUS");
 		nrm_vector_push_back(args.events, &s);
-		nrm_log_debug("Measuring CPU_ENERGY by default\n");
+		nrm_log_debug("Measuring CPU_FREQUENCY_STATUS by default\n");
 	}
 
 	if (nrm_client_create(&client, args.upstream_uri, args.pub_port,
