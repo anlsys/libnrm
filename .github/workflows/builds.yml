@@ -171,6 +171,7 @@ jobs:
           geopmaccess -a > /tmp/allaccess
           sudo geopmaccess -w < /tmp/allaccess
           sudo systemctl restart geopm
+      - run: geopmread
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
