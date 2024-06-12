@@ -13,17 +13,20 @@ setup_file() {
 }
 
 @test "initialize without signal" {
+	geopmread -i CPU_FREQENCY_STATUS || skip "geopm sensor missing"
 	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm
 	#  default should be CPU_FREQUENCY_STATUS
 	grep CPU_FREQUENCY_STATUS $BATS_FILE_TMPDIR/nrmd-stderr.log
 }
 
 @test "one signal" {
+	geopmread -i CPU_FREQENCY_STATUS || skip "geopm sensor missing"
 	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm -e CPU_FREQUENCY_STATUS
 	grep CPU_FREQUENCY_STATUS $BATS_FILE_TMPDIR/nrmd-stderr.log
 }
 
 @test "two signals" {
+	geopmread -i CPU_FREQENCY_STATUS || skip "geopm sensor missing"
 	run -143 timeout --preserve-status 5 $ABS_TOP_BUILDDIR/nrm-geopm -e TIME -e CPU_FREQUENCY_STATUS
 	grep TIME $BATS_FILE_TMPDIR/nrmd-stderr.log
 	grep CPU_FREQUENCY_STATUS $BATS_FILE_TMPDIR/nrmd-stderr.log
