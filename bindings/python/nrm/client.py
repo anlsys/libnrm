@@ -226,7 +226,9 @@ class Client:
     def set_event_listener(self, cb):
         def _my_el_wrapper(sensor, time, scope, value):
             try:
-                cb(sensor, time, scope, value)
+                rt = nrm_time_tons(time)
+                rsc = Scope(scope)
+                cb(sensor, rt, rsc, value)
                 return 0
             except Exception:
                 return -1

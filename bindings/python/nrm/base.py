@@ -104,7 +104,7 @@ nrm_init = _nrm_get_function(
 nrm_finalize = _nrm_get_function("nrm_finalize", [], None, None)
 
 nrm_time_tons = _nrm_get_function(
-    "nrm_time_tons", [nrm_time], ct.c_int64, None
+    "nrm_time_tons", [ct.POINTER(nrm_time)], ct.c_int64, None
 )
 
 nrm_time_fromns = _nrm_get_function(
