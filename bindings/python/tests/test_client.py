@@ -91,6 +91,18 @@ class TestClient(unittest.TestCase):
             now = nrm_time_fromns(time.time_ns())
             client.send_event(now, sensor, scope, 1.0)
 
+    def test_actuate(self):
+        with Setup("nrmd", options=options), Setup(
+            "nrm-dummy-extra", options=options
+        ):
+            client = Client()
+            act = client.list_actuators()[0]
+            newval = act.list_choices()[-1]
+            client.actuate(act, newval)
+            assert client.list_actuators()[0].get_value() == newval
+            oldval = act.list_choices()[0]
+            client.actuate(act, oldval)
+            assert client.list_actuators()[0].get_value() == oldval
 
 
 if __name__ == "__main__":

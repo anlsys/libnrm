@@ -79,8 +79,12 @@ nrm_client_start_event_listener = _nrm_get_function(
 )
 
 nrm_client_send_event = _nrm_get_function(
-    "nrm_client_send_event", [nrm_client, nrm_time, nrm_sensor, nrm_scope,
-                              nrm_double]
+    "nrm_client_send_event",
+    [nrm_client, nrm_time, nrm_sensor, nrm_scope, nrm_double],
+)
+
+nrm_client_actuate = _nrm_get_function(
+    "nrm_client_actuate", [nrm_client, nrm_actuator, nrm_double]
 )
 
 nrm_sensor_create = _nrm_get_function(
@@ -238,6 +242,9 @@ class Client:
 
     def start_event_listener(self, topic: str):
         nrm_client_start_event_listener(self.client, bytes(topic, "utf-8"))
+
+    def actuate(self, actuator, value):
+        nrm_client_actuate(self.client, actuator.ptr, value)
 
     def __del__(self):
         nrm_client_destroy(byref(self.client))
