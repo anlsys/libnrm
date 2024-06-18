@@ -3,6 +3,7 @@ EXTRA_DIST = \
 	tests/test_init.py \
 	setup.py
 
+pkgpythondir = ${pythondir}/nrm
 pkgpython_PYTHON = nrm/__init__.py \
 		   nrm/base.py \
 		   nrm/client.py
