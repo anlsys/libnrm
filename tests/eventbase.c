@@ -24,6 +24,7 @@ void setup(void)
 {
 	eventbase = nrm_eventbase_create(5);
 	scope = nrm_scope_create("nrm.scope.eventbasetest");
+	nrm_scope_add(scope, 0, 0);
 	sensor = nrm_sensor_create("nrm.sensor.eventbasetest");
 	nrm_time_gettime(&now);
 
@@ -47,6 +48,52 @@ START_TEST(test_empty)
 	/* do nothing, just make sure that the fixtures are ok */
 }
 END_TEST
+
+START_TEST(test_push_two_sensors)
+{
+	int err;
+	double value = 1234;
+
+	nrm_sensor_t *sensor2;
+	sensor2 = nrm_sensor_create("nrm.sensor.eventbasetest2");
+
+	nrm_string_t sensor_uuid = nrm_sensor_uuid(sensor);
+	nrm_string_t sensor2_uuid = nrm_sensor_uuid(sensor2);
+
+	// testing push_event normal
+	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now,
+	                               value);
+	ck_assert_int_eq(err, 0);
+
+	err = nrm_eventbase_push_event(eventbase, sensor2_uuid, scope, now,
+	                               value);
+	ck_assert_int_eq(err, 0);
+
+	nrm_sensor_destroy(&sensor);
+}
+
+START_TEST(test_push_two_scopes)
+{
+	int err;
+	double value = 1234;
+
+	nrm_scope_t *scope2;
+	scope2 = nrm_scope_create("nrm.scope.eventbasetest2");
+	nrm_scope_add(scope2, 0, 0);
+
+	nrm_string_t sensor_uuid = nrm_sensor_uuid(sensor);
+
+	// testing push_event normal
+	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope, now,
+	                               value);
+	ck_assert_int_eq(err, 0);
+
+	err = nrm_eventbase_push_event(eventbase, sensor_uuid, scope2, now,
+	                               value);
+	ck_assert_int_eq(err, 0);
+
+	nrm_scope_destroy(scope2);
+}
 
 START_TEST(test_push_tick_last_normal)
 {
@@ -125,6 +172,8 @@ Suite *eventbase_suite(void)
 	tc_dc = tcase_create("normal_workflow");
 	tcase_add_checked_fixture(tc_dc, setup, teardown);
 	tcase_add_test(tc_dc, test_empty);
+	tcase_add_test(tc_dc, test_push_two_sensors);
+	tcase_add_test(tc_dc, test_push_two_scopes);
 	tcase_add_test(tc_dc, test_push_tick_last_normal);
 	suite_add_tcase(s, tc_dc);
 

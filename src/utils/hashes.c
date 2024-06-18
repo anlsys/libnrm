@@ -84,7 +84,7 @@ int nrm_hash_find(nrm_hash_t *hash_table, nrm_string_t uuid, void **ptr)
 	nrm_hash_t *tmp = NULL;
 	HASH_FIND(hh, hash_table, uuid, nrm_string_strlen(uuid), tmp);
 	if (tmp == NULL)
-		return -NRM_EINVAL;
+		return -NRM_ENOTFOUND;
 
 	*ptr = tmp->ptr;
 	return NRM_SUCCESS;

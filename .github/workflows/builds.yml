@@ -152,6 +152,43 @@ jobs:
           name: oneapi
           path: |
             config.log
+  geopm:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+    steps:
+      - run: sudo add-apt-repository ppa:geopm/release
+      - run: sudo apt-get update
+      - run: sudo apt-get install -y gcc make autoconf automake libtool pkg-config libzmq3-dev libzmq5 libczmq-dev libczmq4 libprotobuf-c-dev protobuf-c-compiler libjansson-dev libjansson4 check libhwloc-dev libpapi-dev mpich libomp-dev libomp5 geopm-service libgeopmd-dev
+      - name: install bats
+        run: |
+          git clone https://github.com/bats-core/bats-core.git
+          cd bats-core
+          git checkout v1.9.0
+          sudo ./install.sh /usr
+      - name: configure geopmd
+        run: |
+          sudo systemctl start geopm
+          geopmaccess -a > /tmp/allaccess
+          sudo geopmaccess -w < /tmp/allaccess
+          sudo systemctl restart geopm
+      - run: geopmread
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: configure
+        run: |
+          ./autogen.sh
+          mkdir build
+          ./configure --prefix=`pwd`/build --with-geopm
+      - run: make
+      - run: make check
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: geopm
+          path: |
+            config.log
+            *.log
   distcheck:
     runs-on: ubuntu-22.04
     timeout-minutes: 15

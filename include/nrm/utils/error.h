@@ -95,9 +95,14 @@ void nrm_perror(const char *msg);
 #define NRM_EPERM 7
 
 /**
+ * Value not found in the collection
+ **/
+#define NRM_ENOTFOUND 8
+
+/**
  * Max allowed value for errors.
  **/
-#define NRM_ERROR_MAX 8
+#define NRM_ERROR_MAX 9
 
 /**
  * @}

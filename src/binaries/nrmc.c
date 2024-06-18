@@ -714,16 +714,25 @@ int cmd_send_event(int argc, char **argv)
 	nrm_vector_length(results, &len);
 
 	assert(len == 1);
-	nrm_sensor_t *s;
-	nrm_vector_get_withtype(nrm_sensor_t, results, 0, s);
+	nrm_sensor_t **s;
+	nrm_sensor_t *sensor;
+	nrm_vector_get_withtype(nrm_sensor_t *, results, 0, s);
+	sensor = *s;
 
 	nrm_log_info("sending event\n");
 	nrm_scope_t *scope = nrm_scope_create(scope_name);
 	nrm_scope_threadprivate(scope);
 	nrm_time_t time;
 	nrm_time_gettime(&time);
-	nrm_client_send_event(client, time, s, scope, rand());
+	nrm_client_send_event(client, time, sensor, scope, rand());
 
+	nrm_vector_foreach(results, iterator)
+	{
+		nrm_vector_iterator_get(iterator);
+		nrm_sensor_destroy(s);
+	}
+	nrm_vector_destroy(&results);
+	nrm_scope_destroy(scope);
 	return 0;
 }
 

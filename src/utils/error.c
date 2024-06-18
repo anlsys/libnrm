@@ -23,6 +23,7 @@ static const char *const nrm_error_strings[] = {
         [NRM_EBUSY] = "Underlying resource is not available for operation",
         [NRM_ENOTSUP] = "Operation not supported",
         [NRM_EPERM] = "Insufficient permissions",
+        [NRM_ENOTFOUND] = "Value not found",
 };
 
 const char *nrm_strerror(const int err)

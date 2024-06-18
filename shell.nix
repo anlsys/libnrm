@@ -26,8 +26,6 @@ mkShell {
     python3Packages.flake8
     python3Packages.black
   ];
-  GEOPM_CFLAGS = "-I${geopmd}/include";
-  GEOPM_LIBS = "-L${geopmd}/lib -lgeopmd";
   CFLAGS =
     "-std=c17 -Wall -Wextra -Werror -Wno-builtin-declaration-mismatch";
 }

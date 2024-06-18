@@ -3,6 +3,5 @@
 let
   callPackage = pkgs.lib.callPackageWith pkgs;
 in pkgs // rec {
-  geopmd = pkgs.callPackage ./nix/geopmd.nix { openmp = pkgs.llvmPackages_12.openmp; };
-  libnrm = pkgs.callPackage ./nix/libnrm.nix { openmp = pkgs.llvmPackages_15.openmp; inherit geopmd; };
+  libnrm = pkgs.callPackage ./nix/libnrm.nix { openmp = pkgs.llvmPackages_15.openmp; };
 }

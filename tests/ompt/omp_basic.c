@@ -13,6 +13,8 @@
 
 int main(int argc, char **argv)
 {
+	(void)argc;
+	(void)argv;
 	int size, rank;
 #pragma omp parallel
 	{
