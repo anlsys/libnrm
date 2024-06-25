@@ -25,6 +25,8 @@ mkShell {
     # python bindings
     python3Packages.flake8
     python3Packages.black
+    # extra binaries
+    python3Packages.prometheus-client
   ];
   CFLAGS =
     "-std=c17 -Wall -Wextra -Werror -Wno-builtin-declaration-mismatch";
