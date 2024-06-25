@@ -45,9 +45,12 @@ class nrm_time(ct.Structure):
 
 # function ptr types
 
-
 nrm_client_event_listener_fn = ct.CFUNCTYPE(
-    ct.c_int, nrm_str, nrm_time, nrm_scope, ct.c_double
+    nrm_int, nrm_str, nrm_time, nrm_scope, nrm_double
+)
+
+nrm_client_actuate_listener_fn = ct.CFUNCTYPE(
+    nrm_int, nrm_uuid, nrm_double
 )
 
 # Error types
