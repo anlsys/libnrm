@@ -94,7 +94,7 @@ class TestClient(unittest.TestCase):
             assert a.list_choices() == [0.0, 1.0]
 
             client.add_actuator(a)
-            assert a.get_clientid() != None
+            assert a.get_clientid() is not None
 
     def test_actuate_listen(self):
         with Setup("nrmd", options=options):

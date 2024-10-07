@@ -28,7 +28,6 @@ from .base import (
     upstream_uri,
     upstream_pub_port,
     upstream_rpc_port,
-    nrm_time_fromns,
     nrm_time_tons,
 )
 
@@ -303,9 +302,6 @@ class Actuator(_NRMComponent):
 
     def get_value(self):
         return nrm_actuator_value(self.ptr)
-
-    def set_value(self, value):
-        nrm_actuator_set_value(self.ptr, value)
 
     def list_choices(self):
         vector = nrm_vector(0)
