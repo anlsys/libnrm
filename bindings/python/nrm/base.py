@@ -49,9 +49,7 @@ nrm_client_event_listener_fn = ct.CFUNCTYPE(
     nrm_int, nrm_str, nrm_time, nrm_scope, nrm_double
 )
 
-nrm_client_actuate_listener_fn = ct.CFUNCTYPE(
-    nrm_int, nrm_uuid, nrm_double
-)
+nrm_client_actuate_listener_fn = ct.CFUNCTYPE(nrm_int, nrm_uuid, nrm_double)
 
 # Error types
 
