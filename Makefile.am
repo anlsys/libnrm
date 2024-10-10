@@ -181,14 +181,19 @@ nrm_geopm_LDADD = libnrm.la
 bin_PROGRAMS += nrm-geopm
 endif
 
-bin_SCRIPTS = nrm-setup
+bin_SCRIPTS = nrm-setup nrm-prometheus
 
 nrm-setup: src/python/nrm-setup.py
 	cp $^ $@
 	chmod +x $@
 
+nrm-prometheus: src/python/nrm-prometheus.py
+	cp $^ $@
+	chmod +x $@
+
 CLEANFILES += $(bin_SCRIPTS)
-EXTRA_DIST += src/python/nrm-setup.py
+EXTRA_DIST += src/python/nrm-setup.py \
+	      src/python/nrm-prometheus.py
 
 bin_PROGRAMS += nrmd nrmc nrm-dummy-extra nrm-papiwrapper
 

@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from ctypes import byref, POINTER, c_void_p, c_double
+from ctypes import byref, POINTER, c_void_p, c_double, c_size_t
 from dataclasses import dataclass
 from .base import (
     Error,
@@ -23,9 +23,12 @@ from .base import (
     nrm_scope,
     nrm_slice,
     nrm_client_event_listener_fn,
+    nrm_client_actuate_listener_fn,
+    nrm_time,
     upstream_uri,
     upstream_pub_port,
     upstream_rpc_port,
+    nrm_time_tons,
 )
 
 nrm_client_create = _nrm_get_function(
@@ -73,6 +76,24 @@ nrm_client_set_event_listener = _nrm_get_function(
 
 nrm_client_start_event_listener = _nrm_get_function(
     "nrm_client_start_event_listener", [nrm_client, nrm_str]
+)
+
+nrm_client_set_actuate_listener = _nrm_get_function(
+    "nrm_client_set_actuate_listener",
+    [nrm_client, nrm_client_actuate_listener_fn],
+)
+
+nrm_client_start_actuate_listener = _nrm_get_function(
+    "nrm_client_start_actuate_listener", [nrm_client]
+)
+
+nrm_client_send_event = _nrm_get_function(
+    "nrm_client_send_event",
+    [nrm_client, nrm_time, nrm_sensor, nrm_scope, nrm_double],
+)
+
+nrm_client_actuate = _nrm_get_function(
+    "nrm_client_actuate", [nrm_client, nrm_actuator, nrm_double]
 )
 
 nrm_sensor_create = _nrm_get_function(
@@ -137,6 +158,10 @@ nrm_actuator_list_choices = _nrm_get_function(
     "nrm_actuator_list_choices", [nrm_actuator, POINTER(nrm_vector)]
 )
 
+nrm_actuator_set_choices = _nrm_get_function(
+    "nrm_actuator_set_choices", [nrm_actuator, c_size_t, POINTER(nrm_double)]
+)
+
 
 class Client:
     """Client class for interacting with NRM C interface.
@@ -178,7 +203,7 @@ class Client:
         vector = nrm_vector(0)
         nrm_client_list_actuators(self.client, byref(vector))
         pylist = _nrm_vector_to_list_by_type(vector, nrm_actuator)
-        return [Actuator(i) for i in pylist]
+        return [Actuator.fromptr(i) for i in pylist]
 
     def list_scopes(self) -> list:
         vector = nrm_vector(0)
@@ -195,32 +220,60 @@ class Client:
     def add_sensor(self, name: str):
         sensor = nrm_sensor_create(bytes(name, "utf-8"))
         nrm_client_add_sensor(self.client, sensor)
+        return sensor
 
-    def add_actuator(self, name: str):
-        actuator = nrm_actuator_create(bytes(name, "utf-8"))
-        nrm_client_add_actuator(self.client, actuator)
+    def add_actuator(self, actuator):
+        nrm_client_add_actuator(self.client, actuator.ptr)
 
     def add_scope(self, name: str):
         scope = nrm_scope_create(bytes(name, "utf-8"))
         nrm_client_add_scope(self.client, scope)
+        return scope
 
     def add_slice(self, name: str):
         nslice = nrm_slice_create(bytes(name, "utf-8"))  # "slice" is builtin
         nrm_client_add_slice(self.client, nslice)
+        return slice
+
+    def send_event(self, time, sensor, scope, value):
+        nrm_client_send_event(self.client, time, sensor, scope, value)
 
     def set_event_listener(self, cb):
         def _my_el_wrapper(sensor, time, scope, value):
             try:
-                cb(sensor, time, scope, value)
+                rt = nrm_time_tons(time)
+                rsc = Scope(scope)
+                cb(sensor, rt, rsc, value)
                 return 0
             except Exception:
                 return -1
 
-        self.nrmc_callback = nrm_client_event_listener_fn(_my_el_wrapper)
-        nrm_client_set_event_listener(self.client, self.nrmc_callback)
+        self.nrmc_event_callback = nrm_client_event_listener_fn(_my_el_wrapper)
+        nrm_client_set_event_listener(self.client, self.nrmc_event_callback)
 
     def start_event_listener(self, topic: str):
         nrm_client_start_event_listener(self.client, bytes(topic, "utf-8"))
+
+    def set_actuate_listener(self, cb):
+        def _my_al_wrapper(uuid, value):
+            try:
+                cb(uuid, value)
+                return 0
+            except Exception:
+                return -1
+
+        self.nrmc_actuate_callback = nrm_client_actuate_listener_fn(
+            _my_al_wrapper
+        )
+        nrm_client_set_actuate_listener(
+            self.client, self.nrmc_actuate_callback
+        )
+
+    def start_actuate_listener(self):
+        nrm_client_start_actuate_listener(self.client)
+
+    def actuate(self, actuator, value):
+        nrm_client_actuate(self.client, actuator.ptr, value)
 
     def __del__(self):
         nrm_client_destroy(byref(self.client))
@@ -232,6 +285,15 @@ class _NRMComponent:
 
 
 class Actuator(_NRMComponent):
+    @classmethod
+    def fromptr(cls, ptr):
+        return Actuator(ptr)
+
+    @classmethod
+    def fromname(cls, name):
+        ptr = nrm_actuator_create(bytes(name, "utf-8"))
+        return Actuator(nrm_actuator(ptr))
+
     def get_uuid(self):
         return nrm_actuator_uuid(self.ptr).decode()
 
@@ -246,6 +308,12 @@ class Actuator(_NRMComponent):
         nrm_actuator_list_choices(self.ptr, byref(vector))
         cval_list = _nrm_vector_to_list_by_type(vector, nrm_double)
         return [i.value for i in cval_list]
+
+    def set_choices(self, ls):
+        sz = len(ls)
+        array_type = nrm_double * sz
+        arr = array_type(*ls)
+        nrm_actuator_set_choices(self.ptr, sz, arr)
 
     def __del__(self):
         nrm_actuator_destroy(byref(self.ptr))

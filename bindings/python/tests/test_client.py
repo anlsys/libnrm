@@ -6,7 +6,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from nrm import Client, Setup, Actuator, Sensor, Scope, Slice
+from nrm import Client, Setup, Actuator, Sensor, Scope, Slice, nrm_time_fromns
 import unittest
 from unittest.mock import Mock
 import os
@@ -33,7 +33,9 @@ class TestClient(unittest.TestCase):
     def test_append_list_del_actuator(self):
         with Setup("nrmd", options=options):
             client = Client()
-            client.add_actuator("test_actuator")
+
+            a = Actuator.fromname("test_actuator")
+            client.add_actuator(a)
             actuators = client.list_actuators()
             assert len(actuators)
             assert isinstance(actuators[0], Actuator)
@@ -71,7 +73,7 @@ class TestClient(unittest.TestCase):
             assert dummy_act.list_choices() == [0.0, 1.0]
             assert len(dummy_act.get_clientid())
 
-    def test_listen(self):
+    def test_event_listen(self):
         with Setup("nrmd", options=options), Setup(
             "nrm-dummy-extra", options=options
         ):
@@ -82,6 +84,54 @@ class TestClient(unittest.TestCase):
             client.start_event_listener("")
             time.sleep(1)
             mock.assert_called()
+
+    def test_create_actuator(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+
+            a = Actuator.fromname("dummy")
+            a.set_choices([0.0, 1.0])
+            assert a.list_choices() == [0.0, 1.0]
+
+            client.add_actuator(a)
+            assert a.get_clientid() is not None
+
+    def test_actuate_listen(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+
+            a = Actuator.fromname("dummy")
+            a.set_choices([0.0, 1.0])
+            client.add_actuator(a)
+
+            mock = Mock(return_value=None)
+            client.set_actuate_listener(mock)
+            client.start_actuate_listener()
+            time.sleep(1)
+            client.actuate(a, 0.0)
+            time.sleep(1)
+            mock.assert_called()
+
+    def test_send_event(self):
+        with Setup("nrmd", options=options):
+            client = Client()
+            sensor = client.add_sensor("test_sensor")
+            scope = client.add_scope("test_scope")
+            now = nrm_time_fromns(time.time_ns())
+            client.send_event(now, sensor, scope, 1.0)
+
+    def test_actuate(self):
+        with Setup("nrmd", options=options), Setup(
+            "nrm-dummy-extra", options=options
+        ):
+            client = Client()
+            act = client.list_actuators()[0]
+            newval = act.list_choices()[-1]
+            client.actuate(act, newval)
+            assert client.list_actuators()[0].get_value() == newval
+            oldval = act.list_choices()[0]
+            client.actuate(act, oldval)
+            assert client.list_actuators()[0].get_value() == oldval
 
 
 if __name__ == "__main__":

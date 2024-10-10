@@ -3,9 +3,11 @@ EXTRA_DIST = \
 	tests/test_init.py \
 	setup.py
 
+pkgpythondir = ${pythondir}/nrm
 pkgpython_PYTHON = nrm/__init__.py \
 		   nrm/base.py \
-		   nrm/client.py
+		   nrm/client.py \
+		   nrm/setup.py
 
 check: FORCE
 	ABS_TOP_BUILDDIR=$(abs_top_builddir) PYTHONPATH=$(srcdir)/ LIBNRM_SO_=$(top_builddir)/.libs/libnrm.so $(PYTHON) -m unittest discover -s $(srcdir)/tests/

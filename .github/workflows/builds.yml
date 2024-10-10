@@ -20,7 +20,7 @@ jobs:
           cd bats-core
           git checkout v1.9.0
           sudo ./install.sh /usr
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: configure
@@ -31,7 +31,7 @@ jobs:
       - run: make
       - run: make check
       - run: make install
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: generic
@@ -50,7 +50,7 @@ jobs:
           cd bats-core
           git checkout v1.9.0
           sudo ./install.sh /usr
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: configure
@@ -66,7 +66,7 @@ jobs:
         working-directory: out
       - run: make install
         working-directory: out
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: out-of-tree
@@ -85,7 +85,7 @@ jobs:
           cd bats-core
           git checkout v1.9.0
           sudo ./install.sh /usr
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: configure
@@ -95,7 +95,7 @@ jobs:
           ./configure --prefix=`pwd`/build --enable-valgrind
       - run: make
       - run: make check-valgrind
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: valgrind
@@ -105,7 +105,7 @@ jobs:
   nix:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - uses: cachix/install-nix-action@v13
@@ -135,7 +135,7 @@ jobs:
           cd bats-core
           git checkout v1.9.0
           sudo ./install.sh /usr
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: configure
@@ -146,7 +146,7 @@ jobs:
           ./configure --prefix=`pwd`/build
           make
           make check
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: oneapi
@@ -172,7 +172,7 @@ jobs:
           sudo geopmaccess -w < /tmp/allaccess
           sudo systemctl restart geopm
       - run: geopmread
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: configure
@@ -182,7 +182,7 @@ jobs:
           ./configure --prefix=`pwd`/build --with-geopm
       - run: make
       - run: make check
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: geopm
@@ -201,7 +201,7 @@ jobs:
           cd bats-core
           git checkout v1.9.0
           sudo ./install.sh /usr
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: configure
@@ -211,7 +211,7 @@ jobs:
           ./configure --prefix=`pwd`/build
       - run: make
       - run: make distcheck
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: distcheck
