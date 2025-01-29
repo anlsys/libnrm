@@ -9,14 +9,14 @@
 , mpich
 , openmp
 , papi
-, pkgconfig
+, pkg-config
 , protobufc
 , zeromq
 }:
 stdenv.mkDerivation {
   src = ../.;
   name = "libnrm";
-  nativeBuildInputs = [ autoreconfHook pkgconfig git ];
+  nativeBuildInputs = [ autoreconfHook pkg-config git ];
   buildInputs = [
     bats
     check
