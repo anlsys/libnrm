@@ -44,5 +44,5 @@ jobs:
           fetch-depth: 0
       - uses: cachix/install-nix-action@v13
         with:
-          nix_path: nixpkgs=channel:nixos-23.05
+          nix_path: nixpkgs=channel:nixos-24.05
       - run: nix-shell --command "./autogen.sh; ./configure --enable-docs; make html"
