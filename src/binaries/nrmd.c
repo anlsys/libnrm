@@ -59,7 +59,7 @@ double nrmd_actuator_value(nrm_string_t uuid)
 	nrm_hash_find(my_daemon.state->actuators, uuid, (void *)&a);
 	if (a != NULL) {
 		/* found the actuator */
-		return a->value;
+		return nrm_actuator_value(a);
 	}
 	return 0.0;
 }
