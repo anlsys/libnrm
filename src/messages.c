@@ -116,11 +116,11 @@ nrm_msg_add_t *nrm_msg_add_new(int type)
 	return ret;
 }
 
-nrm_msg_actuator_discrete_t *nrm_msg_actuator_discrete_new(nrm_actuator_t
-							   *actuator)
+nrm_msg_actuator_discrete_t *
+nrm_msg_actuator_discrete_new(nrm_actuator_t *actuator)
 {
-	nrm_msg_actuator_discrete_t *ret = calloc(1,
-						  sizeof(nrm_msg_actuator_discrete_t));
+	nrm_msg_actuator_discrete_t *ret =
+	        calloc(1, sizeof(nrm_msg_actuator_discrete_t));
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_actuator_discrete_init(ret);
@@ -129,17 +129,18 @@ nrm_msg_actuator_discrete_t *nrm_msg_actuator_discrete_new(nrm_actuator_t
 	assert(ret->choices);
 	for (size_t i = 0; i < ret->n_choices; i++) {
 		double *d;
-		nrm_vector_get_withtype(double, actuator->data->u.choices, i, d);
+		nrm_vector_get_withtype(double, actuator->data->u.choices, i,
+		                        d);
 		ret->choices[i] = *d;
 	}
 	return ret;
 }
 
-nrm_msg_actuator_continuous_t *nrm_msg_actuator_continuous_new(nrm_actuator_t
-							   *actuator)
+nrm_msg_actuator_continuous_t *
+nrm_msg_actuator_continuous_new(nrm_actuator_t *actuator)
 {
-	nrm_msg_actuator_continuous_t *ret = calloc(1,
-						  sizeof(nrm_msg_actuator_continuous_t));
+	nrm_msg_actuator_continuous_t *ret =
+	        calloc(1, sizeof(nrm_msg_actuator_continuous_t));
 	if (ret == NULL)
 		return NULL;
 
@@ -157,12 +158,13 @@ nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 	nrm_msg_actuator_init(ret);
 	ret->uuid = strdup(actuator->data->uuid);
 	if (actuator->data->clientid)
-		ret->clientid = strdup(nrm_uuid_to_char(actuator->data->clientid));
+		ret->clientid =
+		        strdup(nrm_uuid_to_char(actuator->data->clientid));
 	else
 		ret->clientid = NULL;
 	ret->value = actuator->data->value;
 	ret->type = actuator->data->type;
-	switch(ret->type) {
+	switch (ret->type) {
 	case NRM_ACTUATOR_TYPE_DISCRETE:
 		ret->data_case = NRM__ACTUATOR__DATA_DISCRETE;
 		ret->discrete = nrm_msg_actuator_discrete_new(actuator);
@@ -184,7 +186,7 @@ void nrm_msg_actuator_destroy(nrm_msg_actuator_t *msg)
 
 	free(msg->uuid);
 	free(msg->clientid);
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_ACTUATOR_TYPE_DISCRETE:
 		free(msg->discrete->choices);
 		free(msg->discrete);
@@ -691,7 +693,7 @@ nrm_actuator_t *nrm_actuator_continuous_create_frommsg(nrm_msg_actuator_t *msg)
 		ret->data->clientid = nrm_uuid_create_fromchar(msg->clientid);
 	ret->data->value = msg->value;
 	nrm_actuator_continuous_set_limits(ret, msg->continuous->lmin,
-					   msg->continuous->lmax);
+	                                   msg->continuous->lmax);
 	return ret;
 }
 
@@ -702,7 +704,7 @@ nrm_actuator_t *nrm_actuator_discrete_create_frommsg(nrm_msg_actuator_t *msg)
 		ret->data->clientid = nrm_uuid_create_fromchar(msg->clientid);
 	ret->data->value = msg->value;
 	nrm_actuator_discrete_set_choices(ret, msg->discrete->n_choices,
-					  msg->discrete->choices);
+	                                  msg->discrete->choices);
 	return ret;
 }
 
@@ -712,7 +714,7 @@ nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 		return NULL;
 
 	nrm_actuator_t *ret = NULL;
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_ACTUATOR_TYPE_DISCRETE:
 		ret = nrm_actuator_discrete_create_frommsg(msg);
 		break;
@@ -763,18 +765,18 @@ int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
 
 	actuator->data->uuid = nrm_string_fromchar(msg->uuid);
 	if (msg->clientid)
-		actuator->data->clientid = nrm_uuid_create_fromchar(msg->clientid);
+		actuator->data->clientid =
+		        nrm_uuid_create_fromchar(msg->clientid);
 	actuator->data->value = msg->value;
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_ACTUATOR_TYPE_DISCRETE:
 		nrm_actuator_discrete_set_choices(actuator,
-						  msg->discrete->n_choices,
-						  msg->discrete->choices);
+		                                  msg->discrete->n_choices,
+		                                  msg->discrete->choices);
 		break;
 	case NRM_ACTUATOR_TYPE_CONTINUOUS:
-		nrm_actuator_continuous_set_limits(actuator,
-						   msg->continuous->lmin,
-						   msg->continuous->lmax);
+		nrm_actuator_continuous_set_limits(
+		        actuator, msg->continuous->lmin, msg->continuous->lmax);
 		break;
 	default:
 		break;
@@ -1030,7 +1032,7 @@ json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
 {
 	json_t *ret;
 	json_t *sub;
-	switch(msg->type) {
+	switch (msg->type) {
 	case NRM_ACTUATOR_TYPE_DISCRETE:
 		sub = nrm_msg_actuator_discrete_to_json(msg->discrete);
 		break;
@@ -1041,11 +1043,10 @@ json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
 		sub = NULL;
 		break;
 	}
-	ret = json_pack("{s:s, s:s?, s:f, s:s, s:o}", "uuid", msg->uuid, "clientid",
-	                msg->clientid, "value", msg->value,
-			"type", nrm_msg_type_t2s(msg->type,
-						 nrm_msg_actuator_table),
-			"data", sub);
+	ret = json_pack("{s:s, s:s?, s:f, s:s, s:o}", "uuid", msg->uuid,
+	                "clientid", msg->clientid, "value", msg->value, "type",
+	                nrm_msg_type_t2s(msg->type, nrm_msg_actuator_table),
+	                "data", sub);
 	return ret;
 }
 

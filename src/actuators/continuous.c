@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "internal/nrmi.h"
+
 #include "internal/actuators.h"
 
 /*******************************************************************************
@@ -52,7 +53,8 @@ void nrm_actuator_continuous_destroy(nrm_actuator_t **actuator)
  *******************************************************************************/
 
 int nrm_actuator_continuous_set_limits(nrm_actuator_t *actuator,
-                             double min, double max)
+                                       double min,
+                                       double max)
 {
 	if (actuator == NULL)
 		return -NRM_EINVAL;
@@ -61,7 +63,8 @@ int nrm_actuator_continuous_set_limits(nrm_actuator_t *actuator,
 	return 0;
 }
 
-int nrm_actuator_continuous_corrected_value(nrm_actuator_t *actuator, double *value)
+int nrm_actuator_continuous_corrected_value(nrm_actuator_t *actuator,
+                                            double *value)
 {
 	if (actuator == NULL || value == NULL)
 		return -NRM_EINVAL;
@@ -87,11 +90,11 @@ int nrm_actuator_continuous_validate_value(nrm_actuator_t *a, double value)
 		return -NRM_EINVAL;
 	if (value < a->data->u.limits[0] || value > a->data->u.limits[1])
 		return -NRM_EDOM;
-	return 0;	
+	return 0;
 }
 
 struct nrm_actuator_ops_s nrm_actuator_continuous_ops = {
-	nrm_actuator_continuous_validate_value,
-	nrm_actuator_continuous_corrected_value,
-	nrm_actuator_continuous_destroy,
+        nrm_actuator_continuous_validate_value,
+        nrm_actuator_continuous_corrected_value,
+        nrm_actuator_continuous_destroy,
 };

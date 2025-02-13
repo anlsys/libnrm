@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "internal/nrmi.h"
+
 #include "internal/actuators.h"
 
 /*******************************************************************************
@@ -54,8 +55,8 @@ void nrm_actuator_discrete_destroy(nrm_actuator_t **actuator)
  *******************************************************************************/
 
 int nrm_actuator_discrete_set_choices(nrm_actuator_t *actuator,
-                             size_t nchoices,
-                             double *choices)
+                                      size_t nchoices,
+                                      double *choices)
 {
 	if (actuator == NULL || nchoices == 0 || choices == NULL)
 		return -NRM_EINVAL;
@@ -67,7 +68,8 @@ int nrm_actuator_discrete_set_choices(nrm_actuator_t *actuator,
 	return 0;
 }
 
-int nrm_actuator_discrete_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
+int nrm_actuator_discrete_list_choices(nrm_actuator_t *actuator,
+                                       nrm_vector_t **choices)
 {
 	if (actuator == NULL || choices == NULL)
 		return -NRM_EINVAL;
@@ -81,7 +83,8 @@ int nrm_actuator_discrete_list_choices(nrm_actuator_t *actuator, nrm_vector_t **
 	return NRM_SUCCESS;
 }
 
-int nrm_actuator_discrete_corrected_value(nrm_actuator_t *actuator, double *value)
+int nrm_actuator_discrete_corrected_value(nrm_actuator_t *actuator,
+                                          double *value)
 {
 	if (actuator == NULL || value == NULL)
 		return -NRM_EINVAL;
@@ -93,7 +96,8 @@ int nrm_actuator_discrete_corrected_value(nrm_actuator_t *actuator, double *valu
 		return -NRM_EINVAL;
 
 	nrm_vector_get_withtype(double, actuator->data->u.choices, 0, min);
-	nrm_vector_get_withtype(double, actuator->data->u.choices, length - 1, max);
+	nrm_vector_get_withtype(double, actuator->data->u.choices, length - 1,
+	                        max);
 
 	if (*value < *min) {
 		*value = *min;
@@ -134,11 +138,11 @@ int nrm_actuator_discrete_validate_value(nrm_actuator_t *a, double value)
 	if (i == len) {
 		return -NRM_EDOM;
 	}
-	return 0;	
+	return 0;
 }
 
 struct nrm_actuator_ops_s nrm_actuator_discrete_ops = {
-	nrm_actuator_discrete_validate_value,
-	nrm_actuator_discrete_corrected_value,
-	nrm_actuator_discrete_destroy,
+        nrm_actuator_discrete_validate_value,
+        nrm_actuator_discrete_corrected_value,
+        nrm_actuator_discrete_destroy,
 };

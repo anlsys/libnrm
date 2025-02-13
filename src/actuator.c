@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include "internal/nrmi.h"
+
 #include "internal/actuators.h"
 
 nrm_string_t nrm_actuator_uuid(nrm_actuator_t *actuator)
@@ -80,7 +81,7 @@ int nrm_actuator_corrected_value(nrm_actuator_t *actuator, double *value)
 	assert(actuator->ops != NULL);
 	return actuator->ops->corrected_value(actuator, value);
 }
-	
+
 /*******************************************************************************
  * JSON Converters
  *******************************************************************************/
@@ -167,10 +168,11 @@ json_t *nrm_actuator_to_json(nrm_actuator_t *actuator)
 	}
 	json_t *clientid = NULL;
 	clientid = nrm_uuid_to_json(actuator->data->clientid);
-	ret = json_pack("{s:s, s:o?, s:f, s:s, s:o?}", "uuid", actuator->data->uuid,
-	                 "clientid", clientid, "value", actuator->data->value,
-			 "type", nrm_actuator_type_t2s(actuator->data->type),
-	                 "subtype", sub);
+	ret = json_pack("{s:s, s:o?, s:f, s:s, s:o?}", "uuid",
+	                actuator->data->uuid, "clientid", clientid, "value",
+	                actuator->data->value, "type",
+	                nrm_actuator_type_t2s(actuator->data->type), "subtype",
+	                sub);
 	return ret;
 }
 
@@ -198,10 +200,10 @@ int nrm_actuator_from_json(nrm_actuator_t *actuator, json_t *json)
 	char *type;
 	json_error_t error;
 	int err;
-	err = json_unpack_ex(json, &error, 0, "{s:s, s?:o, s:s, s?:f, s?:o}", "uuid",
-	                     &uuid, "clientid", &clientid, "type", &type,
-	                     "value", &actuator->data->value,
-			     "subtype", &sub);
+	err = json_unpack_ex(json, &error, 0, "{s:s, s?:o, s:s, s?:f, s?:o}",
+	                     "uuid", &uuid, "clientid", &clientid, "type",
+	                     &type, "value", &actuator->data->value, "subtype",
+	                     &sub);
 	if (err) {
 		nrm_log_error("error unpacking json: %s, %s, %d, %d, %d\n",
 		              error.text, error.source, error.line,

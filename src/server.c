@@ -42,16 +42,15 @@ int nrm_server_actuate_callback(nrm_server_t *self,
 		 */
 		int ret = self->callbacks.actuate(self, a, msg->value);
 		if (ret == 0) {
-			nrm_log_debug("actuating %s: %f\n", uuid,
-			              msg->value);
+			nrm_log_debug("actuating %s: %f\n", uuid, msg->value);
 			nrm_actuator_corrected_value(a, &msg->value);
 			nrm_log_debug("corrected value %f\n", msg->value);
 			nrm_actuator_set_value(a, msg->value);
 			nrm_msg_t *action = nrm_msg_create();
 			nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 			nrm_msg_set_actuate(action, uuid, msg->value);
-			nrm_uuid_t *tmp =
-			        nrm_uuid_create_fromchar(*nrm_actuator_clientid(a));
+			nrm_uuid_t *tmp = nrm_uuid_create_fromchar(
+			        *nrm_actuator_clientid(a));
 			nrm_role_send(self->role, action, tmp);
 		}
 	}
@@ -89,8 +88,8 @@ nrm_msg_t *nrm_server_add_actuator(nrm_server_t *self,
 {
 	nrm_msg_t *ret = nrm_msg_create();
 	nrm_actuator_t *actuator = nrm_actuator_create_frommsg(msg);
-	nrm_actuator_set_clientid(actuator,
-	        nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid)));
+	nrm_actuator_set_clientid(
+	        actuator, nrm_uuid_create_fromchar(nrm_uuid_to_char(clientid)));
 
 	int err = nrm_state_add_actuator(self->state, actuator);
 	if (err) {
@@ -427,7 +426,7 @@ int nrm_server_actuate(nrm_server_t *self, nrm_string_t uuid, double value)
 		nrm_msg_fill(action, NRM_MSG_TYPE_ACTUATE);
 		nrm_msg_set_actuate(action, uuid, value);
 		nrm_uuid_t *tmp =
-			nrm_uuid_create_fromchar(*nrm_actuator_clientid(a));
+		        nrm_uuid_create_fromchar(*nrm_actuator_clientid(a));
 		nrm_role_send(self->role, action, tmp);
 	}
 	return 0;

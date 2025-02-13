@@ -147,10 +147,13 @@ typedef struct nrm_actuator_s nrm_actuator_t;
 
 nrm_actuator_t *nrm_actuator_discrete_create(const char *name);
 int nrm_actuator_discrete_set_choices(nrm_actuator_t *, size_t, double *);
-int nrm_actuator_discrete_list_choices(nrm_actuator_t *, nrm_vector_t **choices);
+int nrm_actuator_discrete_list_choices(nrm_actuator_t *,
+                                       nrm_vector_t **choices);
 
 nrm_actuator_t *nrm_actuator_continuous_create(const char *name);
-int nrm_actuator_continuous_set_limits(nrm_actuator_t *, double min, double max);
+int nrm_actuator_continuous_set_limits(nrm_actuator_t *,
+                                       double min,
+                                       double max);
 
 nrm_string_t nrm_actuator_uuid(nrm_actuator_t *);
 nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *);

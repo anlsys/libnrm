@@ -187,8 +187,9 @@ void nrm_geopm_prepare_cpu_actuator()
 	                      &cpu_power_min);
 	nrm_log_debug("CPU power actuator: min: %f, max: %f\n", cpu_power_min,
 	              cpu_power_max);
-	
-	nrm_actuator_continuous_set_limits(actuator, cpu_power_min, cpu_power_max);
+
+	nrm_actuator_continuous_set_limits(actuator, cpu_power_min,
+	                                   cpu_power_max);
 	nrm_actuator_set_value(actuator, cpu_power_max);
 }
 

@@ -565,7 +565,8 @@ int nrm_client_remove_actuator(nrm_client_t *client, nrm_actuator_t *actuator)
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_REMOVE);
-	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_ACTUATOR, nrm_actuator_uuid(actuator));
+	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_ACTUATOR,
+	                   nrm_actuator_uuid(actuator));
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	pthread_mutex_lock(&(client->lock));

@@ -72,7 +72,8 @@ typedef Nrm__TimeSerieList nrm_msg_timeserielist_t;
 #define nrm_msg_actuate_init(msg) nrm__actuate__init(msg)
 #define nrm_msg_actuator_init(msg) nrm__actuator__init(msg)
 #define nrm_msg_actuator_discrete_init(msg) nrm__discrete_actuator__init(msg)
-#define nrm_msg_actuator_continuous_init(msg) nrm__continuous_actuator__init(msg)
+#define nrm_msg_actuator_continuous_init(msg)                                  \
+	nrm__continuous_actuator__init(msg)
 #define nrm_msg_actuatorlist_init(msg) nrm__actuator_list__init(msg)
 #define nrm_msg_add_init(msg) nrm__add__init(msg)
 #define nrm_msg_event_init(msg) nrm__event__init(msg)
