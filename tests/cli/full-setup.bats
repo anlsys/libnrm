@@ -49,7 +49,7 @@ setup_file() {
 	# find the dummy actuator
 	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc find-actuator "nrm-dummy-extra-actuator"
 	# extract valid choice from output
-	choice=`echo "$output" | jq .[0].choices[-1]`
+	choice=`echo "$output" | jq .[0].subtype.choices[-1]`
 	echo "$choice"
 	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc actuate "nrm-dummy-extra-actuator" $choice
 	grep "action $choice" $BATS_FILE_TMPDIR/nrm-dummy-extra-stderr.log

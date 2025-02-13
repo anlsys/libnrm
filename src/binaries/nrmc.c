@@ -406,6 +406,7 @@ int cmd_list_actuators(int argc, char **argv)
 	}
 	nrm_vector_destroy(&actuators);
 	json_dumpf(array, stdout, JSON_SORT_KEYS);
+	fflush(stdout);
 	json_decref(array);
 	return 0;
 }

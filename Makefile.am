@@ -124,6 +124,7 @@ libnrm_la_SOURCES = \
 		    src/state.c \
 		    src/timeserie.c \
 		    src/tools.c \
+		    src/actuators/continuous.c \
 		    src/actuators/discrete.c \
 		    src/utils/bitmaps.c \
 		    src/utils/error.c \

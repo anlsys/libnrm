@@ -106,7 +106,7 @@ int nrm_state_list_slices(nrm_state_t *state, nrm_vector_t *vec)
 
 int nrm_state_add_actuator(nrm_state_t *state, nrm_actuator_t *actuator)
 {
-	nrm_hash_add(&state->actuators, actuator->uuid, actuator);
+	nrm_hash_add(&state->actuators, nrm_actuator_uuid(actuator), actuator);
 	return 0;
 }
 

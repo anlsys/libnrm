@@ -146,7 +146,6 @@ struct nrm_actuator_s {
 typedef struct nrm_actuator_s nrm_actuator_t;
 
 nrm_actuator_t *nrm_actuator_discrete_create(const char *name);
-int nrm_actuator_discrete_closest_choice(nrm_actuator_t *, double *);
 int nrm_actuator_discrete_set_choices(nrm_actuator_t *, size_t, double *);
 int nrm_actuator_discrete_list_choices(nrm_actuator_t *, nrm_vector_t **choices);
 
@@ -161,7 +160,9 @@ void nrm_actuator_fprintf(FILE *out, nrm_actuator_t *);
 void nrm_actuator_destroy(nrm_actuator_t **);
 
 int nrm_actuator_set_value(nrm_actuator_t *, double);
+int nrm_actuator_set_clientid(nrm_actuator_t *, nrm_uuid_t *);
 int nrm_actuator_validate_value(nrm_actuator_t *, double);
+int nrm_actuator_corrected_value(nrm_actuator_t *, double *);
 
 /*******************************************************************************
  * Extra scope API

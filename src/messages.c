@@ -976,6 +976,12 @@ static const nrm_msg_type_table_t nrm_msg_target_table[] = {
         {0, NULL},
 };
 
+static const nrm_msg_type_table_t nrm_msg_actuator_table[] = {
+        {NRM_MSG_ACTUATOR_TYPE_DISCRETE, "DISCRETE"},
+        {NRM_MSG_ACTUATOR_TYPE_CONTINUOUS, "CONTINOUS"},
+        {0, NULL},
+};
+
 const char *nrm_msg_type_t2s(int type, const nrm_msg_type_table_t *table)
 {
 	if (type < 0)
@@ -1004,14 +1010,42 @@ json_t *nrm_msg_darray_to_json(size_t nitems, double *items)
 	return ret;
 }
 
-json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
+json_t *nrm_msg_actuator_discrete_to_json(nrm_msg_actuator_discrete_t *msg)
 {
 	json_t *ret;
 	json_t *choices;
 	choices = nrm_msg_darray_to_json(msg->n_choices, msg->choices);
-	ret = json_pack("{s:s, s:s?, s:o, s:o}", "uuid", msg->uuid, "clientid",
-	                msg->clientid, "value", json_real(msg->value),
-	                "choices", choices);
+	ret = json_pack("{s:o}", "choices", choices);
+	return ret;
+}
+
+json_t *nrm_msg_actuator_continuous_to_json(nrm_msg_actuator_continuous_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:f, s:f}", "min", msg->lmin, "max", msg->lmax);
+	return ret;
+}
+
+json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
+{
+	json_t *ret;
+	json_t *sub;
+	switch(msg->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		sub = nrm_msg_actuator_discrete_to_json(msg->discrete);
+		break;
+	case NRM_ACTUATOR_TYPE_CONTINUOUS:
+		sub = nrm_msg_actuator_continuous_to_json(msg->continuous);
+		break;
+	default:
+		sub = NULL;
+		break;
+	}
+	ret = json_pack("{s:s, s:s?, s:f, s:s, s:o}", "uuid", msg->uuid, "clientid",
+	                msg->clientid, "value", msg->value,
+			"type", nrm_msg_type_t2s(msg->type,
+						 nrm_msg_actuator_table),
+			"data", sub);
 	return ret;
 }
 

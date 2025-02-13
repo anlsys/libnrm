@@ -29,6 +29,7 @@ typedef struct nrm_actuator_data_s {
 
 struct nrm_actuator_ops_s {
 	int (*validate_value)(nrm_actuator_t *a, double value);
+	int (*corrected_value)(nrm_actuator_t *a, double *value);
 	void (*destroy)(nrm_actuator_t **a);
 };
 

@@ -34,11 +34,27 @@ nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *actuator)
 	return actuator->data->clientid;
 }
 
+int nrm_actuator_set_clientid(nrm_actuator_t *actuator, nrm_uuid_t *clientid)
+{
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	actuator->data->clientid = clientid;
+	return 0;
+}
+
 double nrm_actuator_value(nrm_actuator_t *actuator)
 {
 	assert(actuator != NULL);
 	assert(actuator->data != NULL);
 	return actuator->data->value;
+}
+
+int nrm_actuator_set_value(nrm_actuator_t *actuator, double value)
+{
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	actuator->data->value = value;
+	return 0;
 }
 
 void nrm_actuator_destroy(nrm_actuator_t **actuator)
@@ -55,6 +71,14 @@ int nrm_actuator_validate_value(nrm_actuator_t *actuator, double value)
 	assert(actuator->data != NULL);
 	assert(actuator->ops != NULL);
 	return actuator->ops->validate_value(actuator, value);
+}
+
+int nrm_actuator_corrected_value(nrm_actuator_t *actuator, double *value)
+{
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	assert(actuator->ops != NULL);
+	return actuator->ops->corrected_value(actuator, value);
 }
 	
 /*******************************************************************************
@@ -143,7 +167,7 @@ json_t *nrm_actuator_to_json(nrm_actuator_t *actuator)
 	}
 	json_t *clientid = NULL;
 	clientid = nrm_uuid_to_json(actuator->data->clientid);
-	ret = json_pack("{s:s, s:o?, s:f, s:o?}", "uuid", actuator->data->uuid,
+	ret = json_pack("{s:s, s:o?, s:f, s:s, s:o?}", "uuid", actuator->data->uuid,
 	                 "clientid", clientid, "value", actuator->data->value,
 			 "type", nrm_actuator_type_t2s(actuator->data->type),
 	                 "subtype", sub);

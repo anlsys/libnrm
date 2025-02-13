@@ -81,7 +81,7 @@ int nrm_actuator_discrete_list_choices(nrm_actuator_t *actuator, nrm_vector_t **
 	return NRM_SUCCESS;
 }
 
-int nrm_actuator_discrete_closest_choice(nrm_actuator_t *actuator, double *value)
+int nrm_actuator_discrete_corrected_value(nrm_actuator_t *actuator, double *value)
 {
 	if (actuator == NULL || value == NULL)
 		return -NRM_EINVAL;
@@ -122,11 +122,11 @@ int nrm_actuator_discrete_closest_choice(nrm_actuator_t *actuator, double *value
 int nrm_actuator_discrete_validate_value(nrm_actuator_t *a, double value)
 {
 	size_t i, len = 0;
-	nrm_vector_length(actuator->data->u.choices, &len);
+	nrm_vector_length(a->data->u.choices, &len);
 	for (i = 0; i < len; i++) {
 		double d;
 		void *p;
-		nrm_vector_get(actuator->data->u.choices, i, &p);
+		nrm_vector_get(a->data->u.choices, i, &p);
 		d = *(double *)p;
 		if (d == value)
 			break;
@@ -139,5 +139,6 @@ int nrm_actuator_discrete_validate_value(nrm_actuator_t *a, double value)
 
 struct nrm_actuator_ops_s nrm_actuator_discrete_ops = {
 	nrm_actuator_discrete_validate_value,
+	nrm_actuator_discrete_corrected_value,
 	nrm_actuator_discrete_destroy,
 };
