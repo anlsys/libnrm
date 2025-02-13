@@ -158,12 +158,13 @@ nrm_actuator_value = _nrm_get_function(
     "nrm_actuator_value", [nrm_actuator], c_double, None
 )
 
-nrm_actuator_list_choices = _nrm_get_function(
-    "nrm_actuator_list_choices", [nrm_actuator, POINTER(nrm_vector)]
+nrm_actuator_discrete_list_choices = _nrm_get_function(
+    "nrm_actuator_discrete_list_choices", [nrm_actuator, POINTER(nrm_vector)]
 )
 
-nrm_actuator_set_choices = _nrm_get_function(
-    "nrm_actuator_set_choices", [nrm_actuator, c_size_t, POINTER(nrm_double)]
+nrm_actuator_discrete_set_choices = _nrm_get_function(
+    "nrm_actuator_discrete_set_choices",
+    [nrm_actuator, c_size_t, POINTER(nrm_double)],
 )
 
 
