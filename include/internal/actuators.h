@@ -37,6 +37,7 @@ struct nrm_actuator_ops_s {
 #define NRM_ACTUATOR_TYPE_MAX 2
 
 extern struct nrm_actuator_ops_s nrm_actuator_discrete_ops;
+extern struct nrm_actuator_ops_s nrm_actuator_continuous_ops;
 
 
 #endif /* NRM_ACTUATORS_H */

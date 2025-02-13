@@ -19,6 +19,11 @@ enum MSGTYPE {
 	TICK = 7;
 }
 
+enum ACTUATORTYPE {
+        DISCRETE = 0;
+        CONTINUOUS = 1;
+}
+
 message Scope {
 	string uuid = 1;
 	repeated int32 cpus = 2;
@@ -46,11 +51,24 @@ message Slice {
 	string uuid = 1;
 }
 
+message DiscreteActuator {
+	repeated double choices = 1;
+}
+
+message ContinuousActuator {
+	double lmin = 1;
+        double lmax = 2;
+}
+
 message Actuator {
 	string uuid = 1;
-	string clientid = 3;
-	double value = 4;
-	repeated double choices = 5;
+	string clientid = 2;
+	double value = 3;
+        ACTUATORTYPE type = 4;
+        oneof data {
+          DiscreteActuator discrete = 5;
+          ContinuousActuator continuous = 6;
+        }
 }
 
 message ScopeList {

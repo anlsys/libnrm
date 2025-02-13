@@ -29,6 +29,7 @@ nrm_actuator_t *nrm_actuator_discrete_create(const char *name)
 	nrm_actuator_t *ret = calloc(1, sizeof(nrm_actuator_t));
 	ret->data = calloc(1, sizeof(nrm_actuator_data_t));
 	ret->data->uuid = nrm_string_fromchar(name);
+	ret->data->type = NRM_ACTUATOR_TYPE_DISCRETE;
 	nrm_vector_create(&ret->data->u.choices, sizeof(double));
 	ret->ops = &nrm_actuator_discrete_ops;
 	return ret;
