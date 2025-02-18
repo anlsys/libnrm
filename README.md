@@ -1,17 +1,21 @@
 # NRM
 
-The Argo Node Resource Manager (NRM) is a sub-node compute-resource manager,
-capable of:
-- Measuring application progress and performance
-- Provisioning hardware threads, memory, GPUs, and power.
+The Argo Node Resource Manager (NRM) is a node-level resource manager, a
+user-space software infrastructure to:
+- Monitor application performance, resource usage
+- Act on a variety of control interfaces to improve performance/efficiency
 
-NRM is shipped as `libnrm`, and includes:
+This repository includes:
 
-- The `nrmd` daemon
-- The `nrmc` command-line client
-- The `libnrm` API for  C/C++ application and utility instrumentation
+- The `nrmd` daemon, a user-space program that centralizes information about
+  the system
+- The `nrmc` command-line client, to query the daemon, listen to event, trigger
+  actions
+- The CLI client is a direct utilization of the `libnrm` libraty, a C API for
+instrumenting applications, and to communicate with the NRM infrastructure.
 
-Client Python bindings are under active development.
+Various other binaries and libraries are provided, each to provide NRM with
+additional monitoring capabilies (sensors) or control capabilities (actuators).
 
 ## Installation
 
