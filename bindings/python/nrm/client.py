@@ -100,8 +100,12 @@ nrm_sensor_create = _nrm_get_function(
     "nrm_sensor_create", [nrm_str], nrm_sensor, Error.checkptr
 )
 
-nrm_actuator_create = _nrm_get_function(
-    "nrm_actuator_create", [nrm_str], nrm_actuator, Error.checkptr
+nrm_actuator_discrete_create = _nrm_get_function(
+    "nrm_actuator_discrete_create", [nrm_str], nrm_actuator, Error.checkptr
+)
+
+nrm_actuator_continuous_create = _nrm_get_function(
+    "nrm_actuator_continuous_create", [nrm_str], nrm_actuator, Error.checkptr
 )
 
 nrm_scope_create = _nrm_get_function(
@@ -154,12 +158,13 @@ nrm_actuator_value = _nrm_get_function(
     "nrm_actuator_value", [nrm_actuator], c_double, None
 )
 
-nrm_actuator_list_choices = _nrm_get_function(
-    "nrm_actuator_list_choices", [nrm_actuator, POINTER(nrm_vector)]
+nrm_actuator_discrete_list_choices = _nrm_get_function(
+    "nrm_actuator_discrete_list_choices", [nrm_actuator, POINTER(nrm_vector)]
 )
 
-nrm_actuator_set_choices = _nrm_get_function(
-    "nrm_actuator_set_choices", [nrm_actuator, c_size_t, POINTER(nrm_double)]
+nrm_actuator_discrete_set_choices = _nrm_get_function(
+    "nrm_actuator_discrete_set_choices",
+    [nrm_actuator, c_size_t, POINTER(nrm_double)],
 )
 
 
@@ -291,7 +296,7 @@ class Actuator(_NRMComponent):
 
     @classmethod
     def fromname(cls, name):
-        ptr = nrm_actuator_create(bytes(name, "utf-8"))
+        ptr = nrm_actuator_discrete_create(bytes(name, "utf-8"))
         return Actuator(nrm_actuator(ptr))
 
     def get_uuid(self):
@@ -305,7 +310,7 @@ class Actuator(_NRMComponent):
 
     def list_choices(self):
         vector = nrm_vector(0)
-        nrm_actuator_list_choices(self.ptr, byref(vector))
+        nrm_actuator_discrete_list_choices(self.ptr, byref(vector))
         cval_list = _nrm_vector_to_list_by_type(vector, nrm_double)
         return [i.value for i in cval_list]
 
@@ -313,7 +318,7 @@ class Actuator(_NRMComponent):
         sz = len(ls)
         array_type = nrm_double * sz
         arr = array_type(*ls)
-        nrm_actuator_set_choices(self.ptr, sz, arr)
+        nrm_actuator_discrete_set_choices(self.ptr, sz, arr)
 
     def __del__(self):
         nrm_actuator_destroy(byref(self.ptr))

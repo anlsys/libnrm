@@ -87,6 +87,7 @@ include_nrm_utils_HEADERS = \
 			    include/nrm/utils/version.h
 
 noinst_HEADERS = \
+		 include/internal/actuators.h \
 		 include/internal/control.h \
 		 include/internal/nrmi.h \
 		 include/internal/messages.h \
@@ -123,6 +124,8 @@ libnrm_la_SOURCES = \
 		    src/state.c \
 		    src/timeserie.c \
 		    src/tools.c \
+		    src/actuators/continuous.c \
+		    src/actuators/discrete.c \
 		    src/utils/bitmaps.c \
 		    src/utils/error.c \
 		    src/utils/hashes.c \
