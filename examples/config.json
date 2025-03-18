@@ -1,6 +1,7 @@
 {
 	"control": {
 		"name": "europar21",
+		"active": false,
 		"inputs": [ { "sensor": "nrm-ompt", "scope": "nrm.hwloc.Machine.0"} ],
 		"outputs": [ "nrm.actuator.rapl" ],
 		"args": {
@@ -11,7 +12,9 @@
 			"Kl": 25.6,
 			"t": 0.33,
 			"e": 0.1,
-			"max": 100
+			"tobj": 10.0,
+			"min": 100.0,
+			"max": 100.0
 		}
 	}
 }

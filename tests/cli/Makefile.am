@@ -6,6 +6,7 @@ AM_COLOR_TESTS = yes
 BATS_TESTS = \
 	     standalone.bats \
 	     daemon-only.bats \
+	     daemon-with-config.bats \
 	     full-setup.bats
 
 TEST_EXTENSIONS = .bats

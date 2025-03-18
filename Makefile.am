@@ -212,6 +212,8 @@ endif
 # can't make it work nicely with readthedocs, so use a subdir
 SUBDIRS += doc
 
+EXTRA_DIST += examples
+
 ###############################################################################
 # TESTS
 ###############################################################################

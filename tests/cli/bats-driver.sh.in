@@ -2,6 +2,7 @@
 # none of our bats tests should take more than a few seconds
 export BATS_TEST_TIMEOUT=15
 export ABS_TOP_BUILDDIR=@abs_top_builddir@
+export ABS_TOP_SRCDIR=@abs_top_srcdir@
 export LOG_COMPILER
 export LOG_FLAGS
 export VALGRIND
