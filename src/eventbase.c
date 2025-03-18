@@ -237,12 +237,12 @@ int nrm_eventbase_pull_timeserie(nrm_eventbase_t *eb,
 	nrm_timeserie_t *ret;
 	nrm_timeserie_create(&ret, sensor_uuid, scope);
 
-	nrm_eb_sensorbase_t *sb;
+	nrm_eb_sensorbase_t *sb = NULL;
 	nrm_hash_find(eb->sensors, sensor_uuid, (void *)&sb);
 	if (sb == NULL)
 		goto end;
 
-	nrm_eb_scopebase_t *sc;
+	nrm_eb_scopebase_t *sc = NULL;
 	nrm_hash_find(sb->scopes, scope->uuid, (void *)&sc);
 	if (sc == NULL)
 		goto end;

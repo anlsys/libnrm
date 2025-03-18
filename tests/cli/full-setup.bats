@@ -17,6 +17,11 @@ setup_file() {
 	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc connect
 }
 
+@test "tick (no config)" {
+	# check if the daemon can still properly tick without a configuration
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc tick
+}
+
 @test "list dummy sensor" {
 	# can we list sensors
 	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc list-sensors
