@@ -13,15 +13,15 @@ setup_file() {
 }
 
 @test "preload, no callbacks" {
-	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ls -al
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -t $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ls -al
 }
 
 @test "preload, basic omp" {
-	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ./omp_basic
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -t $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ./omp_basic
 }
 
 @test "preload, stream omp" {
-	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -d $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ./omp_stream
+	run -0 --separate-stderr $LOG_COMPILER $LOG_FLAGS $ABS_TOP_BUILDDIR/nrmc -vvv run -t $ABS_TOP_BUILDDIR/.libs/libnrm-ompt.so ./omp_stream
 }
 
 teardown_file() {

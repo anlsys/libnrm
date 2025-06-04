@@ -26,5 +26,6 @@ int nrm_string_cmp(const nrm_string_t, const nrm_string_t);
 size_t nrm_string_strlen(const nrm_string_t);
 
 int nrm_string_join(nrm_string_t *dest, char c, nrm_string_t src);
+nrm_string_t nrm_string_vjoin(char c, nrm_vector_t *vec);
 
 #endif
