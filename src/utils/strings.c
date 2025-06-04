@@ -151,3 +151,19 @@ int nrm_string_join(nrm_string_t *dest, char c, nrm_string_t src)
 	*dest = ret;
 	return 0;
 }
+
+nrm_string_t nrm_string_vjoin(char c, nrm_vector_t *vect_of_strings)
+{
+	nrm_string_t ret = nrm_string_fromchar("");
+	nrm_vector_foreach(vect_of_strings, iter)
+	{
+		nrm_string_t *s = nrm_vector_iterator_get(iter);
+		if (nrm_string_strlen(*s) == 0)
+			continue;
+
+		if (nrm_string_strlen(ret) != 0)
+			nrm_string_join(&ret, c, *s);
+	}
+
+	return ret;
+}

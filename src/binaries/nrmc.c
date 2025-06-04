@@ -15,7 +15,6 @@
 #include <getopt.h>
 
 #include "internal/messages.h"
-#include "internal/roles.h"
 
 static nrm_client_t *client;
 
@@ -80,19 +79,37 @@ int cmd_actuate(int argc, char **argv)
 	return 0;
 }
 
+static nrm_string_t nrm_string_getenv(char *envname)
+{
+	nrm_string_t ret;
+	char *envstr = getenv(envname);
+	if (envstr == NULL)
+		ret = nrm_string_fromchar("");
+	else
+		ret = nrm_string_fromchar(envstr);
+	return ret;
+}
+
 int cmd_run(int argc, char **argv)
 {
 
 	int err;
-	nrm_vector_t *preloads;
+	nrm_vector_t *preloads, *ompt;
 	static struct option cmd_run_long_options[] = {
 	        {"preload", required_argument, NULL, 'd'},
+	        {"ompt", required_argument, NULL, 't'},
 	        {0, 0, 0, 0},
 	};
 
-	static const char *cmd_run_short_options = ":d:";
+	static const char *cmd_run_short_options = ":d:t:";
 
+	nrm_string_t ld_preload = nrm_string_getenv("LD_PRELOAD");
 	nrm_vector_create(&preloads, sizeof(nrm_string_t));
+	nrm_vector_push_back(preloads, ld_preload);
+	nrm_string_t omp_tool_libraries =
+	        nrm_string_getenv("OMP_TOOL_LIBRARIES");
+	nrm_vector_create(&ompt, sizeof(nrm_string_t));
+	nrm_vector_push_back(ompt, omp_tool_libraries);
 	nrm_string_t path;
 
 	optind = 1;
@@ -112,6 +129,13 @@ int cmd_run(int argc, char **argv)
 			nrm_vector_push_back(preloads, &path);
 			nrm_log_debug("asked to preload: %s\n", path);
 			break;
+		case 't':
+			path = nrm_string_fromchar(optarg);
+			nrm_vector_push_back(ompt, &path);
+			nrm_log_debug(
+			        "asked to add to OMP_TOOL_LIBRARIES: %s\n",
+			        path);
+			break;
 		case '?':
 			return EXIT_FAILURE;
 		default:
@@ -128,22 +152,13 @@ int cmd_run(int argc, char **argv)
 	if (argc < 1)
 		return EXIT_FAILURE;
 
-	nrm_string_t ld_preload;
-	char *ldenv = getenv("LD_PRELOAD");
-	if (ldenv == NULL)
-		ld_preload = nrm_string_fromchar("");
-	else
-		ld_preload = nrm_string_fromchar(ldenv);
-
-	nrm_vector_foreach(preloads, iter)
-	{
-		nrm_string_t *s = nrm_vector_iterator_get(iter);
-		nrm_string_join(&ld_preload, ':', *s);
-		nrm_log_debug("preload append: %s %s\n", ld_preload, *s);
-	}
-	nrm_log_info("LD_PRELOAD=%s\n", ld_preload);
-	nrm_log_info("exec: argc: %u, argv[0]: %s\n", argc, argv[0]);
+	ld_preload = nrm_string_vjoin(':', preloads);
+	nrm_log_info("%s=%s\n", "LD_PRELOAD", ld_preload);
 	setenv("LD_PRELOAD", ld_preload, 1);
+	omp_tool_libraries = nrm_string_vjoin(':', ompt);
+	nrm_log_info("%s=%s\n", "OMP_TOOL_LIBRARIES", omp_tool_libraries);
+	setenv("OMP_TOOL_LIBRARIES", omp_tool_libraries, 1);
+	nrm_log_info("exec: argc: %u, argv[0]: %s\n", argc, argv[0]);
 	err = execvp(argv[0], &argv[0]);
 	return err;
 }
