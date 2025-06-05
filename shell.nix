@@ -9,9 +9,10 @@ mkShell {
     gdb
     valgrind
     # style checks
-    clang-tools
     python3
-    llvmPackages.clang-unwrapped.python
+    llvmPackages_17.clang
+    llvmPackages_17.clang-tools
+    llvmPackages_17.clang-unwrapped.python
     bear
     # docs
     graphviz
