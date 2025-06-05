@@ -60,6 +60,30 @@ START_TEST(test_vjoin_empty)
 }
 END_TEST
 
+START_TEST(test_vjoin_normal)
+{
+	nrm_vector_t *vec;
+	nrm_vector_create(&vec, sizeof(nrm_string_t));
+
+	nrm_string_t s = nrm_string_fromchar("test");
+	nrm_vector_push_back(vec, &s);
+
+	nrm_string_t t = nrm_string_fromchar("test1");
+	nrm_vector_push_back(vec, &t);
+
+	nrm_string_t u = nrm_string_fromchar("test2");
+	nrm_vector_push_back(vec, &u);
+
+	nrm_string_t r = nrm_string_vjoin(',', vec);
+	ck_assert_ptr_nonnull(r);
+	ck_assert_str_eq(r, "test,test1,test2");
+	nrm_string_decref(r);
+	nrm_string_decref(s);
+	nrm_string_decref(t);
+	nrm_string_decref(u);
+}
+END_TEST
+
 Suite *string_suite(void)
 {
 	Suite *s;
@@ -72,6 +96,7 @@ Suite *string_suite(void)
 	tcase_add_test(tc_init, test_fromprintf);
 	TCase *tc_join = tcase_create("join");
 	tcase_add_test(tc_join, test_vjoin_empty);
+	tcase_add_test(tc_join, test_vjoin_normal);
 	suite_add_tcase(s, tc_join);
 
 	return s;
