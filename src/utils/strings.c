@@ -163,7 +163,10 @@ nrm_string_t nrm_string_vjoin(char c, nrm_vector_t *vect_of_strings)
 
 		if (nrm_string_strlen(ret) != 0)
 			nrm_string_join(&ret, c, *s);
+		else {
+			ret = *s;
+			nrm_string_incref(*s);
+		}
 	}
-
 	return ret;
 }

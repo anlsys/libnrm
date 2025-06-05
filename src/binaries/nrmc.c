@@ -79,15 +79,23 @@ int cmd_actuate(int argc, char **argv)
 	return 0;
 }
 
-static nrm_string_t nrm_string_getenv(char *envname)
+static void nrmc_string_getenv(char *envname, nrm_vector_t *vec)
 {
 	nrm_string_t ret;
 	char *envstr = getenv(envname);
 	if (envstr == NULL)
-		ret = nrm_string_fromchar("");
-	else
-		ret = nrm_string_fromchar(envstr);
-	return ret;
+		return;
+
+	ret = nrm_string_fromchar(envstr);
+	nrm_vector_push_back(vec, &ret);
+}
+
+static void nrmc_string_setenv(char *envname, nrm_vector_t *vec)
+{
+	nrm_string_t val = nrm_string_vjoin(':', vec);
+	nrm_log_info("%s=%s\n", envname, val);
+	setenv(envname, val, 1);
+	nrm_string_decref(val);
 }
 
 int cmd_run(int argc, char **argv)
@@ -103,13 +111,10 @@ int cmd_run(int argc, char **argv)
 
 	static const char *cmd_run_short_options = ":d:t:";
 
-	nrm_string_t ld_preload = nrm_string_getenv("LD_PRELOAD");
 	nrm_vector_create(&preloads, sizeof(nrm_string_t));
-	nrm_vector_push_back(preloads, ld_preload);
-	nrm_string_t omp_tool_libraries =
-	        nrm_string_getenv("OMP_TOOL_LIBRARIES");
+	nrmc_string_getenv("LD_PRELOAD", preloads);
 	nrm_vector_create(&ompt, sizeof(nrm_string_t));
-	nrm_vector_push_back(ompt, omp_tool_libraries);
+	nrmc_string_getenv("OMP_TOOL_LIBRARIES", ompt);
 	nrm_string_t path;
 
 	optind = 1;
@@ -152,12 +157,18 @@ int cmd_run(int argc, char **argv)
 	if (argc < 1)
 		return EXIT_FAILURE;
 
-	ld_preload = nrm_string_vjoin(':', preloads);
-	nrm_log_info("%s=%s\n", "LD_PRELOAD", ld_preload);
-	setenv("LD_PRELOAD", ld_preload, 1);
-	omp_tool_libraries = nrm_string_vjoin(':', ompt);
-	nrm_log_info("%s=%s\n", "OMP_TOOL_LIBRARIES", omp_tool_libraries);
-	setenv("OMP_TOOL_LIBRARIES", omp_tool_libraries, 1);
+	nrmc_string_setenv("LD_PRELOAD", preloads);
+	nrm_vector_foreach(preloads, iter)
+	{
+		nrm_string_t *s = nrm_vector_iterator_get(iter);
+		nrm_string_decref(*s);
+	}
+	nrmc_string_setenv("OMP_TOOL_LIBRARIES", ompt);
+	nrm_vector_foreach(ompt, iter)
+	{
+		nrm_string_t *s = nrm_vector_iterator_get(iter);
+		nrm_string_decref(*s);
+	}
 	nrm_log_info("exec: argc: %u, argv[0]: %s\n", argc, argv[0]);
 	err = execvp(argv[0], &argv[0]);
 	return err;
