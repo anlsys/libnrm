@@ -179,7 +179,7 @@ if HAVE_GEOPM
 nrm_geopm_SOURCES = src/binaries/nrm-geopm.c
 nrm_geopm_LDADD = libnrm.la
 nrm_geopm_batch_SOURCES = src/binaries/nrm-geopm-batch.c
-nrm_geopm_LDADD = libnrm.la
+nrm_geopm_batch_LDADD = libnrm.la
 bin_PROGRAMS += nrm-geopm nrm-geopm-batch
 endif
 
