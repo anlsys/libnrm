@@ -101,9 +101,9 @@ int main(int argc, char *argv[])
 	}
 
 	nrm_log_info("creating dummy actuator\n");
-	actuator = nrm_actuator_create("nrm-dummy-extra-actuator");
+	actuator = nrm_actuator_discrete_create("nrm-dummy-extra-actuator");
 	double choices[2] = {0.0, 1.0};
-	nrm_actuator_set_choices(actuator, 2, choices);
+	nrm_actuator_discrete_set_choices(actuator, 2, choices);
 	nrm_actuator_set_value(actuator, 0.0);
 	err = nrm_client_add_actuator(client, actuator);
 	if (err) {
