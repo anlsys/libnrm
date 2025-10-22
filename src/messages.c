@@ -16,6 +16,7 @@
 
 #include "internal/messages.h"
 #include "internal/nrmi.h"
+#include "internal/actuators.h"
 // clang-format on
 
 /*******************************************************************************
@@ -115,25 +116,65 @@ nrm_msg_add_t *nrm_msg_add_new(int type)
 	return ret;
 }
 
+nrm_msg_actuator_discrete_t *
+nrm_msg_actuator_discrete_new(nrm_actuator_t *actuator)
+{
+	nrm_msg_actuator_discrete_t *ret =
+	        calloc(1, sizeof(nrm_msg_actuator_discrete_t));
+	if (ret == NULL)
+		return NULL;
+	nrm_msg_actuator_discrete_init(ret);
+	nrm_vector_length(actuator->data->u.choices, &ret->n_choices);
+	ret->choices = calloc(ret->n_choices, sizeof(double));
+	assert(ret->choices);
+	for (size_t i = 0; i < ret->n_choices; i++) {
+		double *d;
+		nrm_vector_get_withtype(double, actuator->data->u.choices, i,
+		                        d);
+		ret->choices[i] = *d;
+	}
+	return ret;
+}
+
+nrm_msg_actuator_continuous_t *
+nrm_msg_actuator_continuous_new(nrm_actuator_t *actuator)
+{
+	nrm_msg_actuator_continuous_t *ret =
+	        calloc(1, sizeof(nrm_msg_actuator_continuous_t));
+	if (ret == NULL)
+		return NULL;
+
+	nrm_msg_actuator_continuous_init(ret);
+	ret->lmin = actuator->data->u.limits[0];
+	ret->lmax = actuator->data->u.limits[1];
+	return ret;
+}
+
 nrm_msg_actuator_t *nrm_msg_actuator_new(nrm_actuator_t *actuator)
 {
 	nrm_msg_actuator_t *ret = calloc(1, sizeof(nrm_msg_actuator_t));
 	if (ret == NULL)
 		return NULL;
 	nrm_msg_actuator_init(ret);
-	ret->uuid = strdup(actuator->uuid);
-	if (actuator->clientid)
-		ret->clientid = strdup(nrm_uuid_to_char(actuator->clientid));
+	ret->uuid = strdup(actuator->data->uuid);
+	if (actuator->data->clientid)
+		ret->clientid =
+		        strdup(nrm_uuid_to_char(actuator->data->clientid));
 	else
 		ret->clientid = NULL;
-	ret->value = actuator->value;
-	nrm_vector_length(actuator->choices, &ret->n_choices);
-	ret->choices = calloc(ret->n_choices, sizeof(double));
-	assert(ret->choices);
-	for (size_t i = 0; i < ret->n_choices; i++) {
-		double *d;
-		nrm_vector_get_withtype(double, actuator->choices, i, d);
-		ret->choices[i] = *d;
+	ret->value = actuator->data->value;
+	ret->type = actuator->data->type;
+	switch (ret->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		ret->data_case = NRM__ACTUATOR__DATA_DISCRETE;
+		ret->discrete = nrm_msg_actuator_discrete_new(actuator);
+		break;
+	case NRM_ACTUATOR_TYPE_CONTINUOUS:
+		ret->data_case = NRM__ACTUATOR__DATA_CONTINUOUS;
+		ret->continuous = nrm_msg_actuator_continuous_new(actuator);
+		break;
+	default:
+		break;
 	}
 	return ret;
 }
@@ -145,7 +186,17 @@ void nrm_msg_actuator_destroy(nrm_msg_actuator_t *msg)
 
 	free(msg->uuid);
 	free(msg->clientid);
-	free(msg->choices);
+	switch (msg->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		free(msg->discrete->choices);
+		free(msg->discrete);
+		break;
+	case NRM_ACTUATOR_TYPE_CONTINUOUS:
+		free(msg->continuous);
+		break;
+	default:
+		break;
+	}
 	free(msg);
 }
 
@@ -635,19 +686,44 @@ void nrm_msg_destroy_created(nrm_msg_t **msg)
  * Protobuf Management: Parsing Messages
  *******************************************************************************/
 
+nrm_actuator_t *nrm_actuator_continuous_create_frommsg(nrm_msg_actuator_t *msg)
+{
+	nrm_actuator_t *ret = nrm_actuator_continuous_create(msg->uuid);
+	if (msg->clientid)
+		ret->data->clientid = nrm_uuid_create_fromchar(msg->clientid);
+	ret->data->value = msg->value;
+	nrm_actuator_continuous_set_limits(ret, msg->continuous->lmin,
+	                                   msg->continuous->lmax);
+	return ret;
+}
+
+nrm_actuator_t *nrm_actuator_discrete_create_frommsg(nrm_msg_actuator_t *msg)
+{
+	nrm_actuator_t *ret = nrm_actuator_discrete_create(msg->uuid);
+	if (msg->clientid)
+		ret->data->clientid = nrm_uuid_create_fromchar(msg->clientid);
+	ret->data->value = msg->value;
+	nrm_actuator_discrete_set_choices(ret, msg->discrete->n_choices,
+	                                  msg->discrete->choices);
+	return ret;
+}
+
 nrm_actuator_t *nrm_actuator_create_frommsg(nrm_msg_actuator_t *msg)
 {
 	if (msg == NULL)
 		return NULL;
-	nrm_actuator_t *ret = nrm_actuator_create(msg->uuid);
-	if (msg->clientid)
-		ret->clientid = nrm_uuid_create_fromchar(msg->clientid);
-	ret->value = msg->value;
-	nrm_vector_resize(ret->choices, msg->n_choices);
-	nrm_vector_clear(ret->choices);
-	for (size_t i = 0; i < msg->n_choices; i++)
-		nrm_vector_push_back(ret->choices, &msg->choices[i]);
-	nrm_vector_sort(ret->choices, nrm_vector_sort_double_cmp);
+
+	nrm_actuator_t *ret = NULL;
+	switch (msg->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		ret = nrm_actuator_discrete_create_frommsg(msg);
+		break;
+	case NRM_ACTUATOR_TYPE_CONTINUOUS:
+		ret = nrm_actuator_continuous_create_frommsg(msg);
+		break;
+	default:
+		break;
+	}
 	return ret;
 }
 
@@ -687,17 +763,24 @@ int nrm_actuator_update_frommsg(nrm_actuator_t *actuator,
 	if (actuator == NULL || msg == NULL)
 		return -NRM_EINVAL;
 
-	actuator->uuid = nrm_string_fromchar(msg->uuid);
+	actuator->data->uuid = nrm_string_fromchar(msg->uuid);
 	if (msg->clientid)
-		actuator->clientid = nrm_uuid_create_fromchar(msg->clientid);
-	actuator->value = msg->value;
-	if (actuator->choices)
-		nrm_vector_destroy(&actuator->choices);
-	nrm_vector_create(&actuator->choices, sizeof(double));
-	nrm_vector_resize(actuator->choices, msg->n_choices);
-	nrm_vector_clear(actuator->choices);
-	for (size_t i = 0; i < msg->n_choices; i++)
-		nrm_vector_push_back(actuator->choices, &msg->choices[i]);
+		actuator->data->clientid =
+		        nrm_uuid_create_fromchar(msg->clientid);
+	actuator->data->value = msg->value;
+	switch (msg->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		nrm_actuator_discrete_set_choices(actuator,
+		                                  msg->discrete->n_choices,
+		                                  msg->discrete->choices);
+		break;
+	case NRM_ACTUATOR_TYPE_CONTINUOUS:
+		nrm_actuator_continuous_set_limits(
+		        actuator, msg->continuous->lmin, msg->continuous->lmax);
+		break;
+	default:
+		break;
+	}
 	return 0;
 }
 
@@ -895,6 +978,12 @@ static const nrm_msg_type_table_t nrm_msg_target_table[] = {
         {0, NULL},
 };
 
+static const nrm_msg_type_table_t nrm_msg_actuator_table[] = {
+        {NRM_MSG_ACTUATOR_TYPE_DISCRETE, "DISCRETE"},
+        {NRM_MSG_ACTUATOR_TYPE_CONTINUOUS, "CONTINOUS"},
+        {0, NULL},
+};
+
 const char *nrm_msg_type_t2s(int type, const nrm_msg_type_table_t *table)
 {
 	if (type < 0)
@@ -923,14 +1012,41 @@ json_t *nrm_msg_darray_to_json(size_t nitems, double *items)
 	return ret;
 }
 
-json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
+json_t *nrm_msg_actuator_discrete_to_json(nrm_msg_actuator_discrete_t *msg)
 {
 	json_t *ret;
 	json_t *choices;
 	choices = nrm_msg_darray_to_json(msg->n_choices, msg->choices);
-	ret = json_pack("{s:s, s:s?, s:o, s:o}", "uuid", msg->uuid, "clientid",
-	                msg->clientid, "value", json_real(msg->value),
-	                "choices", choices);
+	ret = json_pack("{s:o}", "choices", choices);
+	return ret;
+}
+
+json_t *nrm_msg_actuator_continuous_to_json(nrm_msg_actuator_continuous_t *msg)
+{
+	json_t *ret;
+	ret = json_pack("{s:f, s:f}", "min", msg->lmin, "max", msg->lmax);
+	return ret;
+}
+
+json_t *nrm_msg_actuator_to_json(nrm_msg_actuator_t *msg)
+{
+	json_t *ret;
+	json_t *sub;
+	switch (msg->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		sub = nrm_msg_actuator_discrete_to_json(msg->discrete);
+		break;
+	case NRM_ACTUATOR_TYPE_CONTINUOUS:
+		sub = nrm_msg_actuator_continuous_to_json(msg->continuous);
+		break;
+	default:
+		sub = NULL;
+		break;
+	}
+	ret = json_pack("{s:s, s:s?, s:f, s:s, s:o}", "uuid", msg->uuid,
+	                "clientid", msg->clientid, "value", msg->value, "type",
+	                nrm_msg_type_t2s(msg->type, nrm_msg_actuator_table),
+	                "data", sub);
 	return ret;
 }
 

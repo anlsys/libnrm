@@ -19,102 +19,72 @@
 
 #include "internal/nrmi.h"
 
-nrm_actuator_t *nrm_actuator_create(const char *name)
-{
-	nrm_actuator_t *ret = calloc(1, sizeof(nrm_actuator_t));
-	ret->uuid = nrm_string_fromchar(name);
-	nrm_vector_create(&ret->choices, sizeof(double));
-	return ret;
-}
-
-int nrm_actuator_set_value(nrm_actuator_t *actuator, double value)
-{
-	if (actuator == NULL)
-		return -NRM_EINVAL;
-	actuator->value = value;
-	return 0;
-}
-
-int nrm_actuator_set_choices(nrm_actuator_t *actuator,
-                             size_t nchoices,
-                             double *choices)
-{
-	if (actuator == NULL || nchoices == 0 || choices == NULL)
-		return -NRM_EINVAL;
-	nrm_vector_resize(actuator->choices, nchoices);
-	nrm_vector_clear(actuator->choices);
-	for (size_t i = 0; i < nchoices; i++)
-		nrm_vector_push_back(actuator->choices, &choices[i]);
-	nrm_vector_sort(actuator->choices, nrm_vector_sort_double_cmp);
-	return 0;
-}
+#include "internal/actuators.h"
 
 nrm_string_t nrm_actuator_uuid(nrm_actuator_t *actuator)
 {
-	return actuator->uuid;
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	return actuator->data->uuid;
 }
 
 nrm_uuid_t *nrm_actuator_clientid(nrm_actuator_t *actuator)
 {
-	return actuator->clientid;
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	return actuator->data->clientid;
+}
+
+int nrm_actuator_set_clientid(nrm_actuator_t *actuator, nrm_uuid_t *clientid)
+{
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	actuator->data->clientid = clientid;
+	return 0;
 }
 
 double nrm_actuator_value(nrm_actuator_t *actuator)
 {
-	return actuator->value;
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	return actuator->data->value;
 }
 
-int nrm_actuator_list_choices(nrm_actuator_t *actuator, nrm_vector_t **choices)
+int nrm_actuator_set_value(nrm_actuator_t *actuator, double value)
 {
-	if (actuator == NULL || choices == NULL)
-		return -NRM_EINVAL;
-
-	nrm_vector_t *ret;
-	int err = nrm_vector_copy(&ret, actuator->choices);
-	if (err)
-		return err;
-
-	*choices = ret;
-	return NRM_SUCCESS;
-}
-
-int nrm_actuator_closest_choice(nrm_actuator_t *actuator, double *value)
-{
-	if (actuator == NULL || value == NULL)
-		return -NRM_EINVAL;
-
-	double *min, *max;
-	size_t length;
-	nrm_vector_length(actuator->choices, &length);
-	if (length == 0)
-		return -NRM_EINVAL;
-
-	nrm_vector_get_withtype(double, actuator->choices, 0, min);
-	nrm_vector_get_withtype(double, actuator->choices, length - 1, max);
-
-	if (*value < *min) {
-		*value = *min;
-		return 0;
-	}
-
-	if (*value > *max) {
-		*value = *max;
-		return 0;
-	}
-
-	double dist = DBL_MAX;
-	double ret = *value;
-	nrm_vector_foreach(actuator->choices, iterator)
-	{
-		double *d = nrm_vector_iterator_get(iterator);
-		if (fabs(*value - *d) < dist) {
-			ret = *d;
-			dist = fabs(*value - ret);
-		}
-	}
-	*value = ret;
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	actuator->data->value = value;
 	return 0;
 }
+
+void nrm_actuator_destroy(nrm_actuator_t **actuator)
+{
+	if (actuator == NULL || *actuator == NULL)
+		return;
+
+	(*actuator)->ops->destroy(actuator);
+}
+
+int nrm_actuator_validate_value(nrm_actuator_t *actuator, double value)
+{
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	assert(actuator->ops != NULL);
+	return actuator->ops->validate_value(actuator, value);
+}
+
+int nrm_actuator_corrected_value(nrm_actuator_t *actuator, double *value)
+{
+	assert(actuator != NULL);
+	assert(actuator->data != NULL);
+	assert(actuator->ops != NULL);
+	return actuator->ops->corrected_value(actuator, value);
+}
+
+/*******************************************************************************
+ * JSON Converters
+ *******************************************************************************/
 
 json_t *nrm_vector_d_to_json(nrm_vector_t *vector)
 {
@@ -145,49 +115,109 @@ int nrm_vector_d_from_json(nrm_vector_t *vector, json_t *json)
 	return 0;
 }
 
-json_t *nrm_actuator_to_json(nrm_actuator_t *actuator)
+struct nrm_actuator_type_table_s {
+	int type;
+	const char *s;
+};
+
+typedef struct nrm_actuator_type_table_s nrm_actuator_type_table_t;
+
+/* clang-format off */
+static const nrm_actuator_type_table_t nrm_actuator_type_table[] = {
+	{NRM_ACTUATOR_TYPE_DISCRETE, "DISCRETE"},
+	{NRM_ACTUATOR_TYPE_CONTINUOUS, "CONTINUOUS"},
+};
+/* clang-format on */
+
+const char *nrm_actuator_type_t2s(int type)
 {
-	json_t *clientid = NULL;
-	json_t *choices = NULL;
-	clientid = nrm_uuid_to_json(actuator->clientid);
-	choices = nrm_vector_d_to_json(actuator->choices);
-	return json_pack("{s:s, s:o?, s:f, s:o?}", "uuid", actuator->uuid,
-	                 "clientid", clientid, "value", actuator->value,
-	                 "choices", choices);
+	if (type < 0 || type > NRM_ACTUATOR_TYPE_MAX)
+		return "UNKNOWN";
+	for (int i = 0; i < NRM_ACTUATOR_TYPE_MAX; i++)
+		if (nrm_actuator_type_table[i].type == type)
+			return nrm_actuator_type_table[i].s;
+	return "UNKNOWN";
 }
 
-int nrm_actuator_from_json(nrm_actuator_t *actuator, json_t *json)
+int nrm_actuator_type_s2t(const char *string)
+{
+	for (int i = 0; i < NRM_ACTUATOR_TYPE_MAX; i++)
+		if (!strcmp(string, nrm_actuator_type_table[i].s))
+			return i;
+	return -1;
+}
+
+json_t *nrm_actuator_discrete_to_json(nrm_actuator_t *actuator)
+{
+	json_t *ret;
+	json_t *choices = nrm_vector_d_to_json(actuator->data->u.choices);
+	ret = json_pack("{s:o?}", "choices", choices);
+	return ret;
+}
+
+json_t *nrm_actuator_to_json(nrm_actuator_t *actuator)
+{
+	json_t *ret;
+	json_t *sub;
+	switch (actuator->data->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		sub = nrm_actuator_discrete_to_json(actuator);
+		break;
+	default:
+		sub = NULL;
+	}
+	json_t *clientid = NULL;
+	clientid = nrm_uuid_to_json(actuator->data->clientid);
+	ret = json_pack("{s:s, s:o?, s:f, s:s, s:o?}", "uuid",
+	                actuator->data->uuid, "clientid", clientid, "value",
+	                actuator->data->value, "type",
+	                nrm_actuator_type_t2s(actuator->data->type), "subtype",
+	                sub);
+	return ret;
+}
+
+int nrm_actuator_discrete_from_json(nrm_actuator_t *actuator, json_t *json)
 {
 	json_t *choices = NULL;
-	char *uuid = NULL;
-	char *clientid = NULL;
 	json_error_t error;
 	int err;
-	err = json_unpack_ex(json, &error, 0, "{s:s, s?:o, s?:o, s?:f}", "uuid",
-	                     &uuid, "clientid", &clientid, "choices", &choices,
-	                     "value", &actuator->value);
+	err = json_unpack_ex(json, &error, 0, "{s?:o}", "choices", &choices);
 	if (err) {
 		nrm_log_error("error unpacking json: %s, %s, %d, %d, %d\n",
 		              error.text, error.source, error.line,
 		              error.column, error.position);
 		return -NRM_EINVAL;
 	}
-	actuator->uuid = nrm_string_fromchar(uuid);
-	if (clientid)
-		actuator->clientid = nrm_uuid_create_fromchar(clientid);
-	nrm_vector_d_from_json(actuator->choices, choices);
+	nrm_vector_d_from_json(actuator->data->u.choices, choices);
 	return 0;
 }
 
-void nrm_actuator_destroy(nrm_actuator_t **actuator)
+int nrm_actuator_from_json(nrm_actuator_t *actuator, json_t *json)
 {
-	if (actuator == NULL || *actuator == NULL)
-		return;
-
-	nrm_actuator_t *a = *actuator;
-	nrm_string_decref(a->uuid);
-	nrm_uuid_destroy(&a->clientid);
-	nrm_vector_destroy(&a->choices);
-	free(a);
-	*actuator = NULL;
+	json_t *sub = NULL;
+	char *uuid = NULL;
+	char *clientid = NULL;
+	char *type;
+	json_error_t error;
+	int err;
+	err = json_unpack_ex(json, &error, 0, "{s:s, s?:o, s:s, s?:f, s?:o}",
+	                     "uuid", &uuid, "clientid", &clientid, "type",
+	                     &type, "value", &actuator->data->value, "subtype",
+	                     &sub);
+	if (err) {
+		nrm_log_error("error unpacking json: %s, %s, %d, %d, %d\n",
+		              error.text, error.source, error.line,
+		              error.column, error.position);
+		return -NRM_EINVAL;
+	}
+	actuator->data->uuid = nrm_string_fromchar(uuid);
+	if (clientid)
+		actuator->data->clientid = nrm_uuid_create_fromchar(clientid);
+	actuator->data->type = nrm_actuator_type_s2t(type);
+	switch (actuator->data->type) {
+	case NRM_ACTUATOR_TYPE_DISCRETE:
+		return nrm_actuator_discrete_from_json(actuator, sub);
+	default:
+		return -NRM_EINVAL;
+	}
 }

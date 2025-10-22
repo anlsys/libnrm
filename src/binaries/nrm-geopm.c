@@ -45,9 +45,6 @@ static nrm_actuator_t *actuator;
 static size_t num_events;
 static pthread_mutex_t geopm_lock;
 
-/* 16 values is enough */
-#define GEOPM_ACTUATOR_CHOICES 16
-
 struct nrm_geopm_eventinfo_s {
 	nrm_string_t name;
 	int domain_type;
@@ -191,16 +188,8 @@ void nrm_geopm_prepare_cpu_actuator()
 	nrm_log_debug("CPU power actuator: min: %f, max: %f\n", cpu_power_min,
 	              cpu_power_max);
 
-	double act_choices[GEOPM_ACTUATOR_CHOICES];
-	for (size_t i = 0; i < GEOPM_ACTUATOR_CHOICES - 1; i++) {
-		act_choices[i] =
-		        cpu_power_min + (int)((cpu_power_max - cpu_power_min) *
-		                              i / (GEOPM_ACTUATOR_CHOICES - 1));
-	}
-	/* force the last one to be at max, regardless of rounding errors */
-	act_choices[GEOPM_ACTUATOR_CHOICES - 1] = cpu_power_max;
-
-	nrm_actuator_set_choices(actuator, GEOPM_ACTUATOR_CHOICES, act_choices);
+	nrm_actuator_continuous_set_limits(actuator, cpu_power_min,
+	                                   cpu_power_max);
 	nrm_actuator_set_value(actuator, cpu_power_max);
 }
 
@@ -297,7 +286,7 @@ int main(int argc, char **argv)
 		nrm_geopm_prepare_event(s);
 	}
 
-	actuator = nrm_actuator_create("nrm.geopm.cpu.power");
+	actuator = nrm_actuator_continuous_create("nrm.geopm.cpu.power");
 	nrm_geopm_prepare_cpu_actuator();
 	err = nrm_client_add_actuator(client, actuator);
 	if (err) {

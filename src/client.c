@@ -52,30 +52,21 @@ int nrm_client_actuate(nrm_client_t *client,
                        nrm_actuator_t *actuator,
                        double value)
 {
-	if (client == NULL || actuator == NULL || actuator->choices == NULL)
+	if (client == NULL || actuator == NULL)
 		return -NRM_EINVAL;
 
 	nrm_log_debug("checking value is valid\n");
-	size_t i, len = 0;
-	nrm_vector_length(actuator->choices, &len);
-	for (i = 0; i < len; i++) {
-		double d;
-		void *p;
-		nrm_vector_get(actuator->choices, i, &p);
-		d = *(double *)p;
-		if (d == value)
-			break;
-	}
-	if (i == len) {
-		nrm_log_info("value %f not in choices\n", value);
-		return -NRM_EDOM;
+	int err = nrm_actuator_validate_value(actuator, value);
+	if (err) {
+		nrm_log_info("value %f not valid: %d\n", value, err);
+		return err;
 	}
 
 	nrm_log_debug("crafting message\n");
 	/* craft the message we want to send */
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_ACTUATE);
-	nrm_msg_set_actuate(msg, actuator->uuid, value);
+	nrm_msg_set_actuate(msg, nrm_actuator_uuid(actuator), value);
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	pthread_mutex_lock(&(client->lock));
@@ -574,7 +565,8 @@ int nrm_client_remove_actuator(nrm_client_t *client, nrm_actuator_t *actuator)
 	nrm_log_debug("crafting message\n");
 	nrm_msg_t *msg = nrm_msg_create();
 	nrm_msg_fill(msg, NRM_MSG_TYPE_REMOVE);
-	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_ACTUATOR, actuator->uuid);
+	nrm_msg_set_remove(msg, NRM_MSG_TARGET_TYPE_ACTUATOR,
+	                   nrm_actuator_uuid(actuator));
 	nrm_log_printmsg(NRM_LOG_DEBUG, msg);
 	nrm_log_debug("sending request\n");
 	pthread_mutex_lock(&(client->lock));

@@ -45,7 +45,14 @@ typedef enum _Nrm__TARGETTYPE nrm_msg_targettype_e;
 #define NRM_MSG_TARGET_TYPE_ACTUATOR (NRM__TARGETTYPE__ACTUATOR)
 #define NRM_MSG_TARGET_TYPE_MAX (4)
 
+typedef enum _Nrm__ACTUATORTYPE nrm_msg_actuatortype_e;
+#define NRM_MSG_ACTUATOR_TYPE_DISCRETE (NRM__ACTUATORTYPE__DISCRETE)
+#define NRM_MSG_ACTUATOR_TYPE_CONTINUOUS (NRM__ACTUATORTYPE__CONTINUOUS)
+#define NRM_MSG_ACTUATOR_TYPE_MAX (2)
+
 typedef Nrm__Actuate nrm_msg_actuate_t;
+typedef Nrm__DiscreteActuator nrm_msg_actuator_discrete_t;
+typedef Nrm__ContinuousActuator nrm_msg_actuator_continuous_t;
 typedef Nrm__Actuator nrm_msg_actuator_t;
 typedef Nrm__ActuatorList nrm_msg_actuatorlist_t;
 typedef Nrm__Add nrm_msg_add_t;
@@ -64,6 +71,9 @@ typedef Nrm__TimeSerieList nrm_msg_timeserielist_t;
 
 #define nrm_msg_actuate_init(msg) nrm__actuate__init(msg)
 #define nrm_msg_actuator_init(msg) nrm__actuator__init(msg)
+#define nrm_msg_actuator_discrete_init(msg) nrm__discrete_actuator__init(msg)
+#define nrm_msg_actuator_continuous_init(msg)                                  \
+	nrm__continuous_actuator__init(msg)
 #define nrm_msg_actuatorlist_init(msg) nrm__actuator_list__init(msg)
 #define nrm_msg_add_init(msg) nrm__add__init(msg)
 #define nrm_msg_event_init(msg) nrm__event__init(msg)
