@@ -30,7 +30,7 @@ nrm_uuid = nrm_str
 
 # ctypes.c_time_t is in python 3.12
 if hasattr(ct, "c_time_t"):
-    _time_t = ct.c_c_time_t
+    _time_t = ct.c_time_t
 else:
     # check for 64b system
     if ct.sizeof(ct.c_void_p) == ct.sizeof(ct.c_int64):
