@@ -115,10 +115,11 @@ int nrm_geopm_act_callback(nrm_uuid_t *uuid, double value)
 	int err = 0;
 	nrm_log_debug("Actuator callback triggered: %s %u\n",
 		      nrm_uuid_to_char(uuid), value);
-	if(strncmp(nrm_uuid_to_char(uuid), NRM_GEOPM_ACT_CPU_RAPL,
+	if(!strncmp(nrm_uuid_to_char(uuid), NRM_GEOPM_ACT_CPU_RAPL,
 		   sizeof(NRM_GEOPM_ACT_CPU_RAPL)))
 		return nrm_geopm_cpu_rapl_callback(value);
-	else if ()
+	else if (!strncmp(nrm_uuid_to_char(uuid), NRM_GEOPM_ACT_CPU_FREQ,
+			 sizeof(NRM_GEOPM_ACT_CPU_FREQ)))
 		return nrm_geopm_cpu_freq_callback(value);
 	else
 		return -NRM_EINVAL;
@@ -260,7 +261,7 @@ void nrm_geopm_prepare_cpu_freq_actuator()
 
 	size_t numsteps = (cpu_freq_max - cpu_freq_min)/cpu_freq_step;
 	double choices[numsteps];
-	for (int i = 0; i < numsteps-1; ++) {
+	for (int i = 0; i < numsteps-1; i++) {
 		choices[i] = cpu_freq_min + cpu_freq_step * i;
 	}
 	choices[numsteps-1] = cpu_freq_max;
@@ -366,14 +367,14 @@ int main(int argc, char **argv)
 	err = nrm_client_add_actuator(client, cpu_rapl_actuator);
 	if (err) {
 		nrm_log_error("Unable to add CPU RAPL actuator to client\n");
-		goto cleanup_act;
+		goto cleanup_rapl_act;
 	}
 	cpu_freq_actuator = nrm_actuator_discrete_create(NRM_GEOPM_ACT_CPU_FREQ);
 	nrm_geopm_prepare_cpu_freq_actuator();
 	err = nrm_client_add_actuator(client, cpu_freq_actuator);
 	if (err) {
 		nrm_log_error("Unable to add CPU FREQ actuator to client\n");
-		goto cleanup_act;
+		goto cleanup_freq_act;
 	}
 	nrm_log_debug("Actuator added to client\n");
 	nrm_client_set_actuate_listener(client, nrm_geopm_act_callback);
@@ -400,9 +401,12 @@ int main(int argc, char **argv)
 
 	nrm_reactor_destroy(&reactor);
 cleanup:
-	nrm_client_remove_actuator(client, actuator);
-cleanup_act:
-	nrm_actuator_destroy(&actuator);
+	nrm_client_remove_actuator(client, cpu_freq_actuator);
+cleanup_freq_act:
+	nrm_actuator_destroy(&cpu_freq_actuator);
+	nrm_client_remove_actuator(client, cpu_rapl_actuator);
+cleanup_rapl_act:
+	nrm_actuator_destroy(&cpu_rapl_actuator);
 	nrm_vector_foreach(events, iterator)
 	{
 		nrm_geopm_eventinfo_t *e = nrm_vector_iterator_get(iterator);
