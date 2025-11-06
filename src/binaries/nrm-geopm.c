@@ -250,11 +250,11 @@ void nrm_geopm_prepare_cpu_freq_actuator()
 	double cpu_freq_step, cpu_freq_max, cpu_freq_min;
 
 	/* use package 0 for configuration */
-	geopm_pio_read_signal(cpu_freq_step_name, GEOPM_DOMAIN_CORE, 0,
+	geopm_pio_read_signal(cpu_freq_step_name, GEOPM_DOMAIN_CPU, 0,
 	                      &cpu_freq_step);
-	geopm_pio_read_signal(cpu_freq_max_name, GEOPM_DOMAIN_CORE, 0,
+	geopm_pio_read_signal(cpu_freq_max_name, GEOPM_DOMAIN_PACKAGE, 0,
 	                      &cpu_freq_max);
-	geopm_pio_read_signal(cpu_freq_min_name, GEOPM_DOMAIN_CORE, 0,
+	geopm_pio_read_signal(cpu_freq_min_name, GEOPM_DOMAIN_CPU, 0,
 	                      &cpu_freq_min);
 	nrm_log_debug("CPU FREQ actuator: min: %f, max: %f, step: %f\n", cpu_freq_min,
 	              cpu_freq_max, cpu_freq_step);
