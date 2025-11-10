@@ -28,4 +28,7 @@ size_t nrm_string_strlen(const nrm_string_t);
 int nrm_string_join(nrm_string_t *dest, char c, nrm_string_t src);
 nrm_string_t nrm_string_vjoin(char c, nrm_vector_t *vec);
 
+int nrm_string_split(nrm_string_t *dest, nrm_string_t *src, const char *delim);
+int nrm_string_strtol(nrm_string_t src, long *val);
+
 #endif

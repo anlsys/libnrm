@@ -9,6 +9,7 @@
  ******************************************************************************/
 
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -169,4 +170,68 @@ nrm_string_t nrm_string_vjoin(char c, nrm_vector_t *vect_of_strings)
 		}
 	}
 	return ret;
+}
+
+/* split a string according to a delimiter.
+ * If a delimiter is not present, the src is not updated.
+ * If a delimiter is present, updates the source to point to the first part,
+ * and dest to the second.
+ */
+int nrm_string_split(nrm_string_t *dest, nrm_string_t *src, const char *delim)
+{
+	if (src == NULL)
+		return -NRM_EINVAL;
+
+	/* strsep updates the source to point to the remaining string, so we
+	 * need to do a little bit of bookkeeping to ease the API.
+	 */
+	nrm_realstring_t *s = NRM_STRING_C2S(*src);
+	char *ns;
+
+	ns = strsep(src, delim);
+
+	/* if *src is now NULL, then ns is the full string, and nothing else
+	 * needs to be done.
+	 */
+	if(*src == NULL) {
+		*src = ns;
+		*dest = NULL;
+		return 0;
+	}
+
+	/* if a delimiter was found:
+	 * - ns points to the first part of the string
+	 * - src points to the second part.
+	 * We need to update src to have the first part with the new length,
+	 * and return the second part.
+	 */
+	char *ret = *src; // second part
+	size_t slen = ret - ns; // includes the new \0
+	size_t dlen = s->slen - slen;
+	*src = ns;
+	s->slen = slen - 1; // remove the \0
+	
+	/* return the second part of the string.
+	 * We don't want to deal with references and ownership, so we copy
+	 * in a new string
+	 */
+	*dest = nrm_string_frombuf(ret, dlen);
+	return 0;	
+}
+
+/* ignore base */
+int nrm_string_strtol(nrm_string_t src, long *ret)
+{
+	if(src == NULL)
+		return -NRM_EINVAL;
+
+	char *endp;
+	errno = 0;
+	long val = strtol(src, &endp, 10);
+
+	if (errno == ERANGE || endp == src)
+		return -NRM_EINVAL;
+
+	*ret = val;
+	return 0;
 }

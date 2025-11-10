@@ -84,6 +84,65 @@ START_TEST(test_vjoin_normal)
 }
 END_TEST
 
+START_TEST(test_strtol)
+{
+	int err;
+	long val;
+	nrm_string_t s = nrm_string_fromchar("-1");
+	ck_assert_ptr_nonnull(s);
+	err = nrm_string_strtol(s, &val);
+	ck_assert_int_eq(err, 0);
+	ck_assert_int_eq(val, -1);
+	nrm_string_decref(s);
+
+	s = nrm_string_fromchar("10");
+	ck_assert_ptr_nonnull(s);
+	err = nrm_string_strtol(s, &val);
+	ck_assert_int_eq(err, 0);
+	ck_assert_int_eq(val, 10);
+	nrm_string_decref(s);
+}
+END_TEST
+
+
+START_TEST(test_split_empty)
+{
+	int err;
+	nrm_string_t r = NULL;
+	nrm_string_t s = nrm_string_fromchar("test");
+	ck_assert_ptr_nonnull(s);
+
+	err = nrm_string_split(&r, &s, ":");
+	ck_assert_int_eq(err, 0);
+	ck_assert_str_eq(s, "test");
+	ck_assert_ptr_null(r);
+	nrm_string_decref(s);
+}
+END_TEST
+
+START_TEST(test_split_good)
+{
+	int err;
+	nrm_string_t r = NULL;
+	nrm_string_t s = nrm_string_fromchar("test:-1");
+	ck_assert_ptr_nonnull(s);
+
+	err = nrm_string_split(&r, &s, ":");
+	ck_assert_int_eq(err, 0);
+	ck_assert_str_eq(s, "test");
+	ck_assert_str_eq(r, "-1");
+
+	size_t len = nrm_string_strlen(s);
+	ck_assert_int_eq(len, 4);
+
+	len = nrm_string_strlen(r);
+	ck_assert_int_eq(len, 2);
+
+	nrm_string_decref(s);
+	nrm_string_decref(r);
+}
+END_TEST
+
 Suite *string_suite(void)
 {
 	Suite *s;
@@ -94,10 +153,16 @@ Suite *string_suite(void)
 	tcase_add_test(tc_init, test_fromchar);
 	tcase_add_test(tc_init, test_frombuf);
 	tcase_add_test(tc_init, test_fromprintf);
+	suite_add_tcase(s, tc_init);
 	TCase *tc_join = tcase_create("join");
 	tcase_add_test(tc_join, test_vjoin_empty);
 	tcase_add_test(tc_join, test_vjoin_normal);
 	suite_add_tcase(s, tc_join);
+	TCase *tc_split = tcase_create("split");
+	tcase_add_test(tc_split, test_strtol);
+	tcase_add_test(tc_split, test_split_empty);
+	tcase_add_test(tc_split, test_split_good);
+	suite_add_tcase(s, tc_split);
 
 	return s;
 }
