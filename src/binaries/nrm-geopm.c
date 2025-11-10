@@ -178,14 +178,34 @@ int nrm_geopm_find_scope(nrm_scope_t **scope, int *added)
 void nrm_geopm_prepare_event(nrm_string_t *s)
 {
 	int err;
-	nrm_geopm_eventinfo_t event;
+	nrm_geopm_eventinfo_t event = { NULL, 0, 0, NULL, NULL };
+
+
+	/* figure out if the user asked for a domain,
+	 * we use ';' because GEOPM uses : quite a lot
+	 */
+	nrm_string_t dm = NULL;
+	err = nrm_string_split(&dm, s, ";");
+	assert(err == 0);
+
 	event.name = *s;
 	nrm_string_incref(event.name);
 
-	/* geopm info */
-	event.domain_type = geopm_pio_signal_domain_type(event.name);
-	nrm_log_debug("Parsed %s as domain type %d\n", event.name,
+	/* try to fill out domain type using split string */
+	if(dm != NULL) {
+		event.domain_type = geopm_topo_domain_type(dm);
+		nrm_log_debug("Parsed %s as domain type %d\n", event.name,
 	              event.domain_type);
+		
+	}
+	/* fallback */
+	if (event.domain_type == 0) {
+		event.domain_type = geopm_pio_signal_domain_type(event.name);
+		nrm_log_debug("Parsed %s as domain type %d\n", event.name,
+	              event.domain_type);
+	}
+
+	/* geopm info */
 	assert(event.domain_type > 0);
 	event.num_domains = geopm_topo_num_domain(event.domain_type);
 	nrm_log_debug("Domain type %d as %d domains\n", event.domain_type,
