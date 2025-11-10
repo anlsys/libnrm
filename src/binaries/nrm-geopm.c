@@ -41,7 +41,8 @@
 
 static nrm_client_t *client;
 static nrm_vector_t *events;
-static nrm_actuator_t *actuator;
+static nrm_actuator_t *cpu_rapl_actuator;
+static nrm_actuator_t *cpu_freq_actuator;
 static size_t num_events;
 static pthread_mutex_t geopm_lock;
 
@@ -55,9 +56,11 @@ struct nrm_geopm_eventinfo_s {
 
 typedef struct nrm_geopm_eventinfo_s nrm_geopm_eventinfo_t;
 
-int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
+#define NRM_GEOPM_ACT_CPU_RAPL "nrm.geopm.cpu.rapl"
+#define NRM_GEOPM_ACT_CPU_FREQ "nrm.geopm.cpu.freq"
+
+int nrm_geopm_cpu_rapl_callback(double value)
 {
-	(void)uuid;
 	int err = 0;
 	int num_pus = geopm_topo_num_domain(GEOPM_DOMAIN_PACKAGE);
 	nrm_log_debug(
@@ -76,6 +79,50 @@ int nrm_geopm_cpu_act_callback(nrm_uuid_t *uuid, double value)
 error:
 	pthread_mutex_unlock(&geopm_lock);
 	return err;
+}
+
+int nrm_geopm_cpu_freq_callback(double value)
+{
+	int err = 0;
+	int num_cores = geopm_topo_num_domain(GEOPM_DOMAIN_CORE);
+	nrm_log_debug(
+	        "Writing CPU_FREQUENCY_*_CONTROL to %d domains. Value: %f\n",
+	        num_cores, value);
+	pthread_mutex_lock(&geopm_lock);
+	for (int i = 0; i < num_cores; i++) {
+		err = geopm_pio_write_control("CPU_FREQUENCY_MIN_CONTROL",
+		                              GEOPM_DOMAIN_CORE, i, value);
+		if (err) {
+			nrm_log_debug(
+			        "ERROR writing to CPU_FREQUENCY_MIN_CONTROL\n");
+			goto error;
+		}
+		err = geopm_pio_write_control("CPU_FREQUENCY_MAX_CONTROL",
+		                              GEOPM_DOMAIN_CORE, i, value);
+		if (err) {
+			nrm_log_debug(
+			        "ERROR writing to CPU_FREQUENCY_MAX_CONTROL\n");
+			goto error;
+		}
+	}
+error:
+	pthread_mutex_unlock(&geopm_lock);
+	return err;
+}
+
+int nrm_geopm_act_callback(nrm_uuid_t *uuid, double value)
+{
+	int err = 0;
+	nrm_log_debug("Actuator callback triggered: %s %u\n",
+		      nrm_uuid_to_char(uuid), value);
+	if(!strncmp(nrm_uuid_to_char(uuid), NRM_GEOPM_ACT_CPU_RAPL,
+		   sizeof(NRM_GEOPM_ACT_CPU_RAPL)))
+		return nrm_geopm_cpu_rapl_callback(value);
+	else if (!strncmp(nrm_uuid_to_char(uuid), NRM_GEOPM_ACT_CPU_FREQ,
+			 sizeof(NRM_GEOPM_ACT_CPU_FREQ)))
+		return nrm_geopm_cpu_freq_callback(value);
+	else
+		return -NRM_EINVAL;
 }
 
 int nrm_geopm_domain_to_scope(nrm_scope_t *scope,
@@ -131,14 +178,34 @@ int nrm_geopm_find_scope(nrm_scope_t **scope, int *added)
 void nrm_geopm_prepare_event(nrm_string_t *s)
 {
 	int err;
-	nrm_geopm_eventinfo_t event;
+	nrm_geopm_eventinfo_t event = { NULL, 0, 0, NULL, NULL };
+
+
+	/* figure out if the user asked for a domain,
+	 * we use ';' because GEOPM uses : quite a lot
+	 */
+	nrm_string_t dm = NULL;
+	err = nrm_string_split(&dm, s, ";");
+	assert(err == 0);
+
 	event.name = *s;
 	nrm_string_incref(event.name);
 
-	/* geopm info */
-	event.domain_type = geopm_pio_signal_domain_type(event.name);
-	nrm_log_debug("Parsed %s as domain type %d\n", event.name,
+	/* try to fill out domain type using split string */
+	if(dm != NULL) {
+		event.domain_type = geopm_topo_domain_type(dm);
+		nrm_log_debug("Parsed %s as domain type %d\n", event.name,
 	              event.domain_type);
+		
+	}
+	/* fallback */
+	if (event.domain_type == 0) {
+		event.domain_type = geopm_pio_signal_domain_type(event.name);
+		nrm_log_debug("Parsed %s as domain type %d\n", event.name,
+	              event.domain_type);
+	}
+
+	/* geopm info */
 	assert(event.domain_type > 0);
 	event.num_domains = geopm_topo_num_domain(event.domain_type);
 	nrm_log_debug("Domain type %d as %d domains\n", event.domain_type,
@@ -172,25 +239,54 @@ void nrm_geopm_prepare_event(nrm_string_t *s)
 	              event.name);
 }
 
-void nrm_geopm_prepare_cpu_actuator()
+void nrm_geopm_prepare_cpu_rapl_actuator()
 {
 	/* we use the default as max because the max is often way too high */
-	char *cpu_power_max_name = "CPU_POWER_LIMIT_DEFAULT";
-	char *cpu_power_min_name = "CPU_POWER_MIN_AVAIL";
+	char *cpu_rapl_max_name = "CPU_POWER_LIMIT_DEFAULT";
+	char *cpu_rapl_min_name = "CPU_POWER_MIN_AVAIL";
 
-	double cpu_power_max, cpu_power_min;
+	double cpu_rapl_max, cpu_rapl_min;
 
 	/* use package 0 for configuration */
-	geopm_pio_read_signal(cpu_power_max_name, GEOPM_DOMAIN_PACKAGE, 0,
-	                      &cpu_power_max);
-	geopm_pio_read_signal(cpu_power_min_name, GEOPM_DOMAIN_PACKAGE, 0,
-	                      &cpu_power_min);
-	nrm_log_debug("CPU power actuator: min: %f, max: %f\n", cpu_power_min,
-	              cpu_power_max);
+	geopm_pio_read_signal(cpu_rapl_max_name, GEOPM_DOMAIN_PACKAGE, 0,
+	                      &cpu_rapl_max);
+	geopm_pio_read_signal(cpu_rapl_min_name, GEOPM_DOMAIN_PACKAGE, 0,
+	                      &cpu_rapl_min);
+	nrm_log_debug("CPU power actuator: min: %f, max: %f\n", cpu_rapl_min,
+	              cpu_rapl_max);
 
-	nrm_actuator_continuous_set_limits(actuator, cpu_power_min,
-	                                   cpu_power_max);
-	nrm_actuator_set_value(actuator, cpu_power_max);
+	nrm_actuator_continuous_set_limits(cpu_rapl_actuator, cpu_rapl_min,
+	                                   cpu_rapl_max);
+	nrm_actuator_set_value(cpu_rapl_actuator, cpu_rapl_max);
+}
+
+void nrm_geopm_prepare_cpu_freq_actuator()
+{
+	/* we use the default as max because the max is often way too high */
+	char *cpu_freq_max_name = "CPU_FREQUENCY_MAX_AVAIL";
+	char *cpu_freq_min_name = "CPU_FREQUENCY_MIN_AVAIL";
+	char *cpu_freq_step_name = "CPU_FREQUENCY_STEP";
+
+	double cpu_freq_step, cpu_freq_max, cpu_freq_min;
+
+	/* use package 0 for configuration */
+	geopm_pio_read_signal(cpu_freq_step_name, GEOPM_DOMAIN_CPU, 0,
+	                      &cpu_freq_step);
+	geopm_pio_read_signal(cpu_freq_max_name, GEOPM_DOMAIN_PACKAGE, 0,
+	                      &cpu_freq_max);
+	geopm_pio_read_signal(cpu_freq_min_name, GEOPM_DOMAIN_CPU, 0,
+	                      &cpu_freq_min);
+	nrm_log_debug("CPU FREQ actuator: min: %f, max: %f, step: %f\n", cpu_freq_min,
+	              cpu_freq_max, cpu_freq_step);
+
+	size_t numsteps = (cpu_freq_max - cpu_freq_min)/cpu_freq_step;
+	double choices[numsteps];
+	for (int i = 0; i < numsteps-1; i++) {
+		choices[i] = cpu_freq_min + cpu_freq_step * i;
+	}
+	choices[numsteps-1] = cpu_freq_max;
+	nrm_actuator_discrete_set_choices(cpu_freq_actuator, numsteps, choices);
+	nrm_actuator_set_value(cpu_freq_actuator, cpu_freq_max);
 }
 
 int nrm_geopm_timer_callback(nrm_reactor_t *reactor)
@@ -286,15 +382,22 @@ int main(int argc, char **argv)
 		nrm_geopm_prepare_event(s);
 	}
 
-	actuator = nrm_actuator_continuous_create("nrm.geopm.cpu.power");
-	nrm_geopm_prepare_cpu_actuator();
-	err = nrm_client_add_actuator(client, actuator);
+	cpu_rapl_actuator = nrm_actuator_continuous_create(NRM_GEOPM_ACT_CPU_RAPL);
+	nrm_geopm_prepare_cpu_rapl_actuator();
+	err = nrm_client_add_actuator(client, cpu_rapl_actuator);
 	if (err) {
-		nrm_log_error("Unable to add cpu actuator to client\n");
-		goto cleanup_act;
+		nrm_log_error("Unable to add CPU RAPL actuator to client\n");
+		goto cleanup_rapl_act;
+	}
+	cpu_freq_actuator = nrm_actuator_discrete_create(NRM_GEOPM_ACT_CPU_FREQ);
+	nrm_geopm_prepare_cpu_freq_actuator();
+	err = nrm_client_add_actuator(client, cpu_freq_actuator);
+	if (err) {
+		nrm_log_error("Unable to add CPU FREQ actuator to client\n");
+		goto cleanup_freq_act;
 	}
 	nrm_log_debug("Actuator added to client\n");
-	nrm_client_set_actuate_listener(client, nrm_geopm_cpu_act_callback);
+	nrm_client_set_actuate_listener(client, nrm_geopm_act_callback);
 	nrm_log_debug("Actuator callback set to client\n");
 	nrm_client_start_actuate_listener(client);
 	nrm_log_debug("Actuator callback started\n");
@@ -318,9 +421,12 @@ int main(int argc, char **argv)
 
 	nrm_reactor_destroy(&reactor);
 cleanup:
-	nrm_client_remove_actuator(client, actuator);
-cleanup_act:
-	nrm_actuator_destroy(&actuator);
+	nrm_client_remove_actuator(client, cpu_freq_actuator);
+cleanup_freq_act:
+	nrm_actuator_destroy(&cpu_freq_actuator);
+	nrm_client_remove_actuator(client, cpu_rapl_actuator);
+cleanup_rapl_act:
+	nrm_actuator_destroy(&cpu_rapl_actuator);
 	nrm_vector_foreach(events, iterator)
 	{
 		nrm_geopm_eventinfo_t *e = nrm_vector_iterator_get(iterator);
