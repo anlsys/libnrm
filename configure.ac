@@ -144,6 +144,43 @@ AM_CONDITIONAL([HAVE_GEOPM],[test "$have_geopm" = "1"])
 AC_DEFINE_UNQUOTED([HAVE_GEOPM],[$have_geopm], [geopm support])
 AC_SUBST([HAVE_GEOPM],[$have_geopm])
 
+# NVML (NVIDIA Management Library)
+##################################
+# libnvidia-ml is shipped with the NVIDIA driver, nvml.h with the CUDA toolkit.
+# NVML has no pkg-config file in standard installs, so search manually.
+# --with-nvml=PATH may be used to point at a CUDA toolkit prefix.
+
+AC_ARG_WITH([nvml],
+	    [AS_HELP_STRING([--with-nvml@<:@=PATH@:>@],
+			    [Use NVIDIA NVML; PATH is the CUDA toolkit prefix @<:@default=no@:>@])],
+	    [with_nvml=$withval], [with_nvml=no])
+AS_IF([test "x$with_nvml" != "xno"],
+      [
+       AS_IF([test "x$with_nvml" != "xyes"],
+	     [NVML_CFLAGS="-I${with_nvml}/include"
+	      NVML_LIBS="-L${with_nvml}/lib64 -L${with_nvml}/lib"])
+       saved_CFLAGS=$CFLAGS
+       saved_LIBS=$LIBS
+       CFLAGS="$CFLAGS $NVML_CFLAGS"
+       LIBS="$LIBS $NVML_LIBS"
+       AC_SEARCH_LIBS([nvmlInit_v2], [nvidia-ml], [], [AC_MSG_ERROR([unable to find libnvidia-ml (NVIDIA driver)])])
+       NVML_LIBS="$LIBS"
+       AC_CHECK_HEADERS([nvml.h],,[AC_MSG_ERROR([unable to find nvml.h (CUDA toolkit)])])
+       have_nvml=1
+       CFLAGS="$saved_CFLAGS"
+       LIBS="$saved_LIBS"
+      ],
+      [
+       have_nvml=0
+      ]
+)
+
+AC_SUBST(NVML_CFLAGS)
+AC_SUBST(NVML_LIBS)
+AM_CONDITIONAL([HAVE_NVML],[test "$have_nvml" = "1"])
+AC_DEFINE_UNQUOTED([HAVE_NVML],[$have_nvml], [NVML support])
+AC_SUBST([HAVE_NVML],[$have_nvml])
+
 # PYTHON
 #########
 
@@ -205,6 +242,7 @@ AC_CONFIG_FILES([Makefile
 		 tests/cli/Makefile
 		 tests/cli/bats-driver.sh
 		 tests/geopm/Makefile
+		 tests/nvml/Makefile
 		 tests/ompt/Makefile
 		 tests/pmpi/Makefile
 		 include/nrm/utils/version.h])
@@ -269,6 +307,13 @@ GEOPM:
 Active:  $have_geopm
 CFLAGS:  $GEOPM_CFLAGS
 LDFLAGS: $GEOPM_LIBS
+
+NVML:
+=======
+
+Active:  $have_nvml
+CFLAGS:  $NVML_CFLAGS
+LDFLAGS: $NVML_LIBS
 
 OMPT:
 ======

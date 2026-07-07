@@ -20,6 +20,7 @@ AM_CFLAGS = $(PTHREAD_CFLAGS) \
 	    $(HWLOC_CFLAGS) \
 	    $(PAPI_CFLAGS) \
 	    $(GEOPM_CFLAGS) \
+	    $(NVML_CFLAGS) \
 	    $(OPENMP_CFLAGS)
 
 AM_LDFLAGS = $(PTHREAD_LIBS) \
@@ -29,6 +30,7 @@ AM_LDFLAGS = $(PTHREAD_LIBS) \
 	     $(LIBPROTOC_LIBS) \
 	     $(HWLOC_LIBS) \
 	     $(GEOPM_LIBS) \
+	     $(NVML_LIBS) \
 	     $(PAPI_LIBS) \
 	     $(OPENMP_CFLAGS)
 
@@ -184,6 +186,12 @@ nrm_geopm_LDADD = libnrm.la
 bin_PROGRAMS += nrm-geopm
 endif
 
+if HAVE_NVML
+nrm_nvml_SOURCES = src/binaries/nrm-nvml.c
+nrm_nvml_LDADD = libnrm.la
+bin_PROGRAMS += nrm-nvml
+endif
+
 bin_SCRIPTS = nrm-setup nrm-prometheus
 
 nrm-setup: src/python/nrm-setup.py
@@ -234,6 +242,10 @@ endif
 
 if HAVE_GEOPM
 SUBDIRS += tests/geopm
+endif
+
+if HAVE_NVML
+SUBDIRS += tests/nvml
 endif
 
 AM_COLOR_TESTS = yes

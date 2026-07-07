@@ -18,10 +18,11 @@ Using Spack_ is recommended to install libnrm::
 
     $ spack install libnrm
 
-libnrm also includes two optional utilities for power/event measurement on a variety of leadership-class systems:
+libnrm also includes optional utilities for power/event measurement on a variety of leadership-class systems:
 
   - ``nrm-papiwrapper``, requiring ``papi`` (https://github.com/icl-utk-edu/papi)
   - ``nrm-geopm``, requiring ``GEOPM`` (https://geopm.github.io/)
+  - ``nrm-nvml``, requiring the NVIDIA driver and CUDA toolkit (see :doc:`nvml`)
 
 These can be installed as variants of libnrm::
 

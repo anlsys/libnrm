@@ -73,6 +73,11 @@ ltmain.sh
 
 # editors
 *~
+.idea/
+*.swp
+
+# macOS
+.DS_Store
 
 # package config
 libnrm.pc

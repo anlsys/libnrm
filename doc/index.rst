@@ -30,6 +30,7 @@ Use Spack_ to install libnrm::
    :caption: User Guides:
 
    pages/quickstart
+   pages/nvml
 
 .. toctree::
    :maxdepth: 2
